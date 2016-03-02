@@ -1,0 +1,80 @@
+Research Statement
+Colin Scott (cs@cs.berkeley.edu)
+
+My approach to research is to start by understanding the problems faced by the people I intend to support, then to formalize these problems and develop principled tools and techniques to solve them, and finally to close the loop by evaluating whether my ideas succeed in supporting those people. The genesis of my dissertation topic was an internship I did at Nicira, where I saw that the company’s most skilled developers spent the majority of their time sifting through log files from buggy executions. I spent the next 4 years experimenting with formal methods and systems for aiding their debugging effort, building out usable prototypes, and eliciting feedback from the software development communities I intended to support.
+Dissertation Work: Minimizing Faulty Executions of Distributed Systems
+
+When a bug is found in a long-running distributed system, developers typically start by identifying (i) which events in the execution caused their system to arrive at the unsafe state, and (ii) which events are irrelevant. This process of troubleshooting can be highly time-consuming, as developers might spend hours poring over multigigabyte traces containing thousands of events.
+
+My dissertation work aims to reduce effort spent on troubleshooting distributed systems, by automatically eliminating events from buggy executions that are not causally related to the bug at hand. The developer is left with a `minimal causal sequence' of triggering events, each of which is necessary for triggering the bug. We claim that the greatly reduced size of the trace makes it easier for the developer to figure out which code path contains the underlying bug, allowing them to focus their effort on the task of fixing the problematic code itself.
+
+My investigation into this problem took place in two parts:
+Focus on SDN control software, with limited control over the execution.
+
+I started in the context of software-defined networking [1,2,3], where I posed the question:
+
+Is it possible to minimize executions of distributed SDN control software, without making any assumptions about the language or instrumentation of the software under test?
+
+I discovered that, although input minimization is well studied for sequential programs, I could find no principled approaches to minimization for blackbox concurrent systems. My investigation lead me to identify several challenges posed by concurrency. Most importantly, input events (e.g., node failures) are interleaved with the internal events (e.g., state transitions) of concurrent processes. In searching for a minimal execution, minimization algorithms must therefore consider both which of the input events and which of the (exponentially many) event schedules are likely to still trigger the bug. This lead to the first key challenge: 
+
+	How should we interleave events while we search for a minimal execution?
+
+I developed an intuitive heuristic: we know that the original execution triggered the bug, so, when exploring modified executions we should try to stay as close as possible to the original execution’s causal dependencies. The mechanism I developed to implement this heuristic involved dynamically inferring whether events we expect to show up (from the original execution) will in fact show up in modified executions.
+
+I constrained myself to avoiding assumptions about programming language or instrumentation because this would ensure that organizations would be able to implement the technology within their existing QA infrastructure. Instead of interposing on a language, I interpose on a standard protocol used by SDN control software: OpenFlow. By interposing on OpenFlow messages, our system (STS) was able to control the interleavings of events to a large extent. Nonetheless, without perfect control, we had to deal with a second key challenge:
+
+Is it possible to mitigate non-determinism, without assumptions about instrumentation?
+
+I took an experimental approach to this challenge. Through case studies I discovered an effective set of heuristics involving careful wall-clock spacing between events, and replaying non-deterministic executions multiple times.
+
+Impact: STS has gained adoption by both academics and industrial organizations: it has been used as part of the development process for the ONOS open source SDN controller; I sent an undergraduate on an internship to Big Switch Networks to integrate STS; and STS has been used as the basis for research projects at EPFL and Duke [12,13].
+Focus on classical distributed systems, with nearly perfect control.
+
+STS focused narrowly on one kind of distributed system, and the heuristics we developed for STS left significant room for improvement. In my next project [4] I identified a computational model that would allow us to cleanly reason about new minimization heuristics, and I applied these heuristics successfully to several types of distributed systems besides SDN software.
+
+The computational model I identified---the actor model---showed how we could gain (nearly) perfect control over the execution of events in actor-based distributed systems. With this control in place, it would be theoretically possible to simply enumerate all possible schedules, execute each one, and pick the smallest execution that triggers the bug. The space of all possible schedules is intractably large however, which lead to our main question:
+
+	How can we maximize reduction of trace size within bounded time?
+
+My general approach would be to carefully prioritize the order in which we explore the schedule space, with the goal of quickly finding small executions that still trigger the bug. I designed these prioritization functions based on my understanding of how programs behave in practice. As I had learned from STS, my key insight was that if one schedule triggers a bug, schedules that are similar in their causal structure should have a high probability of also triggering the bug. Translating this intuition into a prioritization function required us to address our second challenge: 
+
+How can we reason about the similarity or dissimilarity of two distinct executions?
+
+I developed a hierarchy of equivalence relations between events, and showed that systematically exploring schedules that are close to the original execution yielded significant gains in minimization over the previous heuristics from STS. I implemented these heuristics in a system called DEMi, and used it to find and minimize several bugs in the Raft consensus protocol and the Spark data analytics engine.
+
+Impact: DEMi has already gained notable attention from industry; it has been covered by industrial bloggers other than myself, and I have received 3 invitations to speak about DEMi at industrial conferences venues.
+Other Research
+
+While my dissertation work focused on a specific topic at the intersection of distributed systems and software engineering, I am broadly interested in systems, networking, and technology for emerging markets. My previous work includes:
+
+Data Compression for the Mobile Web. The high cost of data for mobile devices remains a major barrier to use of the Internet in emerging markets. Over the course of two internships, I published and presented a paper on Google’s data compression proxy for the mobile web, which helps alleviate these data costs, and dovetails my interests in networking and technology for emerging markets [7]. This work was informed by my prior research on outsourcing middleboxes such as compression proxies to third-party cloud operators [8].
+
+CAP for Networks. A colleague and I posed the question: how does the CAP theorem apply to SDN networks? We formally proved that network designers face hard tradeoffs between availability and the desire to maintain common network policies such as tenant isolation [9].
+
+Internet Fault Diagnosis. My interest in troubleshooting originates from my previous research on routing problems on the wide-area Internet. I helped develop the reverse traceroute tool [5] for measuring the reverse path from a destination back towards a source, and the LIFEGUARD system for helping operators automatically route around failures and misconfigurations on the Internet [6]. I am also currently working on a statistical root cause analysis algorithm for pinpointing the autonomous system responsible for routing changes [11].
+
+SDN for Rural Connectivity. Operating a rural network in the developing world means coping with unpredictability, low profit margins, and resource constraints. In a collaboration with the TIER group, we argued that the increased flexibility and simplified management that software-defined networks provide are a major benefit in this context [10].
+Future Work
+
+Distributed systems are an increasingly pervasive part of our lives. In comparison to other areas of software engineering however, the development tools that help programmers cope with the complexity of distributed systems are lagging behind their sequential counterparts. Going forward, I see a pressing need to bring the state-of-the-art for distributed systems tools up to speed with the more well studied programming languages and software engineering techniques designed for single machines. Bridging this gap would involve answering many questions spanning systems, formal methods, and human-computer interaction, such as:
+
+Computational Models for Program Analysis: Program analysis for arbitrary Turing machines and arbitrary program properties is typically either undecidable or intractable. The distributed systems we build in practice however are not adversarial! Can we codify the properties of practical distributed systems (e.g. quiescence, bounded state) that make them more easily amenable to program analysis? What program analysis tools can we provide to help alleviate the specific challenges (e.g. performance variability, concurrency) faced by distributed systems?
+
+Systems and HCI Methodologies for Avoiding Configuration Errors: Human configuration errors remain the largest source of outages. More generally, developers and operators spend a significant portion of their time and effort dealing with configuration. To what extent can we design our systems to be autonomous and configuration-free? For the remainder of knobs we must expose to humans, what can we learn from the HCI community on how to design configuration interfaces to avoid errors and facilitate clear reasoning?
+
+Synthesis Tools and Language Constructs for Safe Asynchronous Programming: Asynchrony and partial failure are fundamental to networked systems, yet asynchronous programming remains notoriously error prone. To what extent can we automatically synthesize tricky pieces of asynchronous code? Can we provide language constructs that side-step the need for developers to reason about the entire combinatorial space of possible message orderings?
+References
+
+[1] Brandon Heller, Colin Scott, Nick Mckeown, Scott Shenker, Andreas Wundsam, Hongyi Zeng, Sam Whitlock, Vimal Jeyakumar, Nikhil Handigol, Murphy McCauley, Kyriakos Zarifis, Peyman Kazemian., “Leveraging SDN Layering to Systematically Troubleshoot Networks”. HotSDN ‘13.
+[2] Sam Whitlock, Colin Scott, Scott Shenker, “Techniques for Programmatically Troubleshooting Distributed Systems” PODC ‘13
+[3] Colin Scott, Andreas Wundsam, Barath Raghavan, Aurojit Panda, Zhi Liu, Sam Whitlock, Ahmed El-Hassany, Andrew Or, Jefferson Lai, Eugene Huang, Hrishikesh B. Acharya, Kyriakos Zarifis, Scott Shenker, “Troubleshooting Blackbox SDN Control Software with Minimal Causal Sequences” SIGCOMM ‘14
+[4] Colin Scott, Aurojit Panda, Vjekoslav Brajkovic, George Necula, Arvind Krishnamurthy, Scott Shenker. “Minimizing Faulty Executions of Distributed Systems”. NSDI ‘16
+[5] Ethan Katz-Bassett, Harsha V. Madhyastha, Vijay Kumar Adhikari, Colin Scott, Justine Sherry, Peter Van Wesep, Thomas Anderson, Arvind Krishnamurthy, “Reverse Traceroute”, NSDI ‘10
+[6] Ethan Katz-Bassett, Colin Scott, David R. Choffnes, Italo Cunha, Vytautas Valancius, Nick Feamster, Harsha V. Madhyastha, Thomas Anderson, Arvind Krishnamurthy, “LIFEGUARD: Practical Repair of Persistent Route Failures” SIGCOMM ‘12
+[7] Victor Agababov, Michael Buettner, Victor Chudnovsky, Mark Cogan, Ben Greenstein, Shane McDaniel, Michael Piatek, Colin Scott, Matt Welsh, Bolian Yin, “Flywheel: Google's Data Compression Proxy for the Mobile Web”, NSDI ‘15
+[8] Justine Sherry, Shaddi Hasan, Colin Scott, Arvind Krishnamurthy, Sylvia Ratnasamy, Vyas Sekar, “Making Middleboxes Someone Else's Problem: Network Processing as a Cloud Service”, SIGCOMM ‘12
+[9] Aurojit Panda, Colin Scott, Ali Ghodsi, Teemu Koponen, Scott Shenker, “CAP for Networks”, HotSDN ‘13
+[10] Shaddi Hasan, Yahel Ben David, Colin Scott, Eric Brewer, Scott Shenker,  “SDN for Rural Connectivity” EECS-2012-201 TR
+[11] Yuchen Jin, Colin Scott, Scott Shenker, Arvind Krishnamurthy. “Internet-Wide Statistical Root Cause Analysis.” Work in progress.
+[12] Jeremie Miserez, Pavol Bielik, Ahmed El-Hassany, Laurent Vanbever, Martin Vechev, “SDNRacer: Detecting Concurrency Violations in Software-Defined Networks”. SOSR ‘15
+[13] Theophilus Benson, “Differential Testing for SDN”, Work in progress.
