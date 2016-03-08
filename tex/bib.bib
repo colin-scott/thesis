@@ -270,9 +270,9 @@
  series = {IEEE TSE '02},
 }
 
-@INPROCEEDINGS{Gupta06toinfinity,
+@inproceedings{Gupta06toinfinity,
  author = {Diwaker Gupta and Kenneth Yocum and Marvin Mcnett and Alex C. Snoeren and Amin Vahdat and Geoffrey M. Voelker},
- title = {To {I}nfinity and {B}eyond: {T}ime{W}arped {N}etwork {E}mulation},
+ title = {To {I}nfinity and {B}eyond: {T}ime-{W}arped {N}etwork {E}mulation},
  series = {NSDI '06},
 }
 
@@ -596,7 +596,8 @@ http://www.google.com/patents/US6654911?dq=interactive+test+generation
 }
 
 @misc{riak_quote,
-  author={Andrew Thompson},
+  author={{Basho Blog}},
+  title={{QuickChecking Poolboy for Fun and Profit}},
   howpublished={\url{http://tinyurl.com/qgc387k}}
 }
 
@@ -636,6 +637,12 @@ http://www.google.com/patents/US6654911?dq=interactive+test+generation
   series={PLDI '12},
 }
 
+@inproceedings{yang2011finding,
+  title={{Finding and Understanding Bugs in C Compilers}},
+  author={Yang, Xuejun and Chen, Yang and Eide, Eric and Regehr, John},
+  series={PLDI '11}
+}
+
 @inproceedings{park2009pres,
   title={{PRES: Probabilistic Replay with Execution Sketching on Multiprocessors}},
   author={Park, Soyeon and Zhou, Yuanyuan and Xiong, Weiwei and Yin, Zuoning and Kaushik, Rini and Lee, Kyu H and Lu, Shan},
@@ -667,6 +674,12 @@ http://www.google.com/patents/US6654911?dq=interactive+test+generation
   series={ICSE '07},
 }
 
+@inproceedings{jin2013f3,
+  title={{F3: Fault Localization for Field Failures}},
+  author={Jin, Wei and Orso, Alessandro},
+  series={ISSTA '13}
+}
+
 @inproceedings{tucek2007triage,
   title={{Triage: Diagnosing Production Run Failures at the User's Site}},
   author={Tucek, Joseph and Lu, Shan and Huang, Chengdu and Xanthos, Spiros and Zhou, Yuanyuan},
@@ -683,4 +696,537 @@ http://www.google.com/patents/US6654911?dq=interactive+test+generation
   title={{An Efficient Static Trace Simplification Technique for Debugging Concurrent Programs}},
   author={Huang, Jeff and Zhang, Charles},
   series={SAS '11},
+}
+
+@inproceedings{csight,
+  title={{Inferring Models of Concurrent Systems from Logs of their Behavior
+      with CSight}},
+  author={Ivan Beschastnikh and Yuriy Brun and Michael D. Ernst and Arvind
+      Krishnamurthy},
+  series={ICSE '14}
+}
+
+@inproceedings{synoptic,
+  title={{Leveraging Existing Instrumentation to Automatically Infer
+      Invariant-Constrained Models}},
+  author={Ivan Beschastnikh and Yuriy Brun and Sigurd Schneider and Michael
+      Sloan and Michael D. Ernst.},
+  series={ESEC/FSE '11}
+}
+
+@inproceedings{biermann1972synthesis,
+  title={{On the Synthesis of Finite-State Machines from Samples of their Behavior}},
+  author={Biermann, Alan W and Feldman, Jerome A},
+  series={IEEE ToC '72},
+}
+
+@inproceedings{lorenzoli2008automatic,
+  title={{Automatic Generation of Software Behavioral Models}},
+  author={Lorenzoli, Davide and Mariani, Leonardo and Pezz{\`e}, Mauro},
+  series={ICSE '08}
+}
+
+@inproceedings{lou2010mining,
+  title={{Mining Invariants from Console Logs for System Problem Detection}},
+  author={Lou, Jian-Guang and Fu, Qiang and Yang, Shengqi and Xu, Ye and Li, Jiang},
+  series={ATC '10}
+}
+
+@inproceedings{aguilera1997heartbeat,
+  title={{Heartbeat: A Timeout-Free Failure Detector for Quiescent Reliable Communication}},
+  author={Aguilera, Marcos Kawazoe and Chen, Wei and Toueg, Sam},
+  series={International Workshop on Distributed Algorithms '97}
+}
+
+@inproceedings{zeller2005,
+  title={{Locating Causes of Program Failures}},
+  author={Holger Cleve and Andreas Zeller},
+  series={ICSE '05}
+}
+
+@inproceedings{zhangzhang,
+  title={{Software Bug Localization with Markov Logic}},
+  author={Sai Zhang and Congle Zhang},
+  series={ICSE '14}
+}
+
+@inproceedings{coverage_localization,
+  title={{Visualization of Test Information To Assist Fault Localization}},
+  author={{J. A. Jones and M. J. Harrold and J. Stasko}},
+  series={ICSE '02}
+}
+
+@inproceedings{comparative_causality,
+  title={{Comparative Causality: Explaining the Differences Between Executions}},
+  author={William Sumner and Xiangyu Zhang},
+  series={ICSE '13}
+}
+
+@inproceedings{jose11,
+  title={{Cause Clue Causes: Error Localization Using Maximum Satisfiability}},
+  author={{M. Jose and R. Majmudar}},
+  series={PLDI '11}
+}
+
+@inproceedings{xuan14,
+  title={{Test Case Purification for Improving Fault Localization}},
+  author={Jifeng Xuan and Martin Monperrus},
+  series={FSE '14}
+}
+
+@inproceedings{zhang13,
+  title={{Injecting Mechanical Faults to Localize Developer Faults for
+      Evolving Software}},
+  author={{L. Zhang and L. Zhang and S. Khurshid}},
+  series={OOPSLA '13}
+}
+
+@inproceedings{chang2007simulation,
+  title={{Simulation-Based Bug Trace Minimization with BMC-Based Refinement}},
+  author={Chang, Kai-hui and Bertacco, Valeria and Markov, Igor L},
+  series={IEEE TCAD '07}
+}
+
+@inproceedings{sts2014,
+  title={{Troubleshooting Blackbox SDN Control Software with Minimal Causal
+      Sequences}},
+  author={Colin Scott and Andreas Wundsam and Barath Raghavan and Aurojit Panda and Andrew Or and Jefferson Lai
+and Eugene Huang and Zhi Liu and Ahmed El-Hassany and Sam Whitlock and H.B. Acharya
+and Kyriakos Zarifis and Scott Shenker},
+  series={SIGCOMM '14}
+}
+
+@inproceedings{yabandeh2009crystalball,
+  title={{CrystalBall: Predicting and Preventing Inconsistencies in Deployed Distributed Systems}},
+  author={Yabandeh, Maysam and Knezevic, Nikola and Kostic, Dejan and Kuncak, Viktor},
+  series={NSDI '09},
+}
+
+@inproceedings{leesatapornwongsa2014samc,
+  title={{SAMC: Semantic-Aware Model Checking for Fast Discovery of Deep Bugs in Cloud Systems}},
+  author={Leesatapornwongsa, Tanakorn and Hao, Mingzhe and Joshi, Pallavi and Lukman, Jeffrey F and Gunawi, Haryadi S},
+  series={OSDI '14},
+}
+
+@inproceedings{lin2009modist,
+  title={{MODIST: Transparent Model Checking of Unmodified Distributed Systems}},
+  author={Lin, Haoxiang and Yang, Mao and Long, Fan and Zhang, Lintao and Zhou, Lidong},
+  series={NSDI '09}
+}
+
+@inproceedings{shacham2014verifying,
+  title={{Verifying Atomicity via Data Independence}},
+  author={Shacham, Ohad and Yahav, Eran and Gueta, Guy Golan and Aiken, Alex and Bronson, Nathan and Sagiv, Mooly and Vechev, Martin},
+  series={ISSTA'14}
+}
+
+@misc{akka,
+  title={Akka official website},
+  howpublished={\url{http://akka.io/}}
+}
+
+@inproceedings{stoica2001chord,
+  title={{Chord: A Scalable Peer-to-Peer Lookup Service for Internet Applications}},
+  author={Stoica, Ion and Morris, Robert and Karger, David and Kaashoek, M Frans and Balakrishnan, Hari},
+  series={SIGCOMM '01}
+}
+
+@inproceedings{ongaro2014search,
+  title={{In Search of an Understandable Consensus Algorithm}},
+  author={Ongaro, Diego and Ousterhout, John},
+  series={ATC '14}
+}
+
+@inproceedings{Chang:1984:RBP:989.357400,
+ author = {Chang, Jo-Mei and Maxemchuk, N. F.},
+ title = {{Reliable Broadcast Protocols}},
+ series = {TCS '84}
+}
+
+@inproceedings{zaharia2012resilient,
+  title={{Resilient Distributed Datasets: A Fault-Tolerant Abstraction for In-Memory Cluster Computing}},
+  author={Zaharia, Matei and Chowdhury, Mosharaf and Das, Tathagata and Dave, Ankur and Ma, Justin and McCauley, Murphy and Franklin, Michael J and Shenker, Scott and Stoica, Ion},
+  series={NSDI '12}
+}
+
+@misc{odl,
+  title={{OpenDaylight}},
+  howpublished={\url{http://www.opendaylight.org/}}
+}
+
+@inproceedings{Aguilera:1999,
+  title={{Quiescent Reliable Communication and Quiescent Consensus in Partitionable Networks}},
+  author = {Aguilera, Marcos K and Chen, Wei and Toueg, Sam},
+  series={TCS '99}
+}
+
+@inproceedings{chandra1996weakest,
+  title={{The Weakest Failure Detector for Solving Consensus}},
+  author={Chandra, Tushar Deepak and Hadzilacos, Vassos and Toueg, Sam},
+  series={JACM '96}
+}
+
+@inproceedings{wolper,
+  title={{Expressing Interesting Properties of Programs
+    in Propositional Temporal Logic}},
+  author={Wolper, P.},
+  series={POPL '86}
+}
+
+@inproceedings{de1979social,
+  title={{Social Processes and Proofs of Theorems and Programs}},
+  author={De Millo, Richard A and Lipton, Richard J and Perlis, Alan J},
+  series={CAMC '79}
+}
+
+@inproceedings{rabin1958recursively,
+  title={{On Recursively Enumerable and Arithmetic Models of Set Theory}},
+  author={Rabin, Michael O},
+  series={Journal of Symbolic Logic '58},
+}
+
+@book{godefroid1995partial,
+  title={{Partial-Order Methods for the Verification of Concurrent Systems: An Approach to the State-Explosion Problem}},
+  author={Godefroid, Patrice and van Leeuwen, J and Hartmanis, J and Goos, G and Wolper, Pierre},
+  series={PhD Thesis, '95}
+}
+
+@inproceedings{rowstron2001pastry,
+  title={{Pastry: Scalable, decentralized object location, and routing for large-scale peer-to-peer systems}},
+  author={Rowstron, Antony and Druschel, Peter},
+  series={Middleware '01}
+}
+
+@misc{akka-raft,
+  title={{akka-raft Github repo}},
+  howpublished={\url{https://github.com/ktoso/akka-raft}}
+}
+
+@inproceedings{fse_web_ddmin,
+  title={{On the Use of Delta Debugging to Reduce Recordings and Facilitate Debugging of Web Applications}},
+  author={Mouna Hammoudi and Brian Burg and Gigon and Gregg Rothermel},
+  series={ESEC/FSE '15}
+}
+
+@inproceedings{christ2013flow,
+  title={{Flow-Sensitive Fault Localization}},
+  author={Christ, J{\"u}rgen and Ermis, Evren and Sch{\"a}f, Martin and Wies, Thomas},
+  series={VMCAI '13}
+}
+
+@inproceedings{khoshnood2015concbugassist,
+  title={{ConcBugAssist: Constraint Solving for Diagnosis and Repair of Concurrency Bugs}},
+  author={Khoshnood, Sepideh and Kusano, Markus and Wang, Chao},
+  series={ISSTA '15}
+}
+
+@inproceedings{machado2015concurrency,
+  title={{Concurrency Debugging with Differential Schedule Projections}},
+  author={Machado, Nuno and Lucia, Brandon and Rodrigues, Lu{\i}s},
+  series={PLDI '15},
+}
+
+@inproceedings{tzoref2007instrumenting,
+  title={{Instrumenting Where it Hurts: An Automatic Concurrent Debugging Technique}},
+  author={Tzoref, Rachel and Ur, Shmuel and Yom-Tov, Elad},
+  series={ISSTA '07}
+}
+
+// CHESS
+@inproceedings{musuvathi2007iterative,
+  title={{Iterative Context Bounding for Systematic Testing of Multithreaded Programs}},
+  author={Musuvathi, Madanlal and Qadeer, Shaz},
+  series={PLDI '07}
+}
+
+// PCT
+@inproceedings{burckhardt2010randomized,
+  title={{A Randomized Scheduler with Probabilistic Guarantees of Finding Bugs}},
+  author={Burckhardt, Sebastian and Kothari, Pravesh and Musuvathi, Madanlal and Nagarakatte, Santosh},
+  series={ASPLOS '10}
+}
+
+@inproceedings{terragnirecontest,
+  title={{RECONTEST: Effective Regression Testing of Concurrent Programs}},
+  author={Terragni, Valerio and Cheung, Shing-Chi and Zhang, Charles},
+  series={ICSE '15}
+}
+
+@inproceedings{fonseca2014ski,
+  title={{SKI: Exposing Kernel Concurrency Bugs through Systematic Schedule Exploration}},
+  author={Fonseca, Pedro and Rodrigues, Rodrigo and Brandenburg, Bj{\"o}rn B},
+  series={OSDI '14}
+}
+
+@inproceedings{kiczales2001overview,
+  title={{An Overview of AspectJ}},
+  author={Kiczales, Gregor and Hilsdale, Erik and Hugunin, Jim and Kersten, Mik and Palm, Jeffrey and Griswold, William G},
+  series={ECOOP '01}
+}
+
+@misc{spark_repo,
+  title={{Apache Spark Github repo}},
+  howpublished={\url{https://github.com/apache/spark/}}
+}
+
+@misc{regehr_blog,
+  title={{Generating a Random Program vs. Generating All Programs}},
+  howpublished={\url{http://blog.regehr.org/archives/1246}}
+}
+
+@inproceedings{avgerinos2014enhancing,
+  title={{Enhancing Symbolic Execution with Veritesting}},
+  author={Avgerinos, Thanassis and Rebert, Alexandre and Cha, Sang Kil and Brumley, David},
+  series={ICSE '14}
+}
+
+@misc{gcc_reduction,
+  title={{GNU's guide to testcase reduction}},
+  howpublished={\url{https://gcc.gnu.org/wiki/A_guide_to_testcase_reduction}}
+}
+
+@misc{bugpoint,
+  title={{LLVM bugpoint tool: design and usage}},
+  howpublished={\url{http://llvm.org/docs/Bugpoint.html}}
+}
+
+@misc{firefox_reduction,
+  title={{7 Tips for Fuzzing Firefox More Effectively}},
+  howpublished={\url{https://blog.mozilla.org/security/2012/06/20/7-tips-for-fuzzing-firefox-more-effectively/}}
+}
+
+@inproceedings{yabandeh2009dpor,
+  title={{DPOR-DS: Dynamic Partial Order Reduction in Distributed Systems}},
+  author={Yabandeh, Maysam and Kostic, Dejan},
+  series={2009 Tech Report}
+}
+
+
+@misc{diffy,
+  title={{Diffy: Testing Services Without Writing Tests}},
+  author={{Twitter Blog}},
+  howpublished={\url{https://blog.twitter.com/2015/diffy-testing-services-without-writing-tests}}
+}
+
+@misc{our_repo,
+  title={{DEMi Github repo}},
+  howpublished={\url{https://github.com/NetSys/demi}}
+}
+
+@inproceedings{altekar2009odr,
+  title={{ODR: Output-Deterministic Replay for Multicore Debugging}},
+  author={Altekar, Gautam and Stoica, Ion},
+  series={SOSP '09}
+}
+
+@inproceedings{kasikci2015failure,
+  title={{Failure Sketching: A Technique for Automated Root Cause Diagnosis of In-Production Failures}},
+  author={Kasikci, Baris and Schubert, Benjamin and Pereira, Cristiano and Pokam, Gilles and Candea, George},
+  series={SOSP '15}
+}
+
+@inproceedings{coons2010gambit,
+  title={{GAMBIT: Effective Unit Testing for Concurrency Libraries}},
+  author={Coons, Katherine E and Burckhardt, Sebastian and Musuvathi, Madanlal},
+  series={PPoPP '10}
+}
+
+@inproceedings{lauterburg2010evaluating,
+  title={{Evaluating Ordering Heuristics for Dynamic Partial-Order Reduction Techniques}},
+  author={Lauterburg, Steven and Karmani, Rajesh K and Marinov, Darko and Agha, Gul},
+  series={FASE '10}
+}
+
+@inproceedings{yang2008efficient,
+  title={{Efficient Stateful Dynamic Partial Order Reduction}},
+  author={Yang, Yu and Chen, Xiaofang and Gopalakrishnan, Ganesh and Kirby, Robert M},
+  series={MCS '08},
+}
+
+@inproceedings{yi2006stateful,
+  title={{Stateful Dynamic Partial-Order Reduction}},
+  author={Yi, Xiaodong and Wang, Ji and Yang, Xuejun},
+  series={FMSE '06}
+}
+
+@book{sangmin,
+  title={{Effective Fault Localization Techniques for Concurrent Software}},
+  author={Sang Min Park},
+  series={PhD Thesis, '14}
+}
+
+@inproceedings{el2014efficient,
+  title={{An Efficient Binary Technique for Frace Simplifications of Concurrent Programs}},
+  author={El-Zawawy, Mohamed A and Alanazi, Mohammad N},
+  series={ICAST '14},
+}
+
+@inproceedings{hughes2011testing,
+  title={{Testing a Database for Race Conditions with QuickCheck}},
+  author={Hughes, John M and Bolinder, Hans},
+  series={Erlang '11}
+}
+
+@misc{hughes_email,
+  author={John M Hughes},
+  howpublished={Personal Communication}
+}
+
+@inproceedings{ernst2001dynamically,
+  title={{Dynamically Discovering Likely Program Invariants to Support Program Evolution}},
+  author={Ernst, Michael D and Cockrell, Jake and Griswold, William G and Notkin, David},
+  series={IEEE ToSE '01}
+}
+
+@inproceedings{elyasov2013guided,
+  title={{Guided Algebraic Specification Mining for Failure Simplification}},
+  author={Elyasov, Alexander and Prasetya, IS Wishnu B and Hage, Jurriaan},
+  series={TSS '13},
+}
+
+@inproceedings{wang2015fast,
+  title={{Fast Reproducing Web Application Errors}},
+  author={Wang, Jie and Dou, Wensheng and Gao, Chushu and Wei, Jun},
+  series={ISSRE '15},
+}
+
+@inproceedings{cai2013lock,
+  title={{Lock Trace Reduction for Multithreaded Programs}},
+  author={Cai, Yan and Chan, WK},
+  series={TPDS '13}
+}
+
+@inproceedings{simsa2010dbug,
+  title={{dBug: Systematic Evaluation of Distributed Systems}},
+  author={Simsa, Jiri and Bryant, Randy and Gibson, Garth A},
+  series={SSV '10}
+}
+
+@inproceedings{bergan2010deterministic,
+  title={Deterministic Process Groups in dOS.},
+  author={Bergan, Tom and Hunt, Nicholas and Ceze, Luis and Gribble, Steven D},
+  series={OSDI '10},
+}
+
+@article{hunt2013ddos,
+  title={DDOS: Taming nondeterminism in distributed systems},
+  author={Hunt, Nicholas and Bergan, Tom and Ceze, Luis and Gribble, Steven D},
+  series={ASPLOS '13}
+}
+
+@article{pokam2009hardware,
+  title={HARDWARE AND SOFTWARE APPROACHES FOR DETERMINISTIC MULTI-PROCESSOR REPLAY OF CONCURRENT PROGRAMS.},
+  author={Pokam, Gilles and Pereira, Cristiano and Danne, Klaus and Yang, Lynda and King, Sam and Torrellas, Josep},
+  series={Intel Technology Journal '09},
+}
+
+@techreport{sambasivan2014so,
+  title={So, you want to trace your distributed system? Key design insights from years of practical experience},
+  author={Sambasivan, Raja R and Fonseca, Rodrigo and Shafer, Ilari and Ganger, Gregory R},
+  year={2014},
+  institution={Technical Report, CMU-PDL-14}
+}
+
+@article{elmas2013concurrit,
+  title={Concurrit: A domain specific language for reproducing concurrency bugs},
+  author={Elmas, Tayfun and Burnim, Jacob and Necula, George and Sen, Koushik},
+  journal={ACM SIGPLAN Notices},
+  volume={48},
+  number={6},
+  pages={153--164},
+  year={2013},
+  publisher={ACM}
+}
+
+@inproceedings{gunawi2011fate,
+  title={FATE and DESTINI: A framework for cloud recovery testing},
+  author={Gunawi, Haryadi S and Do, Thanh and Joshi, Pallavi and Alvaro, Peter and Hellerstein, Joseph M and Arpaci-Dusseau, Andrea C and Arpaci-Dusseau, Remzi H and Sen, Koushik and Borthakur, Dhruba},
+  booktitle={Proceedings of NSDI’11: 8th USENIX Symposium on Networked Systems Design and Implementation},
+  pages={239},
+  year={2011}
+}
+
+@inproceedings{alvaro2015lineage,
+  title={Lineage-driven fault injection},
+  author={Alvaro, Peter and Rosen, Joshua and Hellerstein, Joseph M},
+  booktitle={Proceedings of the 2015 ACM SIGMOD International Conference on Management of Data},
+  pages={331--346},
+  year={2015},
+  organization={ACM}
+}
+
+@inproceedings{guo2011practical,
+  title={Practical software model checking via dynamic interface reduction},
+  author={Guo, Huayang and Wu, Ming and Zhou, Lidong and Hu, Gang and Yang, Junfeng and Zhang, Lintao},
+  booktitle={Proceedings of the Twenty-Third ACM Symposium on Operating Systems Principles},
+  pages={265--278},
+  year={2011},
+  organization={ACM}
+}
+
+@article{joshi2009randomized,
+  title={A randomized dynamic program analysis technique for detecting real deadlocks},
+  author={Joshi, Pallavi and Park, Chang-Seo and Sen, Koushik and Naik, Mayur},
+  journal={ACM Sigplan Notices},
+  volume={44},
+  number={6},
+  pages={110--120},
+  year={2009},
+  publisher={ACM}
+}
+
+@article{flanagan2008velodrome,
+  title={Velodrome: a sound and complete dynamic atomicity checker for multithreaded programs},
+  author={Flanagan, Cormac and Freund, Stephen N and Yi, Jaeheon},
+  journal={ACM SIGPLAN Notices},
+  volume={43},
+  number={6},
+  pages={293--303},
+  year={2008},
+  publisher={ACM}
+}
+
+@inproceedings{sen2015multise,
+  title={MultiSE: Multi-path symbolic execution using value summaries},
+  author={Sen, Koushik and Necula, George and Gong, Liang and Choi, Wontae},
+  booktitle={Proceedings of the 2015 10th Joint Meeting on Foundations of Software Engineering},
+  pages={842--853},
+  year={2015},
+  organization={ACM}
+}
+
+
+@inproceedings{yuan2014simple,
+  title={Simple testing can prevent most critical failures: An analysis of production failures in distributed data-intensive systems},
+  author={Yuan, Ding and Luo, Yu and Zhuang, Xin and Rodrigues, Guilherme Renna and Zhao, Xu and Zhang, Yongle and Jain, Pranay U and Stumm, Michael},
+  booktitle={11th USENIX Symposium on Operating Systems Design and Implementation (OSDI 14)},
+  pages={249--265},
+  year={2014}
+}
+
+@inproceedings{zeller2002isolating,
+  title={Isolating cause-effect chains from computer programs},
+  author={Zeller, Andreas},
+  booktitle={Proceedings of the 10th ACM SIGSOFT symposium on Foundations of software engineering},
+  pages={1--10},
+  year={2002},
+  organization={ACM}
+}
+
+@inproceedings{arts2011accelerating,
+  title={Accelerating race condition detection through procrastination},
+  author={Arts, Thomas and Hughes, John and Norell, Ulf and Smallbone, Nicholas and Svensson, Hans},
+  booktitle={Proceedings of the 10th ACM SIGPLAN workshop on Erlang},
+  pages={14--22},
+  year={2011},
+  organization={ACM}
+} 
+
+@inproceedings{orso2006isolating,
+  title={Isolating relevant component interactions with JINSI},
+  author={Orso, Alessandro and Joshi, Shrinivas and Burger, Martin and Zeller, Andreas},
+  booktitle={Proceedings of the 2006 international workshop on Dynamic systems analysis},
+  pages={3--10},
+  year={2006},
+  organization={ACM}
 }
