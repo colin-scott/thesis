@@ -1,0 +1,66 @@
+%In this section we review some of the key aspects of SDN systems, starting with the nature of the control plane and then the process of troubleshooting.
+%
+%\subsection{SDN Control Planes}
+Network operating systems, the key component of SDN software
+infrastructure, consist of control software running on a replicated set of
+servers, each running a controller instance. Controllers coordinate between
+themselves, and receive input events (\eg~link failure notifications) and
+statistics from switches (either physical or virtual), configuration and
+policy changes via a management interface, and possibly packets from the dataplane.
+In response, the
+controllers issue forwarding instructions to switches. All input
+events are asynchronous, and individual controllers may fail at any
+time. The controller instances may communicate
+with each other over the dataplane network, or use a separate dedicated
+network. In either case, controllers may become partitioned.
+
+%\subsection{Bugs, QA Testing, and Troubleshooting}
+The goal of a network control plane is to configure the switch forwarding entries so as to
+enforce one or more invariants, such as connectivity (\ie, ensuring that a
+route exists between every endpoint pair), isolation and access control (\ie, various limitations on
+connectivity), and virtualization (\ie, ensuring that packets are handled
+in a manner consistent with what would happen in the specified virtual
+network). A bug causes an invariant to be violated. Invariants can be
+violated because the system was improperly configured
+%A bug causes an invariant to be violated. Bugs can occur in the
+%configuration management system, \eg~OpenStack~\cite{quantum}
+(\eg, the management system \cite{quantum} or a human improperly specified their goals to the SDN control plane), or
+because there is a bug within the SDN control plane itself. In this thesis we focus on troubleshooting bugs in the
+SDN control plane after it has been given a configuration.\footnote{This does
+not preclude \projectname~from troubleshooting misspecified policies
+(misconfigurations) so long as
+test invariants~\cite{hsa} are specified separately.}
+% after it has been given a configuration,
+%largely because the goal of SDN is to push complexity out of network management
+%and into the control plane.
+
+In commercial SDN development, software developers work with a team of QA engineers whose
+job is to find bugs. The QA engineers exercise automated test scenarios that involve
+sequences of external (input) events such as failures or policy changes
+on large (software emulated or hardware) network testbeds.
+If they detect an invariant violation, they hand the resulting trace to a developer for analysis.
+
+The space of possible bugs is enormous, and it is difficult and time
+consuming to link the
+symptom of a bug (\eg~a routing loop) to the sequence of events in the QA
+trace (which includes both the external events and internal monitoring data),
+since QA traces contain a wealth
+of extraneous events.
+%all of which may appear characteristic of normal
+%operating conditions at first glance.
+Consider that an hour long QA test
+emulating event rates observed in production could contain 8.5 network error events per
+minute~\cite{Greenberg:2009:VSF:1592568.1592576} and 500 VM migrations per
+hour~\cite{Soundararajan:2010:CBS:1899928.1899941},
+for a total of $8.5 \cdot 60 + 500 \approx 1000$ inputs.
+%Anecdotally, this is too many events for a human to quickly understand.
+
+%\colin{Cut if we need space (redundant with intro):}
+%The act of {\em troubleshooting} involves identifying which sequence of
+%external events is most directly responsible for triggering the bug;
+%identifying these events helps the developer in the act of {\em debugging},
+%\ie~understanding which code paths might
+%hold the offending code. Currently, painstaking manual analysis of logs is the {\em de facto} method of troubleshooting distributed systems in practice.
+%The smaller the sequence of triggering inputs, the easier debugging will
+%be. Minimizing the sequence of inputs is the goal of our system.
+

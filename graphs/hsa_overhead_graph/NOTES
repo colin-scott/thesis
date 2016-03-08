@@ -1,0 +1,10 @@
+4 runs were made, using gnu parallel across c3 and c5. The hacked version of
+the debugger used to generate these numbers is in ~/instrumented_hsa.
+
+only_sane_values.dat consists of the minimum runtime of all 4 runs.
+
+There is a weird bug where odd numbered' values of k run significantly 
+faster than even numbered values.
+
+Format of .dat's is:
+<k (# pods)> <seconds to generate transfer functions> <seconds to generate topology functions> <time to run one branch> <total for one branch> <time to run one tree> <total for one tree>

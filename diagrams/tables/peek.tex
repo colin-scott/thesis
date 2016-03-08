@@ -1,0 +1,46 @@
+\documentclass{standalone}
+
+\usepackage{times}
+\usepackage{xcolor}
+\usepackage{xspace}
+\usepackage{boxedminipage}
+\usepackage{pifont}
+\usepackage{pseudocode}
+\usepackage{multirow}
+\usepackage{tabularx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\definecolor{MyDarkBlue}{rgb}{0,0.08,0.45}
+\usepackage[pdftex]{hyperref}
+\hypersetup{
+  colorlinks,%
+  citecolor=MyDarkBlue,%
+  filecolor=MyDarkBlue,%
+  linkcolor=MyDarkBlue,%
+  urlcolor=MyDarkBlue
+}
+\usepackage{fixltx2e}
+\usepackage{textgreek}
+\usepackage[sort]{cite}
+
+\begin{document}
+
+\begin{pseudocode}{Peek}{events}
+  \PROCEDURE{Peek}{input\ subsequence}
+  inferred \GETS [\ ] \\
+  \FOR e\textsubscript{i}\ in\ subsequence \\
+  \BEGIN
+    checkpoint\ system \\
+    inject\ e\textsubscript{i} \\
+    \Delta \GETS |e\textsubscript{i+1}.time - e\textsubscript{i}.time| + \epsilon \\
+    record\ events\ for\ \Delta\ seconds \\
+    matched \GETS original\ events\ \&\ recorded\ events \\
+    inferred \GETS inferred + [e\textsubscript{i}] + matched \\
+    restore\ checkpoint\\
+  \END \\
+  \RETURN{inferred}
+  \ENDPROCEDURE
+\end{pseudocode}
+
+\end{document}

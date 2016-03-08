@@ -1,0 +1,639 @@
+Given a log $L$ generated from testing infrastructure,\footref{fn:log_gen}
+our goal is to find an approximate MCS, so that a human can examine the MCS
+rather than the full log. This involves two tasks:
+searching through subsequences of $E_L$, and deciding when to inject external
+events for each subsequence so that, whenever possible, the invariant
+violation is retriggered.
+
+\eat{
+We introduce our approach using an example bug in the Floodlight open-source control
+platform~\cite{floodlight_bug}. Floodlight is distributed across
+multiple controllers for high availability, and provides support for
+virtualization. Switches maintain one hot connection to a master controller and
+several cold connections to replica controllers. The \emph{master} holds the
+authority to modify the configuration of switches, while the other
+controllers are in \emph{backup} mode and do not change the
+switch configurations unless they detect that the master has crashed.
+
+\begin{figure}[t]
+  %\hspace{-10pt}
+  \includegraphics[width=3.25in]{../diagrams/case_study/example_bug.pdf}
+  \caption[]{\label{fig:example} Floodlight failover bug. External inputs
+             are depicted as red dots, internal events are depicted as black
+             dots, and the dotted message line depicts a timeout.}
+\end{figure}
+
+The failover logic in Floodlight is incorrect, leading to the
+following race condition\footnote{Note that this issue was
+originally documented by the developers of Floodlight~\cite{floodlight_bug}.} depicted in
+Figure~\ref{fig:example}:
+a link fails (E1), and the switch attempts to notify the controllers (E2,E4) shortly after the master
+controller has died (E3), but before a new master has been selected (E6). In this case, all live controllers are in
+the backup role and will not take responsibility for updating the switch
+flow table (E5). At some point, a backup notices the master failure and
+elevates itself to the master role (E6). The new master will proceed to manage
+the switch, but without ever clearing the routing entries for
+the failed link, resulting in a persistent blackhole. In this example, the MCS
+is the conjunction of the two external inputs (E1,E3).
+}
+
+\subsection{Searching for Subsequences}
+\label{subsec:delta_debugging}
+
+Checking random subsequences of $E_L$ would be one viable but inefficient
+approach to achieving our first task. We do better by employing
+%divide-and-conquer search technique from the software engineering community:
+the delta debugging algorithm~\cite{Zeller:1999:YMP:318773.318946}, a
+divide-and-conquer algorithm for
+isolating fault-inducing inputs. In our case, we use delta
+debugging to iteratively select subsequences of $E_L$ and replay each
+subsequence with some timing $T$. If the bug persists for a given subsequence, delta debugging ignores the
+other inputs, and proceeds with the search for an MCS within this subsequence.
+%In what follows, we use the term {\em delta debugging} to refer to our algorithm for finding relevant subsequences.
+The delta debugging algorithm is shown in Figure~\ref{fig:ddmin}.
+%(with `$test$' replaced by `$replay$').
+
+The input subsequences chosen by delta debugging are not always
+valid. Of the possible inputs sequences we generate (shown in
+Table~\ref{tab:inputs}), it is not sensible to replay a recovery event without a
+preceding failure event, nor to replay a host migration
+event without modifying its starting position when a preceding host
+migration event has been pruned. Our implementation of delta debugging
+therefore prunes failure/recovery event pairs as a single unit, and updates initial host locations
+whenever host migration events are pruned so that hosts do not magically appear at new
+locations.\footnote{Handling invalid inputs is crucial for
+ensuring that the delta debugging algorithm finds a minimal causal
+subsequence. The algorithm we employ~\cite{Zeller:1999:YMP:318773.318946}
+makes three
+assumptions about inputs: monotonicity, unambiguity, and consistency.
+An event trace that violates monotonicity may contain events that ``undo'' the
+invariant violation triggered by the MCS, and may therefore exhibit slightly
+inflated MCSes. An event trace that violates unambiguity may exhibit multiple MCSes; delta debugging
+will return one of them. The most important assumption is consistency, which
+requires that the test outcome can always be determined.
+We guarantee neither monotonicity nor unambiguity, but we guarantee consistency by
+ensuring that subsequences are always semantically valid by applying the two
+heuristics described above. Zeller wrote a follow-on
+paper~\cite{Zeller:2002:SIF:506201.506206} that removes the need for these
+assumptions, but incurs an additional factor of $n$ in complexity in doing so.}
+These two heuristics account for validity of all network
+events shown in Table~\ref{tab:inputs}. We do not yet
+support network policy changes as events, which have more complex semantic
+dependencies.\footnote{If codifying the semantic dependencies of
+policy changes turns out to be difficult, one could just employ the more
+expensive version of delta debugging to account for
+inconsistency~\cite{Zeller:2002:SIF:506201.506206}.}
+
+\begin{figure*}[t]
+\footnotesize
+\begin{boxedminipage}{\textwidth}
+Input: $\cfail$ s.t. $\cfail$ is a trace and $\test(\cfail) = \DFAIL$. Output: $\dfail
+= \ddmin(\cfail)$ s.t. $\dfail \subseteq
+\cfail$, $\test(\dfail) = \DFAIL$, and~$\dfail$ is minimal.
+\begin{align*}
+\ddmin(\cfail) &= \ddmin_2(\cfail, \emptyset) \quad \text{where} \\
+\ddmin_2(\dfail, R) &=
+\begin{cases}
+\dfail & \text{\hphantom{else }if $|\dfail| = 1$ (``base case'')} \\
+\ddmin_2\bigl(\done, R\bigr) &
+\text{else if $\test(\done \cup R) = \DFAIL$ (``in $\done$'')} \\
+\ddmin_2\bigl(\dtwo, R\bigr) &
+\text{else if $\test(\dtwo \cup R) = \DFAIL$ (``in $\dtwo$'')} \\
+\ddmin_2\bigl(\done, \dtwo \cup R\bigr) \cup \ddmin_2\bigl(\dtwo, \done \cup
+R\bigr) & \text{otherwise (``interference'')}
+\end{cases}
+\end{align*}
+\begin{center}
+where $\test(T)$ denotes the state of the system after executing the trace $T$,
+$\DFAIL$ denotes an invariant violation, \\
+$\done \subset \dfail$, $\dtwo \subset \dfail$, $\done \cup \dtwo = \dfail$, $\done \cap
+\dtwo = \emptyset$, and $|\done| \approx |\dtwo| \approx |\dfail| / 2$
+hold.
+\end{center}
+\end{boxedminipage}
+\caption{\colin{Cut if we need space} Automated Delta Debugging Algorithm
+From~\cite{Zeller:1999:YMP:318773.318946}.}
+\label{fig:ddmin}
+\vspace{-0.3cm}
+\end{figure*}
+
+\eat{ % Original O(n^2) algorithm
+\begin{figure*}[t]
+\caption{Minimizing Delta Debugging Algorithm From~\cite{Zeller:2002:SIF:506201.506206}}
+\begin{boxedminipage}{\textwidth}
+Input: $\cfail$ s.t. $\cfail$ is a trace and $\test(\cfail) = \FAIL$. Output: $\dfail
+= \ddmin(\cfail)$ s.t. $\dfail \subseteq
+\cfail$, $\test(\dfail) = \FAIL$, and~$\dfail$ is 1-minimal.
+\begin{align*}
+\ddmin(\cfail) &= \ddmin_2(\cfail, 2) \quad \text{where} \\
+\ddmin_2(\dfail, n) &= 
+\begin{cases}
+\ddmin_2(\Delta_i, 2) & \text{\hphantom{else }if $\exists i \in \{1, \dots, n\} \cdot \test(\Delta_i) = \FAIL$ (``reduce to subset'')} \\
+\ddmin_2\bigl(\nabla_i, \max(n - 1, 2)\bigr) & 
+\text{else if $\exists i \in \{1, \dots, n\} \cdot \test(\nabla_i) = \FAIL$ (``reduce to complement'')} \\
+\ddmin_2\bigl(\dfail, \min(|\dfail|, 2n)\bigr) & \text{else if $n < |\dfail|$ (``increase granularity'')} \\
+\dfail & \text{otherwise (``done'').}
+\end{cases}
+\end{align*}
+where $\test(T)$ denotes the state of the system after executing the trace $T$,
+$\FAIL$ denotes a correctness violation, \\
+$\nabla_i = \dfail - \Delta_i$, $\dfail = \Delta_1 \cup \Delta_2 \cup \dots \cup \Delta_n$, all
+$\Delta_i$ are pairwise disjoint sequences of inputs, and $\forall \Delta_i \cdot |\Delta_i| \approx |\dfail| / n$
+holds.
+\end{boxedminipage}
+\label{fig:ddmin}
+\end{figure*}
+}
+
+\subsection{Searching for Timings}
+\label{subsec:algorithm}
+
+Simply exploring subsequences $E_S$ of $E_L$ is insufficient for finding
+MCSes: the timing of when we inject the external events during replay is crucial for
+reproducing violations.
+
+\noindent {\bf Existing Approaches.} The most natural approach to scheduling
+external events is to maintain the original wall-clock timing intervals
+between them.
+If this is able to find all minimization opportunities,
+\ie~reproduce the violation for all
+subsequences that are a superset of some MCS, we say that the inputs are
+isolated. The original applications of delta
+debugging~\cite{Zeller:1999:YMP:318773.318946} make this assumption (where a
+single input is fed to a single program), as well as QuickCheck's input ``shrinking''~\cite{claessen2000quickcheck}
+when applied to blackbox systems like the synchronous part of
+telecommunications protocols~\cite{arts2006testing}.
+\eat{\ie~if we
+define $t_i$ as the timestamp of the $i^{th}$ input from the original run and $t'_i$ as the
+replay clock value when it injects that same input
+(which may or may not be the $i$'th input in the subsequence), then we might
+just set $t'_i = t_i$.
+\eat{
+\begin{align*}
+t'_0 = t_0 \\
+t'_i = t'_{i-1} + |t_{i} - t_{i-1}|
+\end{align*}
+}
+}
+
+We tried this approach for minimizing our executions, but were rarely
+able to reproduce invariant violations. As our case studies demonstrate
+(\S\ref{sec:evaluation}), this is largely due
+to the concurrent, asynchronous nature of distributed systems; consider that the network
+can reorder or delay messages, or that controllers may
+process multiple inputs simultaneously.
+Inputs injected according to wall-clock time are not guaranteed to
+coincide correctly with the current state of the control software.
+%\eat{: when we replay only a
+%subsequence of the original inputs, the reaction of the control software
+%can change, such that it behaves differently or takes a different amount of
+%time to respond to the remaining inputs events.
+%In practice we have observed that simply maintaining relative timings can
+%result in injecting the remaining inputs too early or late.}
+
+We must therefore consider the internal events of the control software. To deterministically
+reproduce bugs, we would need visibility into every I/O request and response (\eg~clock
+values or network messages), as well as all thread scheduling
+decisions for each controller. This information is the starting point for thread schedule
+minimization
+techniques, which seek to minimize thread interleavings leading up to race conditions.
+These approaches involve iteratively feeding a single input (the thread
+schedule) to a single entity (a deterministic scheduler)~\cite{choi2002isolating,claessen2009finding,jalbert2010trace}, or
+statically analyzing feasible thread schedules~\cite{huang2011efficient}.
+
+A crucial constraint of these approaches is that they must keep the inputs
+fixed; that is, the controller behavior must depend uniquely on the thread
+schedule. Otherwise, the controllers may take a divergent code path. If this
+occurs some processes might issue a previously unobserved I/O request, and the replayer will not
+have a recorded response; worse yet, a divergent process might deschedule
+itself at a different point than it did originally, so that the remainder of
+the recorded thread schedule is unusable to the replayer (since the original preemption points
+may no longer be executed).
+
+By fixing the inputs, these approaches are forced to stay on the original code
+path, and are unable to find alternate paths that still
+trigger the invariant violation. They can only indirectly
+minimize inputs by truncating thread executions (\ie~causing them to
+exit early), or by removing threads that are entirely extraneous.
+They consequently strive for a subtly different goal than ours:
+minimization of thread context switches rather than input events.
+
+%\noindent{\bf Program Flow Analysis.} Other than delta debugging,
+%the closest work to ours involves reasoning about
+%control- and dataflow dependencies
+%(which may be recorded at runtime~\cite{Lee:2011:TGR:1993498.1993528},
+%or dynamically inferred~\cite{, tallam2007enabling})
+%in order to reduce the length of deterministic replay executions.
+%%decision processes of control software. % Our Peek() algorithm is a
+%% contribution in how to infer dependencies without access to software internals
+%Moreover, our application of functional equivalence to the space of
+%possible inputs allows us to minimize
+%inputs more aggressively, whereas they are forced to consider all controlflow
+%and dataflow dependencies in the control software.
+
+With additional information obtained by program flow
+analysis~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean}
+however, the inputs no longer need to be fixed. The internal events considered by these program flow reduction
+techniques are individual instructions executed by the
+programs (obtained by instrumenting the language runtime), in addition to I/O responses and the thread schedule.
+With access to the instruction-level execution, they can compute
+program flow dependencies, and thereby remove input events from anywhere in the trace as long as they
+can prove that doing so cannot possibly cause the faulty execution path (\ie~the program slice) to diverge.
+
+While program flow reduction is able to minimize inputs rather than thread context switches,
+these techniques are still not able to find alternate states that still
+trigger the invariant violation. They are also overly conservative in
+removing inputs (\eg~EFF takes the transitive closure of all possible
+dependencies~\cite{Lee:2011:TGR:1993498.1993528}) causing them to miss opportunities to
+remove dependencies that actually semantically commute.
+
+\noindent {\bf Allowing Divergence.} Our approach is
+to dynamically respond to I/O requests during minimization
+rather than recording all I/O requests and thread scheduling decisions.
+This has several advantages. Unlike
+the other approaches, we can find shorter alternate code paths that still
+trigger the invariant violation, since we are not constrained to executing the exact code path
+from the original run. Previous {\em best-effort} execution minimization
+techniques~\cite{clause2007technique,tucek2007triage} also allow alternate
+code paths, but do not systematically
+consider concurrency and asynchrony.\footnote{Park et al.\cite{park2009pres}
+also reproduce multithreaded executions in a best-effort fashion (allowing for
+alternate code paths), but do not minimize the execution or consider event
+modifications.}
+We also avoid the runtime overhead of recording all I/O
+requests and later replaying them (\eg~EFF incurs roughly 10x slowdown during
+replay due to the overhead of code tracing~\cite{Lee:2011:TGR:1993498.1993528}). Lastly,
+we avoid the extensive effort required to instrument the control software's language runtime,
+needed by the other approaches to implement a deterministic thread scheduler, interpose on syscalls,
+or perform program flow analysis. By avoiding assumptions about the language of the control software,
+we were able to easily apply our system to five different control platforms
+written in three different languages.\footnote{Some of the controllers
+actually comprise multiple languages.} %, for example those that depend on databases.}
+
+%As far as we know, we are the first to minimize inputs by dynamically
+%responding to I/O requests. We empirically show in \S\ref{sec:evaluation}
+%that this approach works well.
+
+%To get guarantees on minimality, we could model checking / DPOR to exhaustively explore all thread
+%interleavings for each subsequence tested by delta debugging.
+%This has problems foo, bar and baz.
+
+\noindent {\bf Accounting for Interleavings.} To reproduce the invariant violation (whenever $E_S$ is a superset of an MCS)
+we need to inject each input event \external{} only after all other
+events, including internal events triggered by the control software itself,
+that precede it in the
+happens-before relation~\cite{Lamport:1978:TCO:359545.359563} from the
+original execution ($\{i \mid i \rightarrow \text{\external{}}\}$) have
+occurred~\cite{tel2000introduction}.
+
+The internal events we consider are
+(a) message delivery events, either between controllers (\eg~database
+synchronization messages) or
+between controllers and switches (\eg~OpenFlow commands), and (b) state transitions
+within controllers (\eg~a backup node deciding to become master).
+Our test orchestrator obtains visibility into (a) by interposing on all messages within the test
+environment (to be described in \S\ref{sec:systems_challenges}).
+It optionally obtains partial visibility into (b) by instrumenting controller
+software with a simple interposition layer (to be described in \S\ref{subsec:mitigating}).
+By virtue of managing inputs and message deliveries from a central location, we are
+able to totally-order the event trace $\tau_L$.
+%We thereby augment the log $(E_L, T_L)$ with a schedule
+%$\tau_L\!=\!e_1\!\rightarrow\!i_1\!\rightarrow\!\dots\!e_2\!\rightarrow\!\dots$, where
+%each $i$ is an internal event observed in the original run.
+
+Note that we do not control the occurrence of internal events, and therefore do
+not attempt to minimize them. Crucially though, we need to ensure that the ordering
+of input and internal events during
+$replay()$ of each subsequence is consistent with the happens-before relation,
+so that we can report invariant violations
+(minimization opportunities) to delta debugging as often as possible.
+To meet this requirement our test orchestrator may use its interposition on
+messages to reorder or drop messages as necessary during replay.
+%The final MCS produced by our system therefore includes a schedule
+%$\tau_S\!=\!e_1\!\rightarrow\!i_1'\!\rightarrow\!\dots\!e_2\!\rightarrow\!\dots$
+%reflecting how the minimal subsequence of inputs should be interleaved
+%with internal events in order to reproduce the invariant violation. This
+%schedule supersedes the timings $T$ described in \S\ref{sec:formalism}.
+
+%\subsection{Preserving Causality}
+
+Maintaining the happens-before relation from the original trace
+(which reproduces the violation) throughout replay of subsequences of the
+trace (which may or may not reproduce that
+violation) involves three issues: coping with syntactic differences in internal
+events across runs,
+handling internal events from the original
+execution that may not occur after pruning, and dealing with new internal events that were not
+observed at all in the original execution.
+
+\eat{
+\colin{Somewhat redundant. Maybe wait until use cases.}
+While the inputs and original internal events are given to us,
+we become aware of new internal events throughout replay by
+(i) monitoring
+control message receipts between controllers and switches,
+and (ii) interposing on the controllers' logging library and notifying the
+replayer whenever the control software executes a log statement (which serve to mark relevant state
+transitions). Note that to achieve truly deterministic
+replay, these log statements would need to
+be highly granular, capturing information such as thread scheduling decisions;
+we show in \S\ref{subsec:case_studies}
+however that pre-existing, course granular log statements are often sufficient to
+successfully reproduce bugs.}
+
+%\footnote{We discuss this problem further in
+%\S\ref{subsec:domain_knowledge}.}
+%Note that the developer must provide enough logging statements
+%so that relevant internal state transitions are captured and visible to our
+%tool.
+
+\begin{table}[tb]
+\centering
+\footnotesize
+\begin{tabular}{|l|l|}
+\hline
+{\bf Internal message} & {\bf Masked values} \\
+\hline
+\hline
+OpenFlow messages & xac id, cookie, buffer id, stats \\
+% port numbers?
+\hline
+packet\_out/in payload & all values except src, dst, data \\
+\hline
+Log statements & varargs parameters to printf \\
+\hline
+\end{tabular}
+\caption{Internal messages and their masked values. %The masks serve to
+%define equivalence classes.
+}
+\label{tab:fingerprints}
+\vspace{-0.5cm}
+\end{table}
+
+\noindent {\bf Functional Equivalence. } Internal events may differ syntactically (\eg~sequence numbers
+of control packets may all differ) when replaying a subsequence of the original log.
+We observe that many internal events are {\em functionally
+equivalent}, in the sense that they
+have the same effect on the state of the system with respect to triggering the
+invariant violation (despite syntactic differences). For example,
+\verb=flow_mod=
+messages may cause switches to make the same change to their forwarding behavior
+even if their transaction ids differ.
+
+We leverage this observation by defining
+masks over semantically extraneous fields of
+internal events.\footnote{One consequence
+of applying masks is that bugs involving masked fields are outside the purview of
+our approach.} These masks only need to be specified once, and can later be
+applied programmatically to event traces.
+
+We show the fields we mask in Table~\ref{tab:fingerprints}. We consider an
+internal event $i'$ observed in the replay
+equivalent (in the sense of inheriting all of its happens-before relations) to an internal
+event $i$ from the original log if and only if all unmasked fields have the same value
+and $i$ occurs between $i'$'s preceding and succeeding inputs in the
+happens-before relation.
+
+\begin{table}[tb]
+\centering
+\footnotesize
+\begin{tabular}{|l|l|}
+\hline
+\textbf{Input Type} & \textbf{Implementation} \\
+\hline
+\hline
+Switch failure/recovery & TCP teardown \\
+\hline
+Controller failure/recovery & \verb=SIGKILL= \\
+\hline
+Link failure/recovery & \verb=ofp_port_status= \\
+\hline
+Controller partition & \verb=iptables= \\
+\hline
+Dataplane packet injection & Network namespaces \\
+\hline
+Dataplane packet drop & Dataplane interposition \\
+\hline
+Dataplane packet delay & Dataplane interposition \\
+\hline
+Host migration & \verb=ofp_port_status= \\
+\hline
+Control message delay & Controlplane interposition \\
+\hline
+Non-deterministic TCAMs & Modified switches \\
+\hline
+\end{tabular}
+\caption{Input types currently supported by \projectname.}
+\label{tab:inputs}
+\vspace{-0.2cm}
+\end{table}
+
+\eat{
+\begin{figure}[t]
+    %\hspace{-10pt}
+    \includegraphics[width=3.25in]{../diagrams/state_machines/controller_switch.pdf}
+    \caption[]{\label{fig:state_machines} Simplified state machines for the switch and
+    controllers in the example Floodlight bug. Double outlined states
+    represent presence of the blackhole.}
+\end{figure}
+}
+
+\noindent {\bf Handling Absent Internal Events. } Some internal events from the original
+log that causally ``happen before'' some external input
+may be absent when replaying a subsequence of that log.
+For instance, if we prune a link failure event, then
+the corresponding link failure notification will never arise.
+\eat{
+The control software's state machine (which we do not assume to know) determines whether
+internal events cease to appear. Consider the simplified state machines for the switch and
+controllers from the Floodlight case shown in
+Figure~\ref{fig:state_machines}. If we prune the link failure input, the
+master will never receive a link failure notification and
+transition to and from \emph{Send Flush}.}
+
+We handle this by attempting to infer the presence of internal
+events before we replay each subsequence. Our algorithm (called {\sc Peek()}) for inferring the
+presence of internal events is depicted in
+Figure~\ref{fig:peek}. The algorithm injects each input, records a checkpoint\footnote{We discuss the implementation details of checkpointing
+in~\ref{subsec:snapshotting}.} of
+the network and the control software's state, allows the system to proceed up
+until the following input (plus a small time $\epsilon$), records the observed
+events, and matches the
+recorded events with the functionally equivalent internal events observed in
+the original trace.\footnote{In the
+case that, due
+to non-determinism, an internal event occurs during {\sc Peek()} but does not occur
+during replay, we time out on internal events after $\epsilon$ seconds of
+their expected occurrence.}
+
+\eat{ % Old version without peek()
+We handle this possibility by waiting for each expected internal event
+for a certain time \textepsilon. If the internal event does not occur within
+this time, we assume that it is absent and proceed. If, however, we find
+during the \textepsilon~time units we were waiting that another internal that
+happens \emph{after} our next input occurs, we know that we have waited too
+long and violated causality. In this case we need to restart the replay
+process, this time knowing which internal events in the current
+input interval are and are not going to occur before injecting the next input.
+We show our overall event scheduling algorithm
+in Figure~\ref{fig:replay}.
+}
+
+\eat{ % Somewhat redundant with peek()
+\begin{figure}
+  \footnotesize
+  \begin{pseudocode}[framebox]{CausalInference}{events}
+    \PROCEDURE{Replay}{subsequence}
+    subsequence \GETS \CALL{Peek}{subsequence} \\
+    \FOR e\textsubscript{i}\ in\ subsequence \\
+      \BEGIN
+      \IF e\textsubscript{i}\ is\ an\ internal\ event \\
+      \AND e\textsubscript{i}\ is\ not\ marked\ absent:
+      \THEN
+        \BEGIN
+          \Delta \GETS |e\textsubscript{i}.time - e\textsubscript{i-1}.time| + \epsilon \\
+          wait\ up\ to\ \Delta\ seconds\ for\ e\textsubscript{i} \\
+          \IF e\textsubscript{i}\ did\ not\ occur:
+          \THEN mark\ e\textsubscript{i}\ as\ absent
+        \END
+      \ELSEIF e\textsubscript{i}\ is\ an\ input:
+      \THEN
+        \BEGIN
+          \IF a\ successor\ of\ e\textsubscript{i}\ occurred: \\
+          \INLINECOMMENT{waited too long}
+          \THEN
+            \RETURN{\CALL{Replay}{subsequence}}
+          \ELSE
+            inject\ e\textsubscript{i}
+          \END
+        \END
+    \ENDPROCEDURE
+  \end{pseudocode}
+  \caption{{\tt Replay} is responsible for replaying subsequences of events
+  chosen by delta debugging and determining
+  if the bug reappears. \colin{Fix framebox width.}}
+    \label{fig:replay}
+\end{figure}
+}
+
+\begin{figure}
+  \footnotesize
+  \begin{pseudocode}[framebox]{Peek}{events}
+    \PROCEDURE{Peek}{input\ subsequence}
+    inferred \GETS [\ ] \\
+    \FOR e\textsubscript{i}\ in\ subsequence \\
+    \BEGIN
+      checkpoint\ system \\
+      inject\ e\textsubscript{i} \\
+      \Delta \GETS |e\textsubscript{i+1}.time - e\textsubscript{i}.time| + \epsilon \\
+      record\ events\ for\ \Delta\ seconds \\
+      matched \GETS original\ events\ \&\ recorded\ events \\
+      inferred \GETS inferred + [e\textsubscript{i}] + matched \\
+      restore\ checkpoint\\
+    \END \\
+    \RETURN{inferred}
+    \ENDPROCEDURE
+  \end{pseudocode}
+  \caption{{\sc Peek} determines which internal events
+  from the original sequence occur for a given subsequence.
+  \label{fig:peek}}
+  \vskip -1em
+\end{figure}
+
+\noindent {\bf Handling New Internal Events.} The last possible change induced by pruning is the occurrence of new
+internal events that were not observed in the original log.
+New events present multiple possibilities for where
+we should inject the next input. Consider the following case:
+if $i_2$ and $i_3$ are internal events observed
+during replay that are both in the same equivalence class as a single event $i_1$ from the
+original run, we could inject the next input after $i_2$ or after $i_3$.
+
+% TODO: figure this figure out
+%\begin{wrapfigure}{c}{1.3\linewidth}
+%  \centering
+%  \includegraphics[width=\linewidth,height=0.8in]{../diagrams/state_machines/event_sequence.pdf}
+%\end{wrapfigure}
+
+In the general case it is always possible to construct two state machines that lead
+to differing outcomes: one that only leads to the invariant violation when
+we inject the next input
+\emph{before} a new internal event, and another only when we inject \emph{after} a new internal
+event. In other words, to be guaranteed to traverse any existing suffix that leads
+to the invariant violation, we must recursively branch, trying both
+possibilities for every new internal event. This implies an exponential number of
+possibilities to be explored in the worst case.
+
+Exponential search over these possibilities is not a practical option. Our heuristic when waiting for expected internal
+events is to proceed normally if there are new internal events,
+always injecting the next input when its last expected predecessor
+either occurs or times out. This ensures that we always find suffixes that
+contain a subset of the (equivalent) original internal events, but leaves open the
+possibility of finding divergent suffixes that lead to the invariant
+violation.
+%This is reasonable because not even branching on new
+%internal events is guaranteed to find the globally shortest fault-inducing input
+%sequence:
+%there may be other unknown
+%paths through the state machine leading to the invariant violation that are
+%completely disjoint from the original execution.
+
+\eat{
+Luckily, crucially ambiguous new internal events are not problematic for the
+control software we evaluated, as we show in \S\ref{sec:casestudies}.
+We conjecture that ambiguous new internal events are
+rare because SDN software is a control plane system,
+and is designed to quiesce quickly (\ie~take a small number of internal
+transitions after any input event, and stop at highly connected vertices).
+Concretely, SDN programs are often structured as (mostly independent) event
+handlers, meaning that pruning input events simply triggers a subset of the original
+event handlers.
+\eat{
+As an illustration, consider the state machines
+in Figure~\ref{fig:state_machines}:
+the controllers quickly converge to a single state (either ``Master'' or
+``Backup''), as do the switches (``Safe'').
+}
+}
+
+\noindent {\bf Recap.} We combine the above heuristics to replay each
+subsequence chosen by delta debugging: we compute functional equivalency
+for each internal event intercepted by our
+interposition layer, we invoke {\sc Peek()} to infer absent internal events,
+and with these inferred causal dependencies we replay
+the subsequence, waiting to inject each input until each of its
+(functionally equivalent) predecessors have occurred while allowing
+unexpected messages through immediately.
+
+\subsection{Complexity}
+\label{subsec:complexity}
+
+The delta debugging algorithm terminates after $\Omega(\log n)$
+invocations of $replay$ in the best case, and $O(n)$ in the worst case, where $n$ is the number of inputs in the original
+trace~\cite{Zeller:1999:YMP:318773.318946}.
+Each invocation of $replay$ takes $O(n)$ time
+(one iteration for {\sc Peek()} and one iteration for the replay itself),
+for an overall runtime of $\Omega(n \log n)$ best case and $O(n^2)$ worst case replayed inputs.
+The runtime can be decreased by parallelizing delta debugging:
+speculatively replaying subsequences in parallel, and joining the results.
+Storing periodic checkpoints of the system state throughout testing can also reduce runtime, as it
+allows us to replay starting from a recent checkpoint rather than the beginning of the
+trace.% \barath{But doesn't this approach break due to non-determinism?  Sometimes we want
+%a replay run to be different from a previous replay run...}
+
+\eat{
+SDN platform developers can reduce the probability that the replay algorithm
+will need to back up by placing causal annotations on internal
+events~\cite{fonseca2007x}: with explicit causal information, the replay
+algorithm can know
+\apriori~whether certain internal events are dependent on pruned inputs.
+}
+
+\colin{Describe Andrew's input type pruning optimization and measurements. "We
+make another optimization.."}
+
+% In the next section we describe some of the practical challenges we have overcome to realize our approach.
+
+% \colin{Cut this section?}
+% In our initial experiments we have found that applying delta debugging to explore
+% subsequences of $E_L$ and striving to maintain a single timing $T$ that maintains
+% causal dependencies reliably finds small MCSes.

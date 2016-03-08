@@ -1,0 +1,66 @@
+We represent the forwarding state of the network
+at a particular time as a configuration $c$, which contains all the forwarding
+entries in the network
+as well as the liveness of the various network elements.
+The control software is a system consisting of one or more controller processes
+that takes a sequence of external network events
+$E = $\chain{\external{1},\external{2}}{\external{m}}
+(\eg~link failures) as inputs,
+and produces a sequence of network configurations
+$C = c_1,c_2,\dots,c_n$. % Note that the network configuration $c$ does not
+%include the internal state of the control software.
+
+An invariant is a predicate $P$ over forwarding state (a safety
+condition, \eg~loop-freedom). We say that configuration
+$c$ violates the invariant if $P(c)$ is false, denoted $\overline{P}(c)$.
+
+We are given a log $L$ generated
+by a centralized QA test orchestrator.\footnote{We discuss how these logs are generated in \S\ref{sec:systems_challenges}.\label{fn:log_gen}}
+The log $L$ contains a sequence of events
+\setlength{\belowdisplayskip}{0.3pt} \setlength{\belowdisplayshortskip}{0.3pt}
+\setlength{\abovedisplayskip}{0pt} \setlength{\abovedisplayshortskip}{0pt}
+\begin{align*}
+\tau_L = \text{\doublechain{\external{1},\internal{1},\internal{2},\external{2}}{\external{m}}{\internal{p}}}
+\end{align*}
+which includes external events
+$E_L = $\eventlist{\external{1},\external{2}}{\external{m}}
+injected by
+the orchestrator, and internal events
+$I_L = $\eventlist{\internal{1},\internal{2}}{\internal{p}}
+triggered by the control software (\eg~OpenFlow messages).
+The external events include timestamps $\left\{ (\text{\external{k}}, t_k) \right\}$ recorded from the
+orchestrator's clock.% of when the test orchestrator injected them.
+
+A replay of log $L$ involves replaying the external events $E_L$, possibly
+taking into account the occurrence of internal events $I_L$.
+We denote a replay attempt by $replay(\tau)$.
+The output of $replay$ is a sequence of forwarding state configurations
+$C_R = \hat{c}_1,\hat{c}_2,\dots,\hat{c}_n$. Ideally $replay(\tau_L)$ produces the same
+sequence of network configurations that occurred originally, but as we discuss later
+this does not always hold.
+
+If the configuration sequence $C_L = c_1,c_2,\dots,c_n$ associated with the
+log $L$ violated predicate $P$
+(\ie$\exists_{c_i \in C_L}. \overline{P}(c_i)$)
+then we say $replay(\tau) = C_R$ reproduces that violation
+if $C_R$ contains another faulty configuration
+(\ie$\exists_{\hat{c}_i \in C_R}. \overline{P}(\hat{c}_i)$).
+
+The goal of our work is, when given a log $L$ that exhibited an
+invariant violation,\footref{fn:log_gen} to find a small, replayable sequence of events that reproduces that
+invariant violation. Formally, we define a minimal causal sequence (MCS)
+to be a sequence $\tau_M$ where the external events $E_M \in \tau_M$ are a
+subsequence of $E_L$ such
+that $replay(\tau_M)$ reproduces the invariant violation, but for all proper
+subsequences $E_N$ of $E_M$
+there is no sequence $\tau_N$ such that $replay(\tau_N)$ reproduces the violation.
+Note that an MCS is not necessarily {\em globally} minimal, in that there could be smaller
+subsequences of $E_L$ that reproduce this violation, but are not a subsequence of this MCS.
+
+We find approximate MCSes by deciding
+which events to eliminate and, more importantly, when to inject external
+events. The key component of this system is a \tester~that can execute $replay()$.
+Our focus is on using the \tester~to generate random inputs (shown in
+Table~\ref{tab:inputs}), detecting bugs in control software,
+and then finding MCSes that trigger them.
+We describe this process in the next section.

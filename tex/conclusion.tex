@@ -1,0 +1,66 @@
+\colin{Insight to add: testing/simulation is the *main* value proposition of
+SDN for Google. It is *the* main reason they have adopted it}
+
+SDN's purpose is to make networks easier to manage. SDN
+does this, however, by pushing complexity into SDN control software itself. Just
+as sophisticated compilers are hard to write, but make programming easy, SDN
+control software makes network management easier, but only by forcing the
+developers of SDN control software to confront the challenges of asynchrony,
+partial failure, and other notoriously hard problems inherent to all distributed
+systems.
+%Thus, people will be troubleshooting and debugging SDN control software for many
+%years to come, until it becomes as stable as compilers are now.
+
+Current techniques for troubleshooting SDN control software are primitive; they
+essentially involve manual inspection of logs in the hope of identifying the
+relevant inputs. Here we developed a technique for automatically
+identifying a minimal sequence of inputs responsible for triggering a given
+bug, without making assumptions about the language or instrumentation of the
+software. We believe our technique will be especially valuable for troubleshooting
+distributed controllers running complex applications, which are just now
+becoming available to the public and the broader research community.
+
+We focused on SDN control software, but we believe our techniques
+are applicable to general distributed systems. As distributed systems
+proliferate, we hope that our technique helps ameliorate the dearth of
+tools in this important area.
+
+%We have applied this system to three open source SDN platforms.
+%Of the five bugs we encountered in a five day investigation,
+%our technique reduced the size of the trace to 2 inputs in the best
+%case and 18 inputs in the worst case.
+
+\eat{
+SDN is widely heralded as the ``future of networking'', and its purpose is to make
+it easy to manage networks. Achieving this end forces platform developers to directly
+confront asynchrony, partial failure, and other problems that are inherent to all distributed
+systems and notoriously difficult to get right.
+
+In this paper we developed a technique for automatically
+identifying a minimal sequence of inputs responsible for triggering a given bug.
+We have applied this system to three open source SDN platforms, and
+were able to find or reproduce bugs in all the platforms we investigated.
+%Now we just need to provide a mechanism for the next question: would that date
+%have panned out if I hadn't spilt the wine?
+}
+
+% Two ideas that have been put on the backburner:
+% - distinguishing persistent violations from transient
+% - using correspondence checking to localize the layer where the bug first
+%   manifests
+
+%We chose SDN as our domain becuase X,Y,Z. We envision a new paradigm where
+%domain knowledge is applied to debugging in all systems.
+
+% ------------------------------------------- %
+%             OLD TEXT
+\eat{
+It does so by moving control plane functionality out of
+network devices, and into a tightly-coupled cluster of servers that provide a simple
+programmatic interface through which policies can be specified. As we have
+learned in this work, the challenges of maintaining virtualized and distributed
+views in a failure-prone environment are
+notably different from the challenges encountered in traditional,
+fully distributed control planes.
+
+}

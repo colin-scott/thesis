@@ -1,0 +1,245 @@
+\documentclass{ucbthesis}
+% \documentclass[12pt]{report}
+\usepackage[backend=bibtex]{biblatex}
+
+\usepackage[pdftex,
+            pdfauthor={Colin Scott},
+            pdftitle={Minimizing Faulty Executions of Distributed Systems},
+            pdfsubject={PhD Thesis},
+            pdfkeywords={},
+            pdfproducer={pdflatex},
+            pdfcreator={pdflatex}]{hyperref}
+
+\usepackage{footmisc}
+\usepackage{times}
+\usepackage{xcolor}
+\usepackage{xspace}
+\usepackage{boxedminipage}
+\usepackage{pifont}
+\usepackage{pseudocode}
+\usepackage{multirow}
+\usepackage{tabularx}
+
+%\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{amsmath}
+%\usepackage{changepage}
+
+\definecolor{MyDarkBlue}{rgb}{0,0.08,0.45}
+\hypersetup{
+  colorlinks,%
+  citecolor=MyDarkBlue,%
+  filecolor=MyDarkBlue,%
+  linkcolor=MyDarkBlue,%
+  urlcolor=MyDarkBlue
+}
+\usepackage{fixltx2e}
+\usepackage{textgreek}
+
+\renewcommand{\bf}{\textbf}
+\renewcommand{\sc}{\textsc}
+\renewcommand{\it}{\textit}
+\renewcommand{\tt}{\texttt}
+
+% ----------------- Macros: ---------------------
+\newcommand{\projectname}{{STS}}
+\newcommand{\projectmeaning}{SDN Troubleshooting System}
+
+\newcommand{\tester}{mock network}
+
+\newcommand{\simulator}{retrospective causal inference}
+\newcommand{\Simulator}{Retrospective causal inference}
+\newcommand{\SIMULATOR}{Retrospective Causal Inference}
+\newcommand{\tbd}[1]{{\bf [[TBD: {#1}]]}}
+\newcommand{\ie}{{\it i.e.}}
+\newcommand{\eg}{{\it e.g.}}
+\newcommand{\cf}{{\it cf.}}
+\newcommand{\etc}{{\it etc.}}
+\newcommand{\viz}{{\it viz.}}
+\newcommand{\apriori}{{\it a priori}}
+\newcommand{\eat}[1]{}
+
+% ---------------- Notes: -----------------------
+\newcommand{\num}[1]{{\color{red}\bf {#1}}}
+
+\newcommand{\colin}[1]{}
+\newcommand{\scott}[1]{}
+
+% ------------ Macros for generating graphical event sequences: -----------
+\usepackage{tikz}
+% External event. Takes label as parameter.
+\newcommand{\external}[1]{
+\tikz[baseline=-0.5ex]\draw[black,fill=white] (0,0)
+node[rounded corners,fill=red!60,draw,inner sep=0pt,minimum size=0.4cm] {$e_{#1}$};}%
+% Internal event. Takes label as parameter.
+\newcommand{\internal}[1]{
+\tikz[baseline=-0.5ex]\draw[black,fill=white] (0,0)
+node[rounded corners,fill=green!80,draw,inner sep=0pt,minimum size=0.4cm] {$i_{#1}$};}%
+
+\makeatletter
+% Functional foreach construct
+% #1 - Function to call on each comma-separated item in #3
+% #2 - Parameter to pass to function in #1 as first parameter
+% #3 - Comma-separated list of items to pass as second parameter to function #1
+\def\foreach#1#2#3{%
+  \@test@foreach{#1}{#2}#3,\@end@token%
+}
+
+% Internal helper function - Eats one input
+\def\@swallow#1{}
+
+% Internal helper function - Checks the next character after #1 and #2 and
+% continues loop iteration if \@end@token is not found
+\def\@test@foreach#1#2{%
+  \@ifnextchar\@end@token%
+    {\@swallow}%
+    {\@foreach{#1}{#2}}%
+}
+
+% Internal helper function - Calls #1{#2}{#3} and recurses
+% The magic of splitting the third parameter occurs in the pattern matching of the \def
+\def\@foreach#1#2#3,#4\@end@token{%
+  #1{#2}{#3}%
+  \@test@foreach{#1}{#2}#4\@end@token%
+}
+
+\makeatother
+
+% Helper method, prepends a rightarrow before a node, throws away first
+% argument
+% TODO(cs): figure out how to make this a private method.
+\def\connecthelper#1#2{#2$\mathtt{\rightarrow\mkern-6mu}$}
+% Prepend a rightarrow before a node
+\def\connect#1{\connecthelper{}{#1}}
+
+% Chain together a list of nodes. Takes two parameters:
+% #1: a comma-delimited list of the of everything in the list *except* the
+% last element.
+% #2: the *tail* of the chain
+% TODO(cs): figure out how to delimit the first comma so that tail doesn't
+% need to be specified separately.
+\def\chain#1#2{\foreach{\connecthelper}{}{#1}$\mathtt{\;\cdot\!\!\cdot\!\!\cdot\mkern-5mu}$#2}
+
+% Chain together a list of nodes, with two tails, separated by dots. Takes three parameters:
+% #1: a comma-delimited list of the of everything in the list *except* the
+% last element.
+% #2: the first tail of the chain
+% #2: the second tail of the chain
+\def\doublechain#1#2#3{\chain{#1}{#2}$\mathtt{\rightarrow\mkern-6mu\cdot\!\!\cdot\!\!\cdot\mkern-4mu}$#3}
+
+\def\eventlist#1#2{$\mathtt{\text{#1}\!\cdot\!\!\cdot\!\!\cdot\mkern-8mu\text{#2}}$}
+
+% -------------- Delta-debugging symbols: -----------
+\newcommand{\PASS}{\text{\ding{52}}\xspace}
+\newcommand{\DFAIL}{\text{\ding{56}}\xspace}
+\newcommand{\cpass}{{T_{\scriptscriptstyle \PASS}}}
+\newcommand{\cfail}{{T_{\scriptscriptstyle \DFAIL}}}
+\newcommand{\dpass}{{T'_{\scriptscriptstyle \PASS}}}
+\newcommand{\dfail}{{T'_{\scriptscriptstyle \DFAIL}}}
+\newcommand{\done}{{T_{\scriptscriptstyle 1}}}
+\newcommand{\dtwo}{{T_{\scriptscriptstyle 2}}}
+\newcommand{\test}{\textit{test}\xspace}
+\newcommand{\ddmin}{\textit{ddmin}\xspace}
+
+% ------------ OLD space tweaks: ----------------
+%\makeatletter
+%\newcommand*{\rom}[1]{\expandafter\@slowromancap\romannumeral #1@}
+%\makeatother
+
+%,xcolor,rotating,graphicx,graphics,url,epsfig,
+%amsfonts,algpseudocode,xspace,amsmath,amssymb,fancyvrb,fixltx2e
+
+% Ethan hacks:----------
+%\setlength{\pdfpagewidth}{8.5truein}
+%\setlength{\pdfpageheight}{11truein}
+
+%%% format things for making pretty tables using booktabs package
+%\usepackage{multirow}
+%\usepackage{booktabs}
+%\setlength{\heavyrulewidth}{0.10em}
+%\setlength{\lightrulewidth}{0.05em}
+%\setlength{\cmidrulewidth}{\lightrulewidth}
+%\setlength{\cmidrulekern}{0em}%
+%
+%\let\oldthebibliography=\thebibliography
+%\let\endoldthebibliography=\endthebibliography
+%\renewenvironment{thebibliography}[1]{%
+%\begin{oldthebibliography}{#1}%
+%\setlength{\itemsep}{-.3ex}%
+%}%
+%{%
+%\end{oldthebibliography}%
+%}
+
+%\textfloatsep 10pt plus 3pt minus 2pt   % Space between main text and floats
+
+%\newcommand{\squishlist}{
+%   \begin{list}{$\bullet$}
+%    { \setlength{\itemsep}{0pt}      \setlength{\parsep}{3pt}
+%      \setlength{\topsep}{3pt}       \setlength{\partopsep}{0pt}
+%      \setlength{\leftmargin}{1.5em} \setlength{\labelwidth}{1em}
+%      \setlength{\labelsep}{0.5em} } }
+%
+%\newcommand{\squishlisttwo}{
+%   \begin{list}{$\bullet$}
+%    { \setlength{\itemsep}{0pt}    \setlength{\parsep}{0pt}
+%      \setlength{\topsep}{0pt}     \setlength{\partopsep}{0pt}
+%      \setlength{\leftmargin}{2em} \setlength{\labelwidth}{1.5em}
+%      \setlength{\labelsep}{0.5em} } }
+%
+%\newcommand{\squishend}{
+%    \end{list}  }
+%
+%
+%\def\compactify{\itemsep=2pt \topsep=3pt \partopsep=1pt \parsep=1pt \leftmargin=1.5em}
+%\let\latexusecounter=\usecounter
+%\newenvironment{CompactEnumerate}
+%  {\def\usecounter{\compactify\latexusecounter}
+%   \begin{enumerate}}
+%   {\end{enumerate}\let\usecounter=\latexusecounter}
+%\newenvironment{CompactItemize}
+%   {\def\usecounter{\compactify\latexusecounter}
+%   \begin{itemize}}
+%   {\end{itemize}\let\usecounter=\latexusecounter}
+%
+% --------------------------------------------
+
+% Signed quotes:
+\def\signed #1{{\leavevmode\unskip\nobreak\hfil\penalty50\hskip2em
+  \hbox{}\nobreak\hfil(#1)%
+    \parfillskip=0pt \finalhyphendemerits=0 \endgraf}}
+
+\newsavebox\mybox
+\newenvironment{aquote}[1]
+  {\savebox\mybox{#1}\begin{quote}}
+    {\signed{\usebox\mybox}\end{quote}}
+
+
+%============ No need to modify anything below this line =================
+
+\bibliography{bib}
+
+%\sloppy
+\begin{document}
+
+\title{Minimizing Faulty Executions of Distributed Systems}
+\author{Colin Scott}
+\degreesemester{Spring}
+\degreeyear{2016}
+\degree{Doctor of Philosophy}
+\chair{Professor Scott Shenker}
+\othermembers{Professor George Necula\\
+  Professor Sylvia Ratnasamy\\
+  Professor Tapan Parikh}
+\numberofmembers{4}
+\prevdegrees{B.S. (University of Washington) 2011 \\
+  M.S. (UC Berkeley) 2014}
+\field{Computer Sciences}
+\campus{Berkeley}
+
+% The title page generated by LaTeX is now acceptable for handing in.
+% (This was not always the case).
+
+\maketitle
+%\approvalpage
+\copyrightpage
