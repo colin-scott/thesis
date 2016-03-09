@@ -1,4 +1,4 @@
-\setlength{\textfloatsep}{2.0pt plus 2.0pt minus 4.0pt} % Reset \textfloatsep
+%\setlength{\textfloatsep}{2.0pt plus 2.0pt minus 4.0pt} % Reset \textfloatsep
 
 % TODO(cs): discuss Akka's use of TCP vs UDP?
 
@@ -81,7 +81,7 @@ compare to the previous state of the art~\cite{sts2014};
 `NoDiverge' shows the size of minimized executions when no divergent schedules are explored (explained
 in \S\ref{sec:related_work}).}
 \label{dtab:case_studies}
-\vskip -2em
+%\vskip -2em
 }
 \end{table*}
 
@@ -129,7 +129,7 @@ in \S\ref{sec:related_work}).}
 % Total: 210s
 \hline
 \end{tabular}
-\vskip -1em
+%\vskip -1em
 \caption{Minimization runtime in seconds (total schedules executed). Overall runtime is
 the summation of ``STSSched'' and ``TFB''. spark-9256 only
 had unignorable events remaining after STSSched completed, so TFB was not
@@ -212,7 +212,7 @@ Our evaluation of Spark demonstrates that \sys~can be applied to complex, large 
 %, and a Pastry DHT implementation,
 %, and a reliable broadcast implementation,
 
-\noindent{\bf Reproducing Sequence Size.} We compare the size of the
+\noindent{\textbf{Reproducing Sequence Size.}} We compare the size of the
 minimized executions produced by \sys~against the
 smallest fault-inducing executions we could construct by hand (interactively
 instructing \sys~which messages to deliver).
@@ -239,7 +239,7 @@ Table~\ref{dtab:case_studies}, and the size
 of our manually constructed traces is shown in the \num{final} column.\george{The last column does not seem to be the manual result}
 }
 
-\noindent{\bf Minimization Pace.} To measure how quickly \sys~makes
+\noindent{\textbf{Minimization Pace.}} To measure how quickly \sys~makes
 progress, we graph schedule size as a function of the number of
 executions~\sys tries.
 Figure~\ref{fig:progress} shows an example for
@@ -247,6 +247,7 @@ raft-58b. The other case studies follow the same general pattern of sharply decr
 marginal gains.
 
 \begin{figure}[tb]
+    \centering
     \includegraphics[width=3.25in]{demi/raft_58b_minimization_progress.pdf}
     %\vspace{-2em}
     \caption[]{\label{fig:progress} Minimization pace for raft-58b. Significant progress is made early on, then progress becomes rare.}
@@ -266,7 +267,7 @@ fact (cf.~\cite{Gupta06toinfinity})} The time budget we allotted to~\sys~for all
 All case studies except raft-56, raft-58a, and raft-42 reached completion of TFB in less than 10
 minutes.
 
-\noindent{\bf Qualitative Metrics.} We do not evaluate how minimization helps
+\noindent{\textbf{Qualitative Metrics.}} We do not evaluate how minimization helps
 with programmer productivity. Data on how humans do debugging is scarce; we
 are aware of only one study that measures how
 quickly developers debug minimized vs. non-minimized traces\cite{fse_web_ddmin}.
@@ -375,7 +376,7 @@ caching between stages) STSSched likely would not have performed as well.
 
 \subsection{Auxiliary Evaluation}
 
-\noindent{\bf External message shrinking.} We demonstrate the benefits of
+\noindent{\textbf{External message shrinking.}} We demonstrate the benefits of
 external message shrinking with an akka-raft case study. Recall that akka-raft
 processes receive an external bootstrapping message that informs
 them of the IDs of all other processes. We started with a 9 node akka-raft
@@ -401,15 +402,15 @@ minimize both external events and message contents.
 {\bf After STSSched} & 81 \hfill (E: 8 bootstraps) & 51 \hfill (E: 5 bootstraps) \\
 \hline
 \end{tabular}
-\vskip -1em
+%\vskip -1em
 \caption{External message shrinking results for raft-45 starting with 9
 processes. Message shrinking + minimization was able to reduce the cluster
 size to 5 processes.}
 \label{tab:message_shrinking}
-\vskip -1.5em
+%\vskip -1.5em
 \end{table}
 
-\noindent{\bf Instrumentation Overhead.} Table~\ref{tab:instrumentation} shows
+\noindent{\textbf{Instrumentation Overhead.}} Table~\ref{tab:instrumentation} shows
 the complexity in terms of lines of Scala code needed to define message fingerprint
 functions, mitigate non-determinism (with the application modifications
 described in \S\ref{dsec:implementation}), specify invariants, and configure
@@ -443,7 +444,7 @@ non-determinism.
 %{\bf Akka Interposition} & - & 336 \\
 %\hline
 \end{tabular}
-\vskip -1em
+%\vskip -1em
 \caption{Complexity (lines of Scala code) needed to define message
 fingerprints, mitigate non-determinism, define invariants, and configure \sys.
 Akka API interposition (336 lines of AspectJ) is application independent.}

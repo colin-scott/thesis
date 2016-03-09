@@ -5,7 +5,7 @@
 %here.
 
 \eat{
-\noindent{\bf Aren't SDN controllers relatively simple and bug free?}
+\noindent{\textbf{Aren't SDN controllers relatively simple and bug free?}}
 It is true that the freely available SDN applications we investigated are relatively simple. However, they
 are most definitely not bug-free since, in a short period of time, we were able to demonstrate bugs in all of them. 
 Production SDN controller software is far more complex than freely
@@ -24,7 +24,7 @@ interest in our tool as a way to improve their troubleshooting.
 
 \eat{
 \colin{Hopefully not necessary:}
-\noindent{\bf Aren't the bugs described here trivial in nature?} Yes, the bugs we found were trivial, but that
+\noindent{\textbf{Aren't the bugs described here trivial in nature?}} Yes, the bugs we found were trivial, but that
 is evidence that without better troubleshooting tools tracking down even trivial bugs is difficult.
 We were particularly
 surprised how quickly our tool was able to identify policy violations in the
@@ -36,8 +36,8 @@ surface once we aim our tool at more complex platforms, such as those used in pr
 }
 
 \eat{ % No longer relevant
-\noindent{\bf Are simulated failures really indistinguishable from actual
-failures?} There will always be some failure modes observed in practice that are
+\noindent{\textbf{Are simulated failures really indistinguishable from actual
+failures?}} There will always be some failure modes observed in practice that are
 not reproducible without adding significant complexity to the \tester. Our
 approach is not particularly well-suited to model fine-grained low-level
 behavior, especially on the data plane, e.g., when switches are dropping
@@ -50,7 +50,7 @@ speeds adjusted accordingly).  Additional experience with production systems wil
 us determine how to best trade off improved simulation fidelity against degraded performance.
 }
 
-\noindent{\bf How much effort do MCSes really save?} Based on conversations
+\noindent{\textbf{How much effort do MCSes really save?}} Based on conversations
 with engineers and our own industrial experience,
 two facts seem to hold. First, companies dedicate
 a substantial portion of their best engineers' time on troubleshooting bugs.
@@ -63,7 +63,7 @@ case is immensely helpful''~\cite{riak_quote}.
 %divide and conquer approach taken by delta debugging which is
 %$O(n^2)$ in the worst case for $n$ inputs, yet human time is highly valuable.
 
-\noindent{\bf Will this approach work on all controllers?} We make limited
+\noindent{\textbf{Will this approach work on all controllers?}} We make limited
 assumptions about the controller software in use. Three of the five platforms
 we investigated were exercised with \projectname~without any modifications.
 Limited changes to the controller platforms (\eg~overriding
@@ -71,7 +71,7 @@ Limited changes to the controller platforms (\eg~overriding
 In general, we expect \projectname~to support controllers conforming to
 OpenFlow~1.0. % out of the box.
 
-\noindent{\bf Why do you focus on SDN?} SDN represents both an
+\noindent{\textbf{Why do you focus on SDN?}} SDN represents both an
 opportunity and a challenge. In terms of a challenge,
 SDN control software---both proprietary and open source---is in its infancy, which means
 that bugs are pervasive.
@@ -111,7 +111,7 @@ applicable.
 %% controllers.
 
 \eat{
-\noindent{\bf Dataflow analysis.} Another avenue for future work would be to apply
+\noindent{\textbf{Dataflow analysis.}} Another avenue for future work would be to apply
 dataflow
 analysis~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling}
 to further prune events.
@@ -139,14 +139,14 @@ analyzing the control software itself.
 %unnecessarily.
 
 \eat{
-\noindent{\bf Optimizing delta debugging.} Delta debugging is agnostic to how
+\noindent{\textbf{Optimizing delta debugging.}} Delta debugging is agnostic to how
 input sequences are split. Currently we
 split by time, but it may be more effective to split events by type or by location in the network
 topology.% may yield faster minimization, since bugs will often only involve a
 %small number of nodes in the distributed system.
 }
 
-\noindent{\bf Enabling analysis of production logs.} \projectname~does
+\noindent{\textbf{Enabling analysis of production logs.}} \projectname~does
 not currently support minimization of production (as opposed
 to QA) logs. Production systems would need to include Lamport
 clocks on each message~\cite{Lamport:1978:TCO:359545.359563} or have
@@ -211,7 +211,7 @@ alarms.
 \eat{
 
 
-\noindent{\bf How big is the log? How long does this take to run?}
+\noindent{\textbf{How big is the log? How long does this take to run?}}
 Assuming that it takes constant time to inject an external input, the
 runtime of the algorithm is $O(n^2)$, where $n$ is the number of external inputs to
 prune. If the log is too long to rerun from the beginning for

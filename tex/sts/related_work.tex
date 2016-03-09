@@ -12,7 +12,7 @@ as (i) instrumentation (tracing),
 (iv) root cause analysis (of network device failures).
 
 \vspace{0.05in}
-\noindent{\bf Instrumentation.} Unstructured
+\noindent{\textbf{Instrumentation.}} Unstructured
 log files collected at each node are the most common form of diagnostic information. The goal of
 tracing frameworks~\cite{pip,fonseca2007x,Chen02pinpoint:problem,ndb14,barham2004using}
 is to produce structured logs that can be easily analyzed, such as DAGs tracking
@@ -25,7 +25,7 @@ easier for developers to understand why the control software
 misconfigured the network.%in the first place.
 
 \vspace{0.05in}
-\noindent{\bf Bug Detection.} With instrumentation available, it becomes possible
+\noindent{\textbf{Bug Detection.}} With instrumentation available, it becomes possible
 to check expectations about the
 system's state (either offline~\cite{Liu07widschecker} or online~\cite{d3s}), or about the paths requests take through
 the system~\cite{pip}. Within the networking community, this research is
@@ -61,7 +61,7 @@ minimal MCSes.
 %\colin{TODO: discuss how finding the critical transition is related to finding the MCS}
 
 \vspace{0.05in}
-\noindent{\bf Replay.} Crucial diagnostic information is often missing from traces.
+\noindent{\textbf{Replay.}} Crucial diagnostic information is often missing from traces.
 Record and replay techniques~\cite{Geels:2006:RDD:1267359.1267386,lin2013defined}
 instead allow users to step through (deterministic) executions and interactively examine the
 state of the system in exchange for runtime recording overhead.
@@ -82,7 +82,7 @@ problematic code through replay or other means.
 %prior to a failure.
 
 \vspace{0.05in}
-\noindent{\bf Root Cause Analysis.} Without perfect instrumentation,
+\noindent{\textbf{Root Cause Analysis.}} Without perfect instrumentation,
 it is often not possible to know exactly what events are occurring (\eg~which
 network components have failed) in a
 distributed system. Root cause analysis~\cite{yemini1996,Kandula:2009:DDE:1592568.1592597}
@@ -108,7 +108,7 @@ code dimension.
 Our work spans three fields: software engineering, programming languages, and
 systems and networking.
 
-\noindent{\bf Software Engineering \& Programming Languages}
+\noindent{\textbf{Software Engineering \& Programming Languages}}
 Sherlog~\cite{Yuan:2010:SED:1736020.1736038} takes on-site logs from a
 single program that ended in a failure as input, and applies static analysis to infer the
 program execution (both code paths and data values) that lead up to the failure.
@@ -145,7 +145,7 @@ possibilities, we discover bugs through testing and systematically
 enumerate subsequences of their event traces
 in polynomial time.
 
-\noindent{\bf Systems and Networking}
+\noindent{\textbf{Systems and Networking}}
 We share the common goal of improving troubleshooting
 of software-defined networks with OFRewind~\cite{ofrewind} and
 recent project ndb~\cite{handigol2012debugger}. OFRewind provides

@@ -90,7 +90,7 @@ inconsistency~\cite{Zeller:2002:SIF:506201.506206}.}
 Input: $\cfail$ s.t. $\cfail$ is a sequence of externals, and $\test(\cfail) = \DFAIL$. Output: $\dfail
 = \ddmin(\cfail)$ s.t. $\dfail \sqsubseteq
 \cfail$, $\test(\dfail) = \DFAIL$, and~$\dfail$ is minimal.
-\vspace{-0.4em}
+%\vspace{-0.4em}
 \begin{align*}
 \ddmin(\cfail) &= \ddmin_2(\cfail, \emptyset) \quad \text{where} \\
 \ddmin_2(\dfail, R) &=
@@ -105,7 +105,7 @@ R\bigr) & \text{otherwise (``interference'')}
 \end{cases}
 \end{align*}
 \begin{center}
-\vspace{-0.8em}
+%\vspace{-0.8em}
 where $\DFAIL$ denotes an invariant violation,
 $\done \sqsubset \dfail$, $\dtwo \sqsubset \dfail$, $\done \cup \dtwo = \dfail$, $\done \cap
 \dtwo = \emptyset$, and $|\done| \approx |\dtwo| \approx |\dfail| / 2$
@@ -154,7 +154,7 @@ Simply exploring subsequences $E_S$ of $E_L$ is insufficient for finding
 MCSes: the timing of when we inject the external events during replay is crucial for
 reproducing violations.
 
-\noindent {\bf Existing Approaches.} The most natural approach to scheduling
+\noindent{\textbf{Existing Approaches.}} The most natural approach to scheduling
 external events is to maintain the original wall-clock timing intervals
 between them.
 If this is able to find all minimization opportunities,
@@ -249,7 +249,7 @@ removing inputs (\eg~EFF takes the transitive closure of all possible
 dependencies~\cite{Lee:2011:TGR:1993498.1993528}) causing them to miss opportunities to
 remove dependencies that actually semantically commute.
 
-\noindent {\bf Allowing Divergence.} Our approach is
+\noindent{\textbf{Allowing Divergence.}} Our approach is
 to dynamically respond to I/O requests during minimization
 rather than recording all I/O requests and thread scheduling decisions.
 This has several advantages. Unlike
@@ -280,7 +280,7 @@ actually comprise multiple languages.} %, for example those that depend on datab
 %interleavings for each subsequence tested by delta debugging.
 %This has problems foo, bar and baz.
 
-\noindent {\bf Accounting for Interleavings.} To reproduce the invariant violation (whenever $E_S$ is a superset of an MCS)
+\noindent{\textbf{Accounting for Interleavings.}} To reproduce the invariant violation (whenever $E_S$ is a superset of an MCS)
 we need to inject each input event \external{} only after all other
 events, including internal events triggered by the control software itself,
 that precede it in the
@@ -369,10 +369,10 @@ Log statements & varargs parameters to printf \\
 %define equivalence classes.
 }
 \label{tab:fingerprints}
-\vspace{-0.5cm}
+%\vspace{-0.5cm}
 \end{table}
 
-\noindent {\bf Functional Equivalence. } Internal events may differ syntactically (\eg~sequence numbers
+\noindent{\textbf{Functional Equivalence.}} Internal events may differ syntactically (\eg~sequence numbers
 of control packets may all differ) when replaying a subsequence of the original log.
 We observe that many internal events are {\em functionally
 equivalent}, in the sense that they
@@ -427,7 +427,7 @@ Non-deterministic TCAMs & Modified switches \\
 \end{tabular}
 \caption{Input types currently supported by \projectname.}
 \label{tab:inputs}
-\vspace{-0.2cm}
+%\vspace{-0.2cm}
 \end{table}
 
 \eat{
@@ -440,7 +440,7 @@ Non-deterministic TCAMs & Modified switches \\
 \end{figure}
 }
 
-\noindent {\bf Handling Absent Internal Events. } Some internal events from the original
+\noindent{\textbf{Handling Absent Internal Events.}} Some internal events from the original
 log that causally ``happen before'' some external input
 may be absent when replaying a subsequence of that log.
 For instance, if we prune a link failure event, then
@@ -539,10 +539,10 @@ in Figure~\ref{fig:replay}.
   \caption{{\sc Peek} determines which internal events
   from the original sequence occur for a given subsequence.
   \label{fig:peek}}
-  \vskip -1em
+  %\vskip -1em
 \end{figure}
 
-\noindent {\bf Handling New Internal Events.} The last possible change induced by pruning is the occurrence of new
+\noindent{\textbf{Handling New Internal Events.}} The last possible change induced by pruning is the occurrence of new
 internal events that were not observed in the original log.
 New events present multiple possibilities for where
 we should inject the next input. Consider the following case:
@@ -597,7 +597,7 @@ the controllers quickly converge to a single state (either ``Master'' or
 }
 }
 
-\noindent {\bf Recap.} We combine the above heuristics to replay each
+\noindent{\textbf{Recap.}} We combine the above heuristics to replay each
 subsequence chosen by delta debugging: we compute functional equivalency
 for each internal event intercepted by our
 interposition layer, we invoke {\sc Peek()} to infer absent internal events,

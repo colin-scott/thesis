@@ -27,7 +27,7 @@ If the application assumes ordering guarantees from the transport
 layer (e.g. TCP's FIFO delivery), \sys~adheres to these guarantees
 during testing and minimization to maintain soundness.
 
-\noindent{\bf Fuzz testing with \sys.} We begin by using \sys~to generate
+\noindent{\textbf{Fuzz testing with \sys.}} We begin by using \sys~to generate
 faulty executions. Developers give \sys~a test configuration (we
 tabulate all programmer-provided specifications in
 Appendix~\ref{app:programmer_effort}), which
@@ -77,7 +77,7 @@ executed, and information about which messages were sent in
 response to which events. Users can then replay the execution exactly, or
 instruct \sys~to minimize the execution as described in \S\ref{dsec:approach}.
 
-\noindent{\bf Mitigating non-determinism.} Processes may behave non-deterministically.
+\noindent{\textbf{Mitigating non-determinism.}} Processes may behave non-deterministically.
 A process is non-deterministic if the messages it emits
 (modulo fingerprints) are not uniquely determined by the prefix of messages we have
 delivered to it in the past starting from its initial state.
@@ -96,12 +96,12 @@ isolated their source and interposed on it.
 %In total we spent roughly one person-month debugging.
 %non-determinism.
 
-\noindent{\bf akka-raft instrumentation.} Within akka-raft, actors use a
+\noindent{\textbf{akka-raft instrumentation.}} Within akka-raft, actors use a
 pseudo random number generator to choose when to
 start leader elections. Here we provided a seeded random
 number generator under the control of~\sys.
 
-\noindent{\bf Spark instrumentation.} Within Spark, the task scheduler chooses the first value from a hashmap in order
+\noindent{\textbf{Spark instrumentation.}} Within Spark, the task scheduler chooses the first value from a hashmap in order
 to decide what tasks to schedule. The values of the hashmap are
 arbitrarily ordered, and the order changes from execution to execution. We needed to modify
 Spark to sort the values of the hash map before choosing an element.
@@ -149,7 +149,7 @@ a non-cycle message.
 Spark names some of the files it writes to disk using a timestamp read from the system clock.
 We hardcode a timestamp in these cases to make replay deterministic.
 
-\noindent{\bf Akka changes.} In a few places within the Akka framework, Akka assigns IDs using an
+\noindent{\textbf{Akka changes.}} In a few places within the Akka framework, Akka assigns IDs using an
 incrementing counter. This can be problematic during minimization, since the counter value
 may change as we remove events, and the (non-fingerprinted) message contents in the modified execution may change.
 We fix this by computing IDs based on a hash
@@ -158,13 +158,13 @@ hashes. We found this mechanism to be sufficient for our case studies.
 %  - More info:
 %      https://docs.google.com/document/d/1rAM8EEy3WnLRhhPROvHmBhAREv0rmihz0Gw0GgF1xC4/edit
 
-\noindent{\bf Stop-gap: replaying multiple times.} In cases where it is
+\noindent{\textbf{Stop-gap: replaying multiple times.}} In cases where it is
 difficult to locate the cause of non-determinism, good reduction can often
 still be achieved simply by configuring \sys~to replay each schedule
 multiple times and checking if any of the attempts triggered the safety
 violation.
 
-\noindent{\bf Blocking operations.} Akka deviates from the computational model we defined
+\noindent{\textbf{Blocking operations.}} Akka deviates from the computational model we defined
 in~\S\ref{dsec:problem_statement} in one remaining aspect: Akka allows
 actors to block on certain operations. For example, actors may block until they receive
 a response to their most recently sent message. To deal with these cases we inject
@@ -193,19 +193,19 @@ deliver the response.
 
 \subsection{Limitations}
 
-\noindent{\bf Safety vs.\ liveness.} We
+\noindent{\textbf{Safety vs.\ liveness.}} We
 are primarily focused on safety violations, not liveness or performance bugs.
 
-\noindent{\bf Non-Atomic External Events.} \sys~currently waits for external
+\noindent{\textbf{Non-Atomic External Events.}} \sys~currently waits for external
 events (e.g. crash-recoveries) to complete before proceeding. This may prevent it from finding
 bugs involving finer-grained event interleavings.
 
-\noindent{\bf Limited scale.} \sys~is currently tied to a
+\noindent{\textbf{Limited scale.}} \sys~is currently tied to a
 single physical machine, which limits the scale of systems it can test (but
 not the bugs it can uncover, since actors are unaware of colocation). We do not
 believe this is fundamental.
 
-\noindent{\bf Shared memory \& disk.} In some systems processes communicate
+\noindent{\textbf{Shared memory \& disk.}} In some systems processes communicate
 by writing to
 shared memory or disk rather than sending messages over the network.
 Although we do not currently support it, if we took the effort to add interposition to the
@@ -265,7 +265,7 @@ recording overhead is not especially problematic.
 We distinguish between the generality of the
 \sys~artifact, and the generality of our scheduling strategies.
 
-\noindent{\bf Generality of \sys.} We targeted the Akka actor framework
+\noindent{\textbf{Generality of \sys.}} We targeted the Akka actor framework
 for one reason: thanks to the actor API (and to a lesser extent, AspectJ), we did not need to exert much
 engineering effort to interpose on (i) communication
 between processes, (ii) blocking operations, (iii) clocks, and (iv) remaining sources of non-determinism.
@@ -283,7 +283,7 @@ layer. Transport layer complexities would also increase the size of the schedule
 space. Lastly, some amount of application layer interposition would still be
 necessary, e.g. interposition on user-level threads or blocking operations.
 
-\noindent{\bf Generality of scheduling strategies.} At their core, distributed
+\noindent{\textbf{Generality of scheduling strategies.}} At their core, distributed
 systems are just concurrent systems (with the additional complexities of partial
 failure and asynchrony). Regardless of whether they are designed for
 multi-core or a distributed setting, the key property we assume from the

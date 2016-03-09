@@ -27,13 +27,13 @@ related literature. We focus only on \sys's minimization techniques, since
 \sys's~interposition and testing functionality is similar to other
 systems~\cite{lin2009modist,simsa2010dbug,leesatapornwongsa2014samc}.
 
-\noindent{\bf Input Minimization for Sequential Programs.} Minimization
+\noindent{\textbf{Input Minimization for Sequential Programs.}} Minimization
 algorithms for sequentially processed inputs are
 well-studied~\cite{Zeller:2002:SIF:506201.506206,claessen2000quickcheck,regehr2012test,whitaker2004configuration,burger2011minimizing,fse_web_ddmin,chang2007simulation}.
 These form a component of our solution, but they do not consider
 interleavings of internal events from concurrent processes.
 
-\noindent{\bf Minimization without Interposition.} Several
+\noindent{\textbf{Minimization without Interposition.}} Several
 tools minimize inputs to concurrent
 systems without controlling sources of non-determinism~\cite{arts2006testing,clause2007technique,tucek2007triage,jin2013f3,hughes2011testing}.
 The most sophisticated of these replay each subsequence
@@ -58,7 +58,7 @@ are exhausted~\cite{hughes_email}.
 % Even with pulse the counterexamples can be large
 % http://www.erlang-factory.com/upload/presentations/191/EUC2009-PULSE.pdf
 
-\noindent{\bf Thread Schedule Minimization.} Other techniques seek to minimize thread
+\noindent{\textbf{Thread Schedule Minimization.}} Other techniques seek to minimize thread
 interleavings leading up to concurrency
 bugs~\cite{choi2002isolating,jalbert2010trace,huang2011efficient,el2014efficient}.
 These generally work by iteratively feeding a single input (the thread
@@ -98,7 +98,7 @@ execution.
 % the middle of the trace.
 
 % TODO(cs): more descriptive title?
-\noindent{\bf Program Analysis.} By analyzing the program's control- and
+\noindent{\textbf{Program Analysis.}} By analyzing the program's control- and
 dataflow dependencies, one can remove events in the middle of the deterministic
 replay log without causing
 divergence~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean,cai2013lock,elyasov2013guided,wang2015fast}.
@@ -111,7 +111,7 @@ where it detects a previously unobserved state transition. Column `NoDiverge'
 of Table~\ref{dtab:case_studies} shows the results, which demonstrate that
 divergent executions are crucial to \sys's reduction gains for the akka-raft case studies.
 
-% %\noindent{\bf Program Flow Analysis.} Other than delta debugging,
+% %\noindent{\textbf{Program Flow Analysis.}} Other than delta debugging,
 % %the closest work to ours involves reasoning about
 % %control- and dataflow dependencies
 % %(which may be recorded at runtime~\cite{Lee:2011:TGR:1993498.1993528},
@@ -149,7 +149,7 @@ divergent executions are crucial to \sys's reduction gains for the akka-raft cas
 % we were able to easily apply our system to five different control platforms
 % written in three different languages.
 
-\noindent{\bf Model Checking.} Algorithmically, our work is most closely
+\noindent{\textbf{Model Checking.}} Algorithmically, our work is most closely
 related to the model checking literature.
 
 Abstract model checkers convert (concurrent) programs to logical formulas, find
@@ -195,23 +195,23 @@ the message level and do not make assumptions about the language of the
 system under test.
 }
 
-\noindent{\bf Bug Reproduction.} Several papers seek to find a schedule that
+\noindent{\textbf{Bug Reproduction.}} Several papers seek to find a schedule that
 reproduces a given concurrency bug~\cite{zamfir2011debug,Zamfir:2010:EST:1755913.1755946,altekar2009odr,park2009pres}.
 These do not seek to find a minimal schedule.
 
-\noindent{\bf Probabilistic Diagnosis.} To avoid the runtime overhead of deterministic replay, other techniques
+\noindent{\textbf{Probabilistic Diagnosis.}} To avoid the runtime overhead of deterministic replay, other techniques
 capture carefully selected diagnostic information from production execution(s), and correlate this information
 to provide best guesses at the root causes of
 bugs~\cite{barham2004using,Chen02pinpoint:problem,Yuan:2010:SED:1736020.1736038,kasikci2015failure,sangmin}.
 We assume more complete runtime instrumentation (during testing), but provide exact reproducing
 scenarios.
 
-\noindent{\bf Log Comprehension.} Model inference techniques summarize log files
+\noindent{\textbf{Log Comprehension.}} Model inference techniques summarize log files
 in order to make them more easily understandable by
 humans~\cite{ernst2001dynamically,synoptic,csight,biermann1972synthesis,lorenzoli2008automatic,lou2010mining}.
 Model inference is complementary, as it does not modify the event logs. %, and is therefore complementary.
 
-\noindent{\bf Program Slicing \& Automated Debugging.} Program slicing~\cite{weiser1981program}
+\noindent{\textbf{Program Slicing \& Automated Debugging.}} Program slicing~\cite{weiser1981program}
 and the subsequent literature on automated
 debugging~\cite{zhangzhang,jose11,coverage_localization,xuan14,zeller2005,comparative_causality}
 seek to localize errors in the code itself.

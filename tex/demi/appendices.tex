@@ -60,15 +60,15 @@ we typically exhaust our time budget before \sys~runs out of memory.
 There are a few desirable properties of DPOR we want to maintain,
 despite our prioritized exploration order:
 
-\noindent{\bf Soundness:} any executed schedule should be valid, i.e. possible
+\noindent{\textbf{Soundness:}} any executed schedule should be valid, i.e. possible
 to execute on an uninstrumented version of the program starting from the
 initial configuration.
 
-\noindent{\bf Efficiency:} the happens-before partial order for every executed schedule
+\noindent{\textbf{Efficiency:}} the happens-before partial order for every executed schedule
 should never be a prefix of any other partial orders that have been
 previously explored.
 
-\noindent{\bf Completeness:} when the state space is acyclic, the strategy is guaranteed to
+\noindent{\textbf{Completeness:}} when the state space is acyclic, the strategy is guaranteed to
 find every possible safety violation.
 
 Because we experimentally execute each schedule, soundness is easy to
@@ -109,7 +109,7 @@ with $next(\kappa,m)$ and $i \not\rightarrow_S m \})$}
 
 \EndProcedure
 \end{algorithmic}
-\caption{{\footnotesize \label{alg:dpor} The original depth-first version of Dynamic Partial Order Reduction
+\caption{{\label{alg:dpor} The original depth-first version of Dynamic Partial Order Reduction
 from~\cite{flanagan2005dynamic}. $last(S)$ denotes the configuration reached
 after executing $S$;
 $next(\kappa,m)$ denotes the state transition (message delivery) where the message m is
@@ -193,8 +193,8 @@ with
 each other, we fixed all other known bugs for each case study. We reported all bugs and fixes to the akka-raft
 developers.
 
-\noindent{\bf raft-45: Candidates accept duplicate votes from the same
-election term.} Raft is specified as a state machine with three
+\noindent{\textbf{raft-45: Candidates accept duplicate votes from the same
+election term.}} Raft is specified as a state machine with three
  states: Follower, Candidate, and Leader. Candidates attempt to
  get themselves elected as leader by soliciting a quorum of
  votes from their peers in a given election term (epoch).
@@ -212,8 +212,8 @@ The root cause for this bug was that akka-raft's candidate
  Upon receiving the duplicate vote, the candidate counts it as a new vote and steps
  up to leader before it actually achieved a quorum of votes.
 
-\noindent{\bf raft-46: Processes neglect to ignore certain
- votes from previous terms.} After fixing the previous bug, we found another
+\noindent{\textbf{raft-46: Processes neglect to ignore certain
+ votes from previous terms.}} After fixing the previous bug, we found another
  execution where two leaders were elected in the same term.
 
 In Raft, processes attach an `election term' number to all messages they send.
@@ -224,7 +224,7 @@ akka-raft properly ignored lagging term numbers for some, but not all
  message types. \sys~delayed the delivery of messages from previous terms and
  uncovered a case where a candidate incorrectly accepted a vote message from a previous election term.
 
-\noindent{\bf raft-56: Nodes forget who they voted for.} akka-raft is written as a finite state machine.
+\noindent{\textbf{raft-56: Nodes forget who they voted for.}} akka-raft is written as a finite state machine.
 When making a state transition, FSM processes specify both which state they want to transition to, and which instance variables they want to keep once they have transitioned.
 
 All of the state transitions for akka-raft were correct except
@@ -238,8 +238,8 @@ two leaders to be elected, i.e. a violation of Raft's ``Leader Safety''
 condition. We discovered this by manually examining the state
 transitions made by each process throughout the minimized execution.
 
-\noindent{\bf raft-58a: Pending client commands delivered
- before initialization occurs.} After ironing out leader election issues, we started finding other issues.
+\noindent{\textbf{raft-58a: Pending client commands delivered
+ before initialization occurs.}} After ironing out leader election issues, we started finding other issues.
  In one of our fuzz runs, we found that a leader process threw an assertion error.
 
 When an akka-raft Candidate first makes the state transition to leader, it does not immediately initialize its
@@ -255,7 +255,7 @@ Through fuzz testing, we found that it is possible that the Candidate could have
  the contents of the Leader's log.
 
 
-\noindent{\bf raft-58b: Ambiguous log indexing.} In one of our fuzz tests,
+\noindent{\textbf{raft-58b: Ambiguous log indexing.}} In one of our fuzz tests,
  we found a case where the `Log Matching' invariant was violated, i.e. log entries did not appear in the same order on all machines.
 
 According to the Raft paper, followers should reject AppendEntries requests from leaders that are behind,
@@ -271,7 +271,7 @@ The last two cases need to be distinguishable. Otherwise followers will not be a
 
 As a result of this ambiguity, followers were unable to correctly reject AppendEntries requests from leader that were behind.
 
-\noindent{\bf raft-42: Quorum computed incorrectly.} We also found a fuzz test that
+\noindent{\textbf{raft-42: Quorum computed incorrectly.}} We also found a fuzz test that
  ended in a violation of the `Leader Completeness' invariant, i.e. a newly elected leader
  had a log that was irrecoverably inconsistent with the logs of previous leaders.
 
@@ -292,7 +292,7 @@ its first entry. Another process without all replicated entries
 then became leader, which constituted a violation
 of the ``Leader Completeness'' invariant.
 
-\noindent{\bf raft-66: Followers unnecessarily overwrite log entries.} The last issue we found is only possible to
+\noindent{\textbf{raft-66: Followers unnecessarily overwrite log entries.}} The last issue we found is only possible to
  trigger if the underlying transport protocol is UDP, since it requires reorderings of messages between the same source, destination pair.
  The akka-raft developers say they do not currently support UDP, but they
  would like to adopt UDP in the future due to its lower latency.
@@ -335,7 +335,7 @@ for all case studies was a simple parallel approximation of the digits of Pi.
 %      https://docs.google.com/document/d/1xlDmaACBTCkDioydjUnpQzr6j-2NQPl-3Zj_w23stSg/edit
 
 % ------------------- spark-2294 -------------------
-\noindent{\bf spark-2294: Locality inversion.} In Spark, an `executor' is
+\noindent{\textbf{spark-2294: Locality inversion.}} In Spark, an `executor' is
 responsible for performing computation for Spark jobs. Spark jobs are assigned
 `locality' preferences: the Spark scheduler is supposed to launch
 `NODE\_LOCAL' tasks (where the input data for the task is located on the same
@@ -362,7 +362,8 @@ We reproduced this bug by injecting random, concurrently running Spark jobs
 % instead of NODE_LOCAL tasks.
 
 % ------------------- spark-3150 -------------------
-\noindent{\bf spark-3150: Simultaneous failure causes infinite restart loop.} Spark's
+\noindent{\textbf{spark-3150: Simultaneous failure causes infinite restart
+loop.}} Spark's
 master node supports a `Cold-Replication' mode, where it commits its state to
 a database (e.g., ZooKeeper). Whenever the master node crashes, the node that
 replaces it can read that information from the database to bootstrap its
@@ -378,7 +379,7 @@ again. After failing, the master restarts, tries to recover its state, and
 crashes in an infinite cycle. The minimized execution for this bug contained
 exactly these 3 external events, which made the problematic code path immediately apparent.
 
-\noindent{\bf spark-9256: Delayed message causes master crash.} We found the
+\noindent{\textbf{spark-9256: Delayed message causes master crash.}} We found the
 following bug through fuzz testing.
 
 As part of

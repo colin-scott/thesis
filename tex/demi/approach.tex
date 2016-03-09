@@ -184,7 +184,7 @@ find (if any) within their time budget. We design our key strategy (shown in
 Algorithm~\ref{fig:alg_overview})
 with the following observations in mind:
 
-\noindent{\bf Observation \#1: Stay close to the original execution.} The original schedule
+\noindent{\textbf{Observation \#1: Stay close to the original execution.}} The original schedule
 provides us with a
 `guide' for how we can lead the program down a code path that makes progress towards
 entering the same unsafe state. By choosing modified schedules that have causal
@@ -206,8 +206,9 @@ matter which we choose (see Observation \#2).
 %schedule in Figure~\ref{fig:matching}.
 
 \begin{figure}[tb!]
+    \centering
     \includegraphics[width=3.15in]{../diagrams/matching_schedules.pdf}
-    \vspace{-1em}
+    %\vspace{-1em}
     \caption[]{\label{fig:matching} Example schedules. External
     message deliveries are shown in red, internal message deliveries in green. Pending
     messages, source addresses, and destination addresses are not shown. The `B' message
@@ -216,11 +217,11 @@ matter which we choose (see Observation \#2).
     except for the masked `seq' field. The violation is not triggered after
     the initial schedule (depicted as $\PASS$), so we next match messages by type,
     allowing us to deliver pending messages with smaller `Term' numbers.}%clocks (`Term' numbers). The violation is still not triggered, so we continue exploring.}
-    \vspace{-1.5em}
+    %\vspace{-1.5em}
 \end{figure}
 
 
-\noindent{\bf Matching Messages.} A function $match$ determines whether a
+\noindent{\textbf{Matching Messages.}} A function $match$ determines whether a
 pending message from a modified execution logically corresponds to a
 message delivered in the original execution. The simplest way to implement
 $match$ is to
@@ -233,7 +234,7 @@ that increment once for every message a process receives (shown as the `seq` fie
 message contents prevent simple bitwise equality from finding
 many matches.
 
-\noindent{\bf Observation \#2: Data independence.} Often, altered message
+\noindent{\textbf{Observation \#2: Data independence.}} Often, altered message
 contents such as differing sequence numbers do {\em not} affect the behavior of the
 program, at least with respect to whether the program will reach the
 unsafe state. Formally, this property is known as
@@ -290,7 +291,7 @@ Algorithm~\ref{fig:alg_overview}. We
 show an example initial schedule in Figure~\ref{fig:matching}.
 
 \eat{
-\noindent{\bf First Minimization Pass.} As a first minimization pass, we combine
+\noindent{\textbf{First Minimization Pass.}} As a first minimization pass, we combine
 observations \#1 and \#2: we run $ExtMin$ to completion, and for each external
 event subsequence chosen by $ExtMin$, we test the single, uniquely defined
 schedule given by observation \#2. \colin{Currently incongruent with the flow..}.
@@ -345,7 +346,7 @@ Min &: \left\{E\right\} \Rightarrow \mathcal P \left({E}\right) && \text{Minimiz
 }   % ----
 
 \begin{algorithm}[tb!]
-\caption{{\footnotesize \label{fig:alg_overview} Pseudocode for schedule exploration.
+\caption{{\label{fig:alg_overview} Pseudocode for schedule exploration.
 \textproc{TEST} is invoked once per external event subsequence $E'$.
 We elide the details of DPOR for clarity (see \S\ref{app:dpor} for a complete
 description). $\tau$ denotes the
@@ -397,14 +398,15 @@ that was delivered instead of b (variable m in the elif branch of \textproc{STSS
 \EndProcedure
 \end{algorithmic}
 \end{algorithm}
-\setlength{\textfloatsep}{1pt}% Remove \textfloatsep
+
+%\setlength{\textfloatsep}{1pt}% Remove \textfloatsep
 
 % \noindent{\bf Challenge: History-Dependent Message Contents.} The first
 % minimization pass can be remarkably effective. However, we find
 % that it suffers from a key limitation that prevents it from pruning some
 % common types of extraneous events: it handles message contents that depend on previous
 % events poorly.
-\noindent{\bf Challenge: history-dependent message contents.} This initial schedule
+\noindent{\textbf{Challenge: history-dependent message contents.}} This initial schedule
 can be remarkably effective, as demonstrated by the fact that minimization
 often produces significant reduction
 even when we limit it to exploring this single schedule per external event subsequence. However, we find
@@ -487,7 +489,7 @@ AppendEntries messages with small batch contents.
 
 These examples motivated our next observations:
 
-\noindent{\bf Observation \#3: Coarsen message matching.} We would like to
+\noindent{\textbf{Observation \#3: Coarsen message matching.}} We would like to
 stay close to the original execution (per observation \#1), yet the previous
 examples show that we should not restrict ourselves to schedules that only
 match according to the user-defined message fingerprints from the original execution. We
@@ -511,8 +513,8 @@ pending messages match the corresponding original message's type.
 
 % TODO(cs): this potentially violates the TCP (FIFO) scheduling discipline.
 % TODO(cs): this obersvation isn't really distinct from Observation #3...
-\noindent{\bf Observation \#4: Prioritize backtrack points that resolve match
-ambiguities.} When there are multiple pending messages that match,
+\noindent{\textbf{Observation \#4: Prioritize backtrack points that resolve match
+ambiguities.}} When there are multiple pending messages that match,
 we initially only pick one. DPOR (eventually) sets backtrack points for all other co-enabled
 dependent events (regardless of type or message contents).
 Of all these backtrack points, those that match the type of the corresponding message
@@ -568,7 +570,7 @@ have the same type {\em and} that differ in their message fingerprints.
 % STSSched and WMB, we fall back to attempting to enumerate as many schedules we
 % can in the remaining time budget. Something something edit distance.
 
-\noindent{\bf Minimizing internal events.} Once delta debugging over external
+\noindent{\textbf{Minimizing internal events.}} Once delta debugging over external
 events has completed,
 we attempt to further reduce the smallest reproducing schedule found so far.
 Here we apply delta debugging to internal events: for each subsequence of
@@ -579,8 +581,8 @@ violation is still triggered.
 Internal event minimization continues until there is no more minimization to
 be performed, or until the time budget for minimization as a whole is exhausted.
 
-\noindent{\bf Observation \#5: Shrink external message contents whenever
-possible.} Our last observation is that the contents of external messages
+\noindent{\textbf{Observation \#5: Shrink external message contents whenever
+possible.}} Our last observation is that the contents of external messages
 can affect execution length; because the test environment crafts these
 messages, it should minimize their contents whenever
 possible.
@@ -597,7 +599,7 @@ contents, we can minimize their
 contents by iteratively removing elements, and checking to see if the violation is still triggerable until
 no single remaining element can be removed.
 
-\noindent{\bf Recap.} In summary, we first apply delta debugging ($ExtMin$) to prune external events.
+\noindent{\textbf{Recap.}} In summary, we first apply delta debugging ($ExtMin$) to prune external events.
 To check each external event subsequence chosen by delta debugging, we use a stateful version of DPOR.
 We first try exploring a uniquely defined schedule that closely matches the original execution.
 We leverage data independence by applying a

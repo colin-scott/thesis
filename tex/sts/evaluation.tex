@@ -137,7 +137,7 @@ for all of these case studies are publicly available at
 
 \subsection{New Bugs}
 
-\noindent{\bf Pyretic Loop.} We discovered a loop when fuzzing Pyretic's hub
+\noindent{\textbf{Pyretic Loop.}} We discovered a loop when fuzzing Pyretic's hub
 module, whose purpose is to flood packets along a minimum spanning tree. After
 minimizing the execution (runtime in Figure~\ref{fig:pyretic_loop}), we found that the triggering event
 was a link failure at the beginning of the trace followed some time later by
@@ -165,7 +165,7 @@ entries to allow for links to be discovered, the developers were able to verify
 that the loop no longer appeared. A long term fix for this issue is currently being discussed by the developers of
 Pyretic.\\[0.5ex]
 \eat{ % This was a bug in Kyriakos' code, not POX. Cutting.
-\noindent{\bf POX List Removal.}
+\noindent{\textbf{POX List Removal.}}
 %The first
 %SDN controller we examined was POX. %the successor of NOX. POX is
 %a single-machine control platform intended primarily for research prototyping
@@ -216,7 +216,7 @@ trace it produced made for a simple integration test.
 } % -----------------------------------
 %We illustrate type errors to show how STS is a useful framework for exploring
 %code paths that you forget to unit tests.
-\noindent{\bf POX Premature PacketIn.} We discovered this bug accidentally
+\noindent{\textbf{POX Premature PacketIn.}} We discovered this bug accidentally
 During a particular fuzzing run, the
 \verb=l2_multi= module failed unexpectedly with a \verb=KeyError=. The initial trace
 had $102$ input events, and \projectname~reduced it to an MCS of 2 input events as shown in
@@ -271,7 +271,7 @@ was able to root-cause the bug in \textasciitilde30 minutes.
 \caption{Minimization results.}
 \end{figure*}
 
-\noindent{\bf POX In-flight Blackhole.} We discovered another bug
+\noindent{\textbf{POX In-flight Blackhole.}} We discovered another bug
 after roughly 20 runs of randomly generated inputs. We noticed a persistent
 blackhole while POX was bootstrapping its discovery of link and host locations.
 There were $46$ inputs in the initial trace. The initial trace was affected by
@@ -383,7 +383,7 @@ delayed arbitrarily as it was in \projectname.
 %correct the situation.
 % Discussion of how our gizmos helped.
 } % \eat % -----------------------------------
-\noindent{\bf POX Migration Blackhole.} We noticed after examining POX's code
+\noindent{\textbf{POX Migration Blackhole.}} We noticed after examining POX's code
 that there might be some corner cases related to host migrations.
 We set up randomly generated inputs, included host
 migrations this time, and checked for blackholes. Our initial input size was
@@ -405,7 +405,7 @@ entries expired.\\[0.5ex]
 %    \caption[]{\label{fig:pox_migration} Minimizing the POX migration
 %    blackhole. (total runtime: 1796.0s, original runtime: 10.3s}
 %\end{figure}
-\noindent{\bf NOX Discovery Loop.} Next we tested NOX on a four-node mesh, and discovered a
+\noindent{\textbf{NOX Discovery Loop.}} Next we tested NOX on a four-node mesh, and discovered a
 routing loop between three switches within
 roughly 20 runs of randomly generated inputs.
 
@@ -466,7 +466,7 @@ Our initial input size was 150 inputs, a minute's worth of execution.
 traffic injections. We are in the process of pinpointing the exact root cause
 with NOX developers, based on the 18 input MCS. }
 % -----------------------------------
-\noindent{\bf ONOS distributed database locking.} When testing ONOS, a distributed open-source controller, we noticed
+\noindent{\textbf{ONOS distributed database locking.}} When testing ONOS, a distributed open-source controller, we noticed
 that ONOS controllers would occasionally reject switch attempts to connect upon
 initialization. The initial trace was already minimized, as the initial input
 was the single event of the switches connecting to the controllers with a
@@ -477,7 +477,7 @@ that the ONOS controllers were attempting to concurrently insert the same key,
 which causes a known error. We modified ONOS's
 initialization logic to retry when inserting switches, and found that this
 eliminated the bug.\\[0.5ex]
-\noindent{\bf Floodlight loop.} Next we
+\noindent{\textbf{Floodlight loop.}} Next we
 tested Floodlight's routing application. In about 30 minutes, our fuzzing
 uncovered a 117 input sequence that caused a persistent 3-node forwarding loop.
 In this case, the controller exhibited significant non-determinism, which initially
@@ -542,7 +542,7 @@ In addition to our troubleshooting case studies, we evaluate
 \projectname's ability to minimize traces on a range of bug types,
 both known and synthetically injected by us.\\[0.5ex]
 %
-\noindent{\bf Floodlight failover bug.} We were able to reproduce a
+\noindent{\textbf{Floodlight failover bug.}} We were able to reproduce a
 known problem in Floodlight's distributed controller failover logic~\cite{floodlight_bug} with
 \projectname. In Floodlight switches maintain one hot connection to a master controller and
 several cold connections to replica controllers. The \emph{master} holds the
@@ -599,7 +599,7 @@ the switch, but without ever clearing the routing entries for
 the failed link, resulting in a persistent blackhole. In this example, the MCS
 is the conjunction of the two external inputs (E1,E3).
 }
-\noindent{\bf ONOS master election bug.} We reproduced another bug,
+\noindent{\textbf{ONOS master election bug.}} We reproduced another bug,
 previously reported in earlier versions and later fixed, in
 ONOS's master election protocol. If two adjacent switches are connected to two
 separate controllers, the controllers must decide between themselves who will
@@ -614,7 +614,7 @@ initial IDs chosen at random, and ONOS is not instrumented to
 support deterministic replay of random values. We mitigated this
 inherent non-determinism by replaying each subsequence 5 times. With this setting,
 \projectname{} was able to minimize the trace to 3 elements.\\[0.5ex]
-\noindent{\bf POX load balancer error checking.} We are aware that POX
+\noindent{\textbf{POX load balancer error checking.}} We are aware that POX
 applications do not always check error messages sent by switches
 rejecting invalid packet forwarding commands. We used this to trigger a bug in
 POX's load balancer application: we created a network where switches had only
@@ -634,7 +634,7 @@ fuzz runs that the MCS was always 24 elements.
 Lastly, we injected synthetic bugs across a range of bug types into POX. For space
 reasons we only briefly describe these bugs.\\[0.5ex]
 %
-\noindent{\bf Delicate timer interleaving.}
+\noindent{\textbf{Delicate timer interleaving.}}
 We injected a crash on a code path that was highly dependent on the
 interleaving of internal timers triggered within POX. This is a particularly
 hard case for \projectname, since we have little control of internal timers.
@@ -643,7 +643,7 @@ reproduce the bug during replay after five attempts, and were left with the
 original 39 input trace. This is the only case where we were
 unable to replay trace.\\[0.5ex]
 %
-\noindent{\bf Algorithm misimplementation.}
+\noindent{\textbf{Algorithm misimplementation.}}
 We modified POX's implementation of Floyd-Warshall to create loops.
 We noticed that the MCS was inflated by at least two events: a link failure
 and a link recovery that we did not believe were relevant to triggering the bug we
@@ -653,7 +653,7 @@ routing implementation depended on the discovery module to find links in the
 network, and the order in which these links are discovered is
 non-deterministic.\\[0.5ex]
 %
-\noindent{\bf Overlapping flow entries.}
+\noindent{\textbf{Overlapping flow entries.}}
 We ran two modules in POX: a capability manager in charge of providing
 upstream DoS protection for servers, and a forwarding application. The
 capabilities manager installed drop rules upstream for servers that requested
@@ -661,13 +661,13 @@ it, but these rules had lower priority than the default forwarding rules in
 the switch. We were able to minimize 27 inputs to the two traffic injection
 inputs necessary to trigger the routing entry overlap.\\[0.5ex]
 %
-\noindent{\bf Null pointer on rarely used codepath.}
+\noindent{\textbf{Null pointer on rarely used codepath.}}
 On a rarely used-code path, we injected a null pointer exception,
 and were able to successfully minimize a fuzz trace of 62 events to the
 expected conditions that triggered that code path: control channel congestion followed
 by decongestion.\\[0.5ex]
 %
-\noindent{\bf Multithreaded race condition.}
+\noindent{\textbf{Multithreaded race condition.}}
 We created a race condition between multiple threads that was
 triggered by any packet I/O, regardless of input. With 5 replays per
 subsequence, we were able to minimize a 1596 input in 10 hours 15 minutes to a
@@ -677,7 +677,7 @@ expected), as the race condition
 was triggered randomly by any I/O, not just these two
 inputs events.\\[0.5ex]
 %
-\noindent{\bf Memory leak.}
+\noindent{\textbf{Memory leak.}}
 We created a case that would take \projectname~very long to minimize: a
 memory leak that eventually caused a crash in POX. We artificially set the
 memory leak to happen quickly after allocating 30 (M) objects created upon switch
@@ -687,7 +687,7 @@ was not replayable. We suspect this was because \projectname~was timing out on
 some expected internal events, which caused POX to reject later switch
 connection attempts.\\[0.5ex]
 %
-\noindent{\bf Memory corruption.}
+\noindent{\textbf{Memory corruption.}}
 We simulated a case where the receipt of
 link failure notification on a particular port causes corruption to one of
 POX's internal data
@@ -792,7 +792,7 @@ times is effective in coping with non-determinism, at the cost of increased runt
 \end{tabular}
 \caption[]{\label{tab:non-determinism} Effectiveness of replaying
 subsequences multiple times in mitigating non-determinism.}
-\vskip -1em
+%\vskip -1em
 \end{table}
 
 \eat{
@@ -863,7 +863,7 @@ relevant for the control software, except perhaps for host discovery.
 We found throughout our experimentation that \projectname~leaves open several
 parameters that need to be set properly in order to effectively find and troubleshoot bugs.
 
-\noindent{\bf Setting fuzzing parameters.} \projectname's fuzzer allows the
+\noindent{\textbf{Setting fuzzing parameters.}} \projectname's fuzzer allows the
 user to set the rates different event types are triggered at. In our experiments with
 \projectname~we found several times that we needed to set these parameters
 such that we avoided bugs that were not of interest to developers.
@@ -872,7 +872,7 @@ packet drop rate dropped too many LLDP packets, preventing the controller from s
 Setting fuzzing parameters remains an important
 part of experiment setup.\\[0.5ex]
 %
-\noindent{\bf Differentiating persistent and transient violations.} In
+\noindent{\textbf{Differentiating persistent and transient violations.}} In
 networks there is a fundamental delay between the initial occurrence of an
 event and the time when other nodes are notified of the event. This delay implies
 that invariant violations such as loops or blackholes can appear
@@ -884,7 +884,7 @@ how long a invariant violation should persist before
 threshold depends on the network and the invariants of
 interest.\\[0.5ex]
 % \colin{Cut if need space (this is more-or-less superceded by peek():}
-\noindent{\bf Setting \textepsilon.} Our algorithm leaves an open question as to what value
+\noindent{\textbf{Setting \textepsilon.}} Our algorithm leaves an open question as to what value
 \textepsilon~should be set to. We experimentally varied \textepsilon~on the
 POX in-flight blackhole bug.
 We found for both cases that the number of events we timed out on while isolating the MCS became stable for values above 25 milliseconds.
@@ -943,7 +943,7 @@ checking.
 %  - Lessons learned from finding bugs
 Here we the discuss the three bugs we found with \projectname{}.
 
-\noindent{\bf Frenetic.} Our first example is Frenetic~\cite{frenetic}, a control platform
+\noindent{\textbf{Frenetic.}} Our first example is Frenetic~\cite{frenetic}, a control platform
 providing functional-reactive language
 support for programming OpenFlow networks.
 Frenetic's language features aim to prevent common OpenFlow programming
@@ -974,7 +974,7 @@ network state correctly; without correspondence checking, troubleshooters
 would need to compare the routing configurations and controller's data
 structures side-by-side.
 
-\noindent{\bf POX} Our second example is POX~\cite{pox}. POX is modeled after
+\noindent{\textbf{POX}} Our second example is POX~\cite{pox}. POX is modeled after
 Onix~\cite{onix}, a production SDN platform; as in Figure~\ref{fig:basicarch}
 POX provides a physical view, a virtualized view, and a naive replication
 mechanism between distributed control servers.
@@ -999,7 +999,7 @@ Throughout the system execution there were a handful of transient
 correctness violations overlapping with the isolation breach. Nonetheless, our
 simulator was able to identify the correct correctness violation.
 
-\noindent{\bf Floodlight: Distributed controller failover race condition}
+\noindent{\textbf{Floodlight: Distributed controller failover race condition}}
 We were able to reproduce the problem shown in Figure~\ref{fig:example} in our
 simulation environment,\footnote{The code is publicly available.}
 and apply \projectname~successfully.
@@ -1026,7 +1026,7 @@ assume that there is symmetry?}
 In addition to describing bugs, we show that \projectname{} is able
 to simulate and check large networks quickly.
 
-\noindent{\bf Record and Replay Overhead.} In contrast to general record-and-replay
+\noindent{\textbf{Record and Replay Overhead.}} In contrast to general record-and-replay
 mechanisms, the amount of recorded state needed for
 high-fidelity replay is tractable. With proactive flow installation,
 updates are pushed to routing tables over a relatively long time scale; periodic
@@ -1070,7 +1070,7 @@ Challenges in building scalable virtualized datacenter management
 %As a point of reference, border routers' working RIB size is
 %$\textasciitilde$130MB~\cite{Karpilovsky:2006:UFR:1368436.1368439}.
 
-\noindent{\bf Correspondence Checking Runtime.} Computing the propagation
+\noindent{\textbf{Correspondence Checking Runtime.}} Computing the propagation
 graph for correspondence checking is equivalent to enumerating
 all possible paths in the network, which scales with the diameter
 of the network and the number of routing entries per switch \colin{Reviewer
@@ -1114,7 +1114,7 @@ network.}
     attached to 2,880 switches)}
 \end{figure}
 
-\noindent{\bf Simulator Scalability.} Our design models the entire network
+\noindent{\textbf{Simulator Scalability.}} Our design models the entire network
 within a single process. We show in Figure~\ref{fig:scalability}
 that this approach nonetheless scales to large networks. For this analysis we
 generated fat tree topologies between 2 and 48 pods wide, where all switches in
