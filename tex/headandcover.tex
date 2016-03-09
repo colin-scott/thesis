@@ -19,11 +19,14 @@
 \usepackage{pseudocode}
 \usepackage{multirow}
 \usepackage{tabularx}
-
 %\usepackage{caption}
 \usepackage{subcaption}
 \usepackage{amsmath}
+\usepackage{csquotes}
+\usepackage{latexsym}
+\usepackage{algorithm}
 %\usepackage{changepage}
+\usepackage[noend]{algpseudocode}
 
 \definecolor{MyDarkBlue}{rgb}{0,0.08,0.45}
 \hypersetup{
@@ -41,7 +44,7 @@
 \renewcommand{\it}{\textit}
 \renewcommand{\tt}{\texttt}
 
-% ----------------- Macros: ---------------------
+% ----------------- STS Macros: ---------------------
 \newcommand{\projectname}{{STS}}
 \newcommand{\projectmeaning}{SDN Troubleshooting System}
 
@@ -59,11 +62,27 @@
 \newcommand{\apriori}{{\it a priori}}
 \newcommand{\eat}[1]{}
 
+% ----------------- DEMi Macros: ---------------------
+\newcommand{\sys}{DEMi\xspace}
+\newcommand{\system}{Distributed Execution Minimizer}
+
+
 % ---------------- Notes: -----------------------
 \newcommand{\num}[1]{{\color{red}\bf {#1}}}
 
 \newcommand{\colin}[1]{}
 \newcommand{\scott}[1]{}
+
+% --------- Pseudocode formatting ----------------
+% \usepackage{fontspec}
+% \setmainfont{Hoefler Text}
+
+% \newcommand*\Let[2]{\State #1 $\gets$ #2}
+% \algrenewcommand\alglinenumber[1]{
+%     {\sf\footnotesize\addfontfeatures{Colour=888888,Numbers=Monospaced}#1}}
+% \algrenewcommand\algorithmicrequire{\textbf{Precondition:}}
+% \algrenewcommand\algorithmicensure{\textbf{Postcondition:}}
+\renewcommand{\algorithmicforall}{\textbf{for each}}
 
 % ------------ Macros for generating graphical event sequences: -----------
 \usepackage{tikz}

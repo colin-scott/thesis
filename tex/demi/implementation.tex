@@ -1,0 +1,294 @@
+We implement our techniques in a publicly available tool we call \sys~(\system)~\cite{our_repo}. \sys~is an extension
+to Akka~\cite{akka}, an actor
+framework for JVM-based languages.
+Actor frameworks closely match the system model in~\S\ref{dsec:problem_statement}: actors
+are single-threaded entities that can only access local state and operate on messages
+received from the network one at a time. Upon receiving a message an actor performs computation,
+updates its local state and sends a finite set of messages to other actors
+before halting. Actors can be co-located
+on a single machine (though the actors are not aware of this fact) or distributed across multiple machines.
+
+On a single machine Akka maintains a buffer of sent but not yet delivered
+messages, and a pool of message dispatch threads.
+Normally, Akka allows multiple actors to execute
+concurrently, and schedules message deliveries in a
+non-deterministic order. We use AspectJ~\cite{kiczales2001overview}, a mature interposition framework,
+to inject code into Akka that allows us to completely control when messages
+and timers are
+delivered to actors, thereby linearizing the sequence of events in an executing system.
+We currently run all actors on a single machine because this simplifies the
+design of \sys,
+but minimization could also be distributed across multiple machines to improve
+scalability.
+
+Our interposition lies above the network transport layer; \sys~makes
+delivery decisions for application-level (non-segmented) messages.
+If the application assumes ordering guarantees from the transport
+layer (e.g. TCP's FIFO delivery), \sys~adheres to these guarantees
+during testing and minimization to maintain soundness.
+
+\noindent{\bf Fuzz testing with \sys.} We begin by using \sys~to generate
+faulty executions. Developers give \sys~a test configuration (we
+tabulate all programmer-provided specifications in
+Appendix~\ref{app:programmer_effort}), which
+specifies an initial sequence of external events to inject before fuzzing, the types
+of external events to inject during fuzzing (along with probabilities to
+determine how often each event type is injected), the safety conditions to
+check (a user-defined predicate over the state of the actors), the scheduling constraints (e.g. TCP or UDP) \sys~should
+adhere to, the maximum execution steps to take, and
+optionally a message fingerprint function. If the
+application emits side-effects (e.g. by writing to disk), the test configuration specifies how
+to roll back side-effects (e.g. by deleting disk contents) at the end of each execution.
+
+\sys~then repeatedly executes fuzz runs until it finds a safety violation. It starts by
+generating a sequence of random external events of the length specified by the configuration.
+\sys~then injects the initial set of external events specified by the
+developer, and then starts
+injecting external events from the random sequence. Developers can include
+special `WaitCondition' markers in the
+initial set of events to execute, which cause \sys to pause
+external event injection, and deliver pending internal
+messages at random until a specified condition holds, at which point the
+system resumes injecting external events. \sys~periodically checks invariants
+by halting the execution and invoking the developer-supplied safety predicate over the current state
+of all actors. Execution proceeds until a predicate violation is found, the supplied bound on execution steps
+is exceeded, or there are no more external or internal events to execute.
+
+% It starts by injecting each of the test configuration's external events one by one. The
+% test configuration may include special markers, `WaitCondition'
+% events, as part of the external events. When the next external event to inject
+% is a WaitCondition, \sys~temporarily stops injecting external events and
+% instead starts selecting pending internal
+% messages at random (modulo the given scheduling constraints) to deliver
+% one-by-one until the condition specified in the WaitCondition holds, at which point
+% \sys~returns to processing external events. \sys~continues the execution like this until it
+% either runs out of external events, it hits the bound on the maximum
+% execution steps to take, or it discovers a safety violation.
+
+Once it finds a faulty execution \sys~saves a user-defined fingerprint of the violation it
+found (a violation fingerprint might, for example, mark which process(es)
+exhibited the violation),\footnote{Violation fingerprints should
+be specific enough to disambiguate different bugs found during minimization, but they do not need to be specific to
+the exact state the system at the time of the violation. Less
+specific violation fingerprints are often better, since they allow \sys~to
+find divergent code paths that lead to the same buggy behavior.}
+a totally ordered recording of all events it
+executed, and information about which messages were sent in
+response to which events. Users can then replay the execution exactly, or
+instruct \sys~to minimize the execution as described in \S\ref{dsec:approach}.
+
+\noindent{\bf Mitigating non-determinism.} Processes may behave non-deterministically.
+A process is non-deterministic if the messages it emits
+(modulo fingerprints) are not uniquely determined by the prefix of messages we have
+delivered to it in the past starting from its initial state.
+
+The main way we control non-determinism is by interposing on Akka's API calls,
+which operate at a high level and cover most sources of non-determinism.
+For example, Akka provides a timer API that
+obviates the need for developers to read directly from the system clock.
+% \colin{Show a table of the APIs we interpose on?}
+
+Applications may also contain sources of non-determinism outside of the Akka
+API. We discovered the sources of non-determinism described below through trial and
+error: when replaying unmodified test executions, the violation was sometimes not
+reproduced. In these cases we compared discrepancies between executions until we
+isolated their source and interposed on it.
+%In total we spent roughly one person-month debugging.
+%non-determinism.
+
+\noindent{\bf akka-raft instrumentation.} Within akka-raft, actors use a
+pseudo random number generator to choose when to
+start leader elections. Here we provided a seeded random
+number generator under the control of~\sys.
+
+\noindent{\bf Spark instrumentation.} Within Spark, the task scheduler chooses the first value from a hashmap in order
+to decide what tasks to schedule. The values of the hashmap are
+arbitrarily ordered, and the order changes from execution to execution. We needed to modify
+Spark to sort the values of the hash map before choosing an element.
+
+Spark runs threads (`TaskRunners') that are outside the control of
+Akka. These send status
+update messages to other actors during their execution.
+The key challenge with threads outside Akka's control is that we do not know
+when the thread has started and stopped each step of its computation;
+when replaying, we do not know how long to wait until the TaskRunner either resends
+an expected message, or we declare that message as absent.
+
+We add two interposition points to TaskRunners:
+the start of the
+TaskRunner's execution, and the end of the TaskRunner's execution.
+At the start of the TaskRunner's execution, we signal to \sys~the identity of the TaskRunner,
+and \sys~records a `start atomic block' event for that TaskRunner. During
+replay, \sys~blocks until the corresponding `end atomic block' event to ensure
+that the TaskRunner has finished sending messages. This approach
+works because TaskRunners in
+Spark have a simple control flow, and TaskRunners do not communicate via shared memory. Were this
+not the case, we would have needed to interpose on the JVM's thread scheduler.
+%  - More info on atomic blocks:
+%      https://docs.google.com/document/d/12lfZceRSfUpkTJhzjuLWRhX53JXJ7OW5YAt0BHU-4Ks/edit
+
+%@apanda: I was not so sure about the luckily, feel free to rever this
+% Luckily, the control flow of TaskRunners is simple and well defined, and each
+% TaskRunner does not communicate with any other TaskRunner through shared
+% memory. If this were not
+% the case, we would have needed to interpose on the JVM's thread scheduler.
+
+Besides
+TaskRunner threads, the Spark driver also runs a bootstrapping thread
+that starts up actors
+and sends initialization messages. We mark all
+messages sent during the initialization phase as `unignorable', and we have
+\sys~wait indefinitely for these messages to be sent during
+replay before proceeding. When waiting for an `unignorable'
+message, it is possible that the only pending messages in the network are
+repeating timers. We
+prevent~\sys~from delivering infinite loops of timers while it awaits
+by detecting timer cycles, and not delivering more timers until it delivers
+a non-cycle message.
+
+Spark names some of the files it writes to disk using a timestamp read from the system clock.
+We hardcode a timestamp in these cases to make replay deterministic.
+
+\noindent{\bf Akka changes.} In a few places within the Akka framework, Akka assigns IDs using an
+incrementing counter. This can be problematic during minimization, since the counter value
+may change as we remove events, and the (non-fingerprinted) message contents in the modified execution may change.
+We fix this by computing IDs based on a hash
+of the current callstack, along with task IDs in case of ambiguous callstack
+hashes. We found this mechanism to be sufficient for our case studies.
+%  - More info:
+%      https://docs.google.com/document/d/1rAM8EEy3WnLRhhPROvHmBhAREv0rmihz0Gw0GgF1xC4/edit
+
+\noindent{\bf Stop-gap: replaying multiple times.} In cases where it is
+difficult to locate the cause of non-determinism, good reduction can often
+still be achieved simply by configuring \sys~to replay each schedule
+multiple times and checking if any of the attempts triggered the safety
+violation.
+
+\noindent{\bf Blocking operations.} Akka deviates from the computational model we defined
+in~\S\ref{dsec:problem_statement} in one remaining aspect: Akka allows
+actors to block on certain operations. For example, actors may block until they receive
+a response to their most recently sent message. To deal with these cases we inject
+AspectJ interposition on blocking operations (which Akka has a special marker
+for), and signal to \sys~that the
+actor it just delivered a message to will not become unblocked until we
+deliver the response message. \sys~then chooses another actor to deliver a
+message to, and marks the previous actor as blocked until \sys~decides to
+deliver the response.
+% More info:
+%  - we interpose whenever the actor blocks before it has finished
+%    processing the message we just delivered to it.
+%      https://docs.google.com/document/d/1RnCDOQFLa2prliF5y5VDNcdGDmEeOlgUcXSNk7abpSo/edit
+%  - And another doc:
+%      https://docs.google.com/document/d/1_LUceHvQoamlBtNNbqA4CxBH-zvUKlZhnSjLwTc16q4/edit
+
+%  - Notes from meeting with Josh, including notes on our architecture:
+%      https://docs.google.com/document/d/1XWApVDqOF_nrZkTrF0AIrGIDlS5gFF89AHg5RjAr9BQ/edit
+
+% TODO(cs): Other implementation details:
+% - DepGraph?
+%    https://docs.google.com/document/d/1D0PuYRvJG6ucdHKBwRT3yXUIUvYz2rLLo9fOY79ks0w/edit
+
+% TODO(cs): why we chose to write this code from scratch rather than using an
+% existing model checker?
+
+\subsection{Limitations}
+
+\noindent{\bf Safety vs.\ liveness.} We
+are primarily focused on safety violations, not liveness or performance bugs.
+
+\noindent{\bf Non-Atomic External Events.} \sys~currently waits for external
+events (e.g. crash-recoveries) to complete before proceeding. This may prevent it from finding
+bugs involving finer-grained event interleavings.
+
+\noindent{\bf Limited scale.} \sys~is currently tied to a
+single physical machine, which limits the scale of systems it can test (but
+not the bugs it can uncover, since actors are unaware of colocation). We do not
+believe this is fundamental.
+
+\noindent{\bf Shared memory \& disk.} In some systems processes communicate
+by writing to
+shared memory or disk rather than sending messages over the network.
+Although we do not currently support it, if we took the effort to add interposition to the
+runtime system (as in~\cite{tallam2007enabling}) we could treat writes to shared memory or
+disk in the same way we treat messages. More generally, adapting the
+basic DPOR algorithm to shared memory systems has been well
+studied~\cite{yabandeh2009dpor,flanagan2005dynamic}, and we could adopt these approaches.
+
+\noindent\textbf{Non-determinism.} Mitigating non-determinism in akka-raft and
+Spark required effort on our part. We might have adopted deterministic replay
+systems~\cite{Dunlap:2002:REI:844128.844148,Geels:2006:RDD:1267359.1267386,lin2013defined,Zamfir:2010:EST:1755913.1755946}
+to avoid manual instrumentation. We did not because we could not
+find a suitably supported record and replay system that operates at the right
+level of abstraction for actor systems.
+Note, however that
+deterministic replay alone is not sufficient for minimization:
+deterministic replay does not inform how the schedule space should be
+explored; it only allows one to deterministically replay prefixes of events.
+Moreover, minimizing a single deterministic replay log (without exploring divergent
+schedules) yields executions that are orders of magnitude larger
+than those produced by \sys, as we discuss in
+\S\ref{sec:related_work}.
+
+\noindent\textbf{Support for production traces.} \sys~does not currently
+support minimization of production executions.
+\sys~requires that execution recordings are complete (meaning all message
+deliveries and external events are recorded) and partially ordered. Our
+current implementation
+achieves these properties simply by testing and minimizing on a single
+physical machine.
+
+To support recordings from production executions, it should be possible to
+capture partial orders without requiring logical clocks on all messages:
+because the actor model only allows actors to process a
+single message at a time, we can compute a partial order simply by
+reconstructing message lineage from per-actor event logs (which record the order
+of messages received and sent by each actor).
+Crash-stop
+failures do not need to be recorded, since from the perspective of other
+processes these are equivalent to network partitions. Crash-recovery failures
+would need to be recorded to disk. Byzantine failures are outside the scope of
+our work.
+
+Recording a sufficiently detailed log for each actor adds
+some logging overhead, but this overhead could be modest. For the systems
+we examined, Akka is primarily used as a control-plane, {\em not} a
+data-plane (e.g. Spark does not send bulk data over Akka), where
+recording overhead is not especially problematic.
+% Is it true that Spark uses Netty for bulk data? It might have its own RPC
+% system?
+
+% TODO(cs): what features/optimizations we don't support/provide.
+
+\subsection{Generality}
+\label{subsec:generality}
+
+We distinguish between the generality of the
+\sys~artifact, and the generality of our scheduling strategies.
+
+\noindent{\bf Generality of \sys.} We targeted the Akka actor framework
+for one reason: thanks to the actor API (and to a lesser extent, AspectJ), we did not need to exert much
+engineering effort to interpose on (i) communication
+between processes, (ii) blocking operations, (iii) clocks, and (iv) remaining sources of non-determinism.
+
+We believe that with enough interposition, it should be possible to
+sufficiently control other systems, regardless of language or
+programming model. That said, the effort needed to interpose could certainly be
+significant.
+
+One way to increase the generality of \sys~would be to interpose at a lower layer (e.g.
+the network or syscall layer) rather than the application layer. This has
+several limitations. First, some of our scheduling strategies depend on application
+semantics (e.g. message types) which would be difficult to access at a lower
+layer. Transport layer complexities would also increase the size of the schedule
+space. Lastly, some amount of application layer interposition would still be
+necessary, e.g. interposition on user-level threads or blocking operations.
+
+\noindent{\bf Generality of scheduling strategies.} At their core, distributed
+systems are just concurrent systems (with the additional complexities of partial
+failure and asynchrony). Regardless of whether they are designed for
+multi-core or a distributed setting, the key property we assume from the
+program under test is that small schedules that are similar to
+original schedule should be likely to trigger the same invariant
+violation. To be sure, one can always construct adversarial counterexamples.
+Yet our results for two very different types of systems leave us
+optimistic that these scheduling strategies are broadly applicable.

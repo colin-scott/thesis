@@ -1,0 +1,544 @@
+% \colin{Move to section 2?}
+
+% Delta from related work (also see: STS FAQ):
+%
+% traditional minimization (DDmin, QuickCheck’s shrinking)
+%   not immediately applicable to systems with intermediate external events
+% best-effort minimization (QuickCheck applied to concurrent systems, field failures)
+%   don’t systematically handle concurrency
+% model checking minimization: MAX-Sat, interpolation (ConcBugAssist, DSPs)
+%   many disadvantages of model checking. See STS FAQ.
+% deterministic replay log minimization (schedule minimization, program analysis)
+%   don’t allow divergence during replay! i.e. minimization specification is overly specific -> minimization results aren’t great
+%   program flow analysis work is tied to a single language, + high perf overhead
+% model inference, log summarization (synoptic, csight, invariant mining)
+%   summarize the events that occurred, but don’t actually minimize the test case. Apply this after you minimize the test case with our techniques.
+% program slicing, automated debugging (experimental, program analysis)
+%   minimize program statements, but not the test case itself. Useful for debugging, but not troubleshooting. Apply this after you minimize the test case with our techniques.
+
+% Our primary contribution, schedule exploration strategies,
+% made it possible to apply input minimization algorithms
+% %(cf. Delta
+% %Debugging~\cite{Zeller:2002:SIF:506201.506206} and domain-specific
+% %algorithms~\cite{claessen2000quickcheck,regehr2012test,whitaker2004configuration})
+% to blackbox distributed systems.
+We start this section with a discussion of the most closely
+related literature. We focus only on \sys's minimization techniques, since
+\sys's~interposition and testing functionality is similar to other
+systems~\cite{lin2009modist,simsa2010dbug,leesatapornwongsa2014samc}.
+
+\noindent{\bf Input Minimization for Sequential Programs.} Minimization
+algorithms for sequentially processed inputs are
+well-studied~\cite{Zeller:2002:SIF:506201.506206,claessen2000quickcheck,regehr2012test,whitaker2004configuration,burger2011minimizing,fse_web_ddmin,chang2007simulation}.
+These form a component of our solution, but they do not consider
+interleavings of internal events from concurrent processes.
+
+\noindent{\bf Minimization without Interposition.} Several
+tools minimize inputs to concurrent
+systems without controlling sources of non-determinism~\cite{arts2006testing,clause2007technique,tucek2007triage,jin2013f3,hughes2011testing}.
+The most sophisticated of these replay each subsequence
+multiple times and check whether the violation is reproduced at least once~\cite{hughes2011testing,claessen2009finding}.
+Their major advantage is that they avoid the engineering effort required to
+interpose. However, we found in previous
+work~\cite{sts2014} that bugs are often not easily reproducible without
+interposition.
+% TODO(cs): the QuickCheck papers all seem quite optimistic about how effective simply replaying multiple times is!
+% We should compare against them to show that systematic exploration is in fact better.
+
+% TODO(cs): without interposition, not possible to minimize internal events! Check, what exactly is the PULSE paper minimizing when PULSE is turned off..
+
+QuickCheck's PULSE controls the message delivery
+schedule~\cite{claessen2009finding} and supports schedule minimization. During replay, it only considers the
+order messages are sent in, not message contents.
+When it cannot replay a step, it skips it (similar to
+STSSched), and reverts to random scheduling once expected messages
+are exhausted~\cite{hughes_email}.
+
+% TODO(cs): PULSE quote:
+% Even with pulse the counterexamples can be large
+% http://www.erlang-factory.com/upload/presentations/191/EUC2009-PULSE.pdf
+
+\noindent{\bf Thread Schedule Minimization.} Other techniques seek to minimize thread
+interleavings leading up to concurrency
+bugs~\cite{choi2002isolating,jalbert2010trace,huang2011efficient,el2014efficient}.
+These generally work by iteratively feeding a single input (the thread
+schedule) to a single entity (a deterministic scheduler). These approaches
+ensure that they never diverge from the
+original schedule (otherwise the recorded context switch points from the
+original execution would become useless). Besides minimizing context
+switches, these approaches at
+best {\em truncate} thread executions by having threads exit earlier than they did in the original
+execution.
+% (thereby shortening the execution trace), but they cannot remove extraneous events from
+% the middle of the trace.
+
+% To deterministically
+% reproduce bugs, we would need visibility into every I/O request and response (\eg~clock
+% values or socket reads), as well as all thread scheduling
+% decisions for each process. This information is the starting point for
+% techniques that seek  to minimize thread interleavings leading up to race conditions.
+% These approaches involve iteratively feeding a single input (the thread
+% schedule) to a single entity (a deterministic scheduler)~\cite{choi2002isolating,claessen2009finding,jalbert2010trace}, or
+% statically analyzing feasible thread schedules~\cite{huang2011efficient}.
+%
+% A crucial constraint of these approaches is that they must keep the inputs
+% fixed; that is, behavior must depend uniquely on the thread
+% schedule. Otherwise, the nodes may take a divergent code path. If this
+% occurs some processes might issue a previously unobserved I/O request, and the replayer will not
+% have a recorded response; worse yet, a divergent process might deschedule
+% itself at a different point than it did originally, so that the remainder of
+% the recorded thread schedule is unusable to the replayer.
+%
+% Because they keep the inputs fixed, these approaches strive for a
+% subtly different goal than
+% ours: minimizing thread context switches rather than input events.
+% At best, these approaches can indirectly minimize input events by truncating
+% individual thread executions. That is, they can cause threads to exit early
+% (thereby shortening the execution trace), but they cannot remove extraneous events from
+% the middle of the trace.
+
+% TODO(cs): more descriptive title?
+\noindent{\bf Program Analysis.} By analyzing the program's control- and
+dataflow dependencies, one can remove events in the middle of the deterministic
+replay log without causing
+divergence~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean,cai2013lock,elyasov2013guided,wang2015fast}.
+These techniques do not explore alternate code paths. Program analysis also over-approximates
+reachability,
+disallowing them from removing dependencies that actually commute.
+
+We compare against these techniques by configuring \sys~to minimize as before, but abort any execution
+where it detects a previously unobserved state transition. Column `NoDiverge'
+of Table~\ref{dtab:case_studies} shows the results, which demonstrate that
+divergent executions are crucial to \sys's reduction gains for the akka-raft case studies.
+
+% %\noindent{\bf Program Flow Analysis.} Other than delta debugging,
+% %the closest work to ours involves reasoning about
+% %control- and dataflow dependencies
+% %(which may be recorded at runtime~\cite{Lee:2011:TGR:1993498.1993528},
+% %or dynamically inferred~\cite{, tallam2007enabling})
+% %in order to reduce the length of deterministic replay executions.
+% %%decision processes of control software. % Our Peek() algorithm is a
+% %% contribution in how to infer dependencies without access to software internals
+% %Moreover, our application of functional equivalence to the space of
+% %possible inputs allows us to minimize
+% %inputs more aggressively, whereas they are forced to consider all controlflow
+% %and dataflow dependencies in the control software.
+%
+% With additional information obtained by program flow
+% analysis~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean}
+% however, the inputs no longer need to be fixed. The internal events considered by these program flow reduction
+% techniques are individual instructions executed by the
+% programs (obtained by instrumenting the language runtime), in addition to I/O responses and the thread schedule.
+% With this information they can compute
+% program flow dependencies, and thereby remove input events from anywhere in the trace as long as they
+% can prove that doing so cannot possibly cause the faulty execution path to diverge.
+%
+% While program flow reduction is able to minimize inputs,
+% these techniques are not able to explore alternate code paths that still
+% trigger the invariant violation. They are also overly conservative in
+% removing inputs (\eg~EFF takes the transitive closure of all possible
+% dependencies~\cite{Lee:2011:TGR:1993498.1993528}) causing them to miss opportunities to
+% remove dependencies that actually semantically commute.\\[0.5ex]
+
+% We also avoid the performance overhead of recording all I/O
+% requests and later replaying them (\eg~EFF incurs \textasciitilde10x slowdown during
+% replay~\cite{Lee:2011:TGR:1993498.1993528}). Lastly,
+% we avoid the extensive effort required to instrument the control software's language runtime,
+% needed by the other approaches to implement a deterministic thread scheduler, interpose on syscalls,
+% or perform program flow analysis. By avoiding assumptions about the language of the control software,
+% we were able to easily apply our system to five different control platforms
+% written in three different languages.
+
+\noindent{\bf Model Checking.} Algorithmically, our work is most closely
+related to the model checking literature.
+
+Abstract model checkers convert (concurrent) programs to logical formulas, find
+logical contradictions (invariant violations) using solvers, and minimize the logical
+conjunctions to aid
+understanding~\cite{christ2013flow,khoshnood2015concbugassist,machado2015concurrency}.
+Model checkers are very powerful, but they are typically tied to a single
+language, and assume access to source code, whereas the systems we target (e.g.
+Spark) are composed of multiple languages and may use proprietary
+libraries.
+
+It is also possible to extract formulas from raw binaries~\cite{avgerinos2014enhancing}.
+Fuzz testing is significantly lighter weight.
+
+If, rather than randomly fuzzing, testers
+enumerated inputs of progressively larger sizes, failing tests would
+be minimal by construction. However, breadth first enumeration takes very long to get to
+`interesting' inputs (After 24 hours of execution, our bounded DPOR
+implementation with depth bound slightly greater than the optimal trace size still had not found any invariant violations. In
+contrast, \sys's randomized testing discovered
+most of our reported bugs within 10s of minutes).
+Furthermore, minimization is
+useful beyond testing, e.g. for simplifying production traces.
+
+Because systematic input enumeration is intractable, many papers
+develop heuristics for finding bugs
+quickly~\cite{tzoref2007instrumenting,musuvathi2007iterative,musuvathi2008finding,yabandeh2009crystalball,burckhardt2010randomized,terragnirecontest,fonseca2014ski,leesatapornwongsa2014samc,lin2009modist,park2009ctrigger,coons2010gambit}.
+We do the same, but crucially, we are able to use
+information from previously failing executions to guide our search.
+%We are also the first to observe that the
+%application's use
+%of TCP constrains the schedule space.
+
+As far as we know, we are the first to combine DPOR and delta debugging to
+minimize executions. Others have modified DPOR to keep state~\cite{yang2008efficient,yi2006stateful}
+and to apply heuristics for choosing initial schedules~\cite{lauterburg2010evaluating}, but these
+changes are intended to help find new bugs.
+
+\eat{
+Our software architecture closely resembles transparent model
+checkers~\cite{lin2009modist,leesatapornwongsa2014samc}, which interpose at
+the message level and do not make assumptions about the language of the
+system under test.
+}
+
+\noindent{\bf Bug Reproduction.} Several papers seek to find a schedule that
+reproduces a given concurrency bug~\cite{zamfir2011debug,Zamfir:2010:EST:1755913.1755946,altekar2009odr,park2009pres}.
+These do not seek to find a minimal schedule.
+
+\noindent{\bf Probabilistic Diagnosis.} To avoid the runtime overhead of deterministic replay, other techniques
+capture carefully selected diagnostic information from production execution(s), and correlate this information
+to provide best guesses at the root causes of
+bugs~\cite{barham2004using,Chen02pinpoint:problem,Yuan:2010:SED:1736020.1736038,kasikci2015failure,sangmin}.
+We assume more complete runtime instrumentation (during testing), but provide exact reproducing
+scenarios.
+
+\noindent{\bf Log Comprehension.} Model inference techniques summarize log files
+in order to make them more easily understandable by
+humans~\cite{ernst2001dynamically,synoptic,csight,biermann1972synthesis,lorenzoli2008automatic,lou2010mining}.
+Model inference is complementary, as it does not modify the event logs. %, and is therefore complementary.
+
+\noindent{\bf Program Slicing \& Automated Debugging.} Program slicing~\cite{weiser1981program}
+and the subsequent literature on automated
+debugging~\cite{zhangzhang,jose11,coverage_localization,xuan14,zeller2005,comparative_causality}
+seek to localize errors in the code itself.
+Our goal is to slice the temporal dimension of an execution rather than the
+code dimension.
+
+%It is worth mentioning another goal outside the purview of distributed systems, but
+% closely in line with ours:  is a
+% technique for finding the
+% minimal subset of a program that could possibly affect the result of a particular line of code.
+% %This can be combined with delta debugging to automatically generate minimal unit tests~\cite{burger2011minimizing}.
+% Our goal is to slice the temporal dimension of an execution rather than the
+% code dimension.\\[0.5ex]
+%
+% Literature following Weisers' original program
+% slicing paper goes so far as to try to
+% automatically locate the exact line(s) of code or state transitions that are responsible for a
+% bug, using statistical data~\cite{zhangzhang}, test coverage
+% data~\cite{coverage_localization,xuan14}, constraint solving~\cite{jose11},
+% fault injection~\cite{zhang13} and
+% experimentally driven executions of the failing program~\cite{zeller2005,comparative_causality}.
+% These approaches aid the debugging process rather than test case
+% simplification,
+% and are therefore complementary.
+
+% \noindent{\bf Root Cause Analysis.}
+% Without perfect instrumentation,
+% it is often not possible to know exactly what events are occurring (\eg~which
+% components have failed) in a
+% distributed system. Root cause analysis~\cite{yemini1996,Kandula:2009:DDE:1592568.1592597}
+% seeks to reconstruct those unknown events from limited monitoring data.
+% Here we know exactly which events occurred, but
+% seek to identify a minimal sequence of events.\\[0.5ex]
+
+% TODO(cs): cite MoDist, as where we got our software architecture from.
+%    Describes the design of a model checker that acts on *unmodified*
+%    distributed systems. It does this by interposing on messages, but not
+%    individual function calls as in traditional model checking. Our
+%    interposition follows this design.
+% TODO(cs): cite the paper on minimizing inputs to hardware:
+%    A nice way to develop an intuition for what we’re trying to do: read this
+%    paper. The paper has the same goal, but in a much simpler environment:
+%    minimizing inputs to hardware. So, no concurrency, a single clock for the
+%    entire system, complete visibility into the state of the system at any point
+%    in time, well-defined inputs, somewhat tractable state space.  It does a nice
+%    job of describing, in terms of state machines, what I think is going on "under
+%    the hood" when we run our minimizations.
+% TODO(cs): cite FSE paper on minimizing JS inputs. Also contains a
+% user-study showing that minimization is useful for debugging! http://brrian.org/
+% TODO(cs): cite Max-SAT papers: "flow-sensitive fault localization", and
+% "ConcBugAssist: Constraint Solving for Diagnosis and Repair of Concurrency Bugs"
+% TODO(cs): cite "Concurrency Debugging with Differential Schedule Projections" from PLDI 2015.
+% Basically, it finds minimal differences between a passing and failing concurrent execution.
+% Not clear that differences are the way developers really debug.
+% TODO(cs): cite F3: fault localization for field failures. follow-on to clause2007technique.
+% TODO(cs): cite "topological analysis", related most closely to "log comprehension" below.
+% Basically, identify which parts of the log are relevant.
+% TODO(cs): heuristics for finding schedules that trigger bugs:
+%  - CHESS: http://research.microsoft.com/en-us/projects/chess/
+%  - PCT [follow-on]: http://research.microsoft.com/pubs/118655/asplos277-pct.pdf
+%  - SKI [Pedro's work for OS kernels]: https://www.mpi-sws.org/~pfonseca/papers/osdi2014-ski.pdf
+% TODO(cs): possibly related: Recontest, Effective Regression testing of concurrent programs.
+% Heuristics for finding regression failures in concurrent programs, by exploring interleavings
+% that are likely to retrigger the old bug.
+% TODO(cs): cite "Instrumenting where it hurts", which adds noise to the
+% schedule, then applies delta debugging to minimize the noise points.
+% TODO(cs): cite SAMC, Crystal Ball:
+% \cite{leesatapornwongsa2014samc, yabandeh2009crystalball}
+
+
+% \noindent{\bf Techniques for Selecting Subsequences.} Checking
+% random subsequences of $E_L$ would be one viable but inefficient
+% approach to achieving our first task. A better approach is
+% %divide-and-conquer search technique from the software engineering community:
+% the delta debugging algorithm~\cite{Zeller:1999:YMP:318773.318946,Zeller:2002:SIF:506201.506206}, a
+% divide-and-conquer algorithm for
+% isolating fault-inducing inputs. We use delta
+% debugging\footnote{Domain-specific
+% minimization algorithms also
+% exist~\cite{regehr2012test,claessen2000quickcheck,whitaker2004configuration},
+% but we focus on the general case.} to iteratively select subsequences of $E_L$ and $replay$ each
+% subsequence with some timing $T$.\\[0.5ex]
+% %If the bug persists for a given subsequence, delta debugging ignores the
+% %other inputs, and proceeds with the search for an MCS within this subsequence.
+% %In what follows, we use the term {\em delta debugging} to refer to our algorithm for finding relevant subsequences.
+% %The delta debugging algorithm we implement is shown in Figure~\ref{fig:ddmin}.
+% %
+% \noindent{\bf Techniques for Selecting Timings.} Simply
+% exploring subsequences $E_S$ of $E_L$ is insufficient for finding
+% MCSes: the timing of when we inject the external events during $replay$ is crucial for
+% reproducing violations.
+%
+% The most natural approach to scheduling
+% external events is to maintain the original wall-clock timing intervals
+% between them.
+% If this is able to find all minimization opportunities,
+% \ie~reproduce the violation for all
+% subsequences that are a supersequence of some MCS, we say that the inputs are
+% isolated. The original applications of delta
+% debugging~\cite{Zeller:1999:YMP:318773.318946,Zeller:2002:SIF:506201.506206,regehr2012test,burger2011minimizing} make this assumption (where a
+% single input is fed to a single program), as well as QuickCheck's input ``shrinking''~\cite{claessen2000quickcheck}
+% when applied to blackbox systems like synchronous
+% telecommunications protocols~\cite{arts2006testing}.
+% \eat{\ie~if we
+% define $t_i$ as the timestamp of the $i^{th}$ input from the original run and $t'_i$ as the
+% replay clock value when it injects that same input
+% (which may or may not be the $i$'th input in the subsequence), then we might
+% just set $t'_i = t_i$.
+% \eat{
+% \begin{align*}
+% t'_0 = t_0 \\
+% t'_i = t'_{i-1} + |t_{i} - t_{i-1}|
+% \end{align*}
+% }
+% }
+%
+% We tried this approach, but were rarely
+% able to reproduce invariant violations. As our case studies
+% demonstrate~\cite{sts2014}, this is largely due
+% to the concurrent, asynchronous nature of distributed systems; consider that the network
+% can reorder or delay messages, or that processes may
+% respond to multiple inputs simultaneously.
+% Inputs injected according to wall-clock time are not guaranteed to
+% coincide correctly with the current state of the processes.
+% %\eat{: when we replay only a
+% %subsequence of the original inputs, the reaction of the control software
+% %can change, such that it behaves differently or takes a different amount of
+% %time to respond to the remaining inputs events.
+% %In practice we have observed that simply maintaining relative timings can
+% %result in injecting the remaining inputs too early or late.}
+%
+% We must therefore consider the distributed system's internal events. To deterministically
+% reproduce bugs, we would need visibility into every I/O request and response (\eg~clock
+% values or socket reads), as well as all thread scheduling
+% decisions for each process. This information is the starting point for
+% techniques that seek  to minimize thread interleavings leading up to race conditions.
+% These approaches involve iteratively feeding a single input (the thread
+% schedule) to a single entity (a deterministic scheduler)~\cite{choi2002isolating,claessen2009finding,jalbert2010trace}, or
+% statically analyzing feasible thread schedules~\cite{huang2011efficient}.
+%
+% A crucial constraint of these approaches is that they must keep the inputs
+% fixed; that is, behavior must depend uniquely on the thread
+% schedule. Otherwise, the nodes may take a divergent code path. If this
+% occurs some processes might issue a previously unobserved I/O request, and the replayer will not
+% have a recorded response; worse yet, a divergent process might deschedule
+% itself at a different point than it did originally, so that the remainder of
+% the recorded thread schedule is unusable to the replayer.
+%
+% Because they keep the inputs fixed, these approaches strive for a
+% subtly different goal than
+% ours: minimizing thread context switches rather than input events.
+% At best, these approaches can indirectly minimize input events by truncating
+% individual thread executions. That is, they can cause threads to exit early
+% (thereby shortening the execution trace), but they cannot remove extraneous events from
+% the middle of the trace.
+%
+% % (\ie~causing them to exit early).
+%
+% %\noindent{\bf Program Flow Analysis.} Other than delta debugging,
+% %the closest work to ours involves reasoning about
+% %control- and dataflow dependencies
+% %(which may be recorded at runtime~\cite{Lee:2011:TGR:1993498.1993528},
+% %or dynamically inferred~\cite{, tallam2007enabling})
+% %in order to reduce the length of deterministic replay executions.
+% %%decision processes of control software. % Our Peek() algorithm is a
+% %% contribution in how to infer dependencies without access to software internals
+% %Moreover, our application of functional equivalence to the space of
+% %possible inputs allows us to minimize
+% %inputs more aggressively, whereas they are forced to consider all controlflow
+% %and dataflow dependencies in the control software.
+%
+% With additional information obtained by program flow
+% analysis~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean}
+% however, the inputs no longer need to be fixed. The internal events considered by these program flow reduction
+% techniques are individual instructions executed by the
+% programs (obtained by instrumenting the language runtime), in addition to I/O responses and the thread schedule.
+% With this information they can compute
+% program flow dependencies, and thereby remove input events from anywhere in the trace as long as they
+% can prove that doing so cannot possibly cause the faulty execution path to diverge.
+%
+% While program flow reduction is able to minimize inputs,
+% these techniques are not able to explore alternate code paths that still
+% trigger the invariant violation. They are also overly conservative in
+% removing inputs (\eg~EFF takes the transitive closure of all possible
+% dependencies~\cite{Lee:2011:TGR:1993498.1993528}) causing them to miss opportunities to
+% remove dependencies that actually semantically commute.\\[0.5ex]
+% %
+% \noindent{\bf Our Contribution.} For the first portion of this dissertation
+% proposal (\S\ref{dsec:past_work}) we
+% discuss heuristics we have developed for interleaving internal and external
+% events that we have empirically shown to work
+% well for minimizing event traces. Our approach there is
+% to allow processes to proceed along divergent paths
+% rather than recording all low-level I/O and thread scheduling decisions.
+% This has several advantages. Unlike
+% the other approaches, we can find shorter alternate code paths that still
+% trigger the invariant violation. Previous {\em best-effort} execution minimization
+% techniques~\cite{clause2007technique,tucek2007triage,chang2007simulation} also allow alternate
+% code paths, but do not systematically
+% consider concurrency and asynchrony.\footnote{PRES
+% explores alternate code paths in best-effort replay of multithreaded
+% executions, but does not minimize executions~\cite{park2009pres}.}
+% We also avoid the performance overhead of recording all I/O
+% requests and later replaying them (\eg~EFF incurs \textasciitilde10x slowdown during
+% replay~\cite{Lee:2011:TGR:1993498.1993528}). Lastly,
+% we avoid the extensive effort required to instrument the control software's language runtime,
+% needed by the other approaches to implement a deterministic thread scheduler, interpose on syscalls,
+% or perform program flow analysis. By avoiding assumptions about the language of the control software,
+% we were able to easily apply our system to five different control platforms
+% written in three different languages.
+%
+% Unfortunately, these heuristics do not lend themselves to solid theoretical
+% explanations for why they work well. In the latter portion of the
+% proposal (\S\ref{dsec:future_work}) we outline a plan for
+% developing scheduling strategies that are based on sound principles (starting
+% with visibility into the structure of the software under test).
+% As far as we know, the problem statement and approach we pose there---applying model checkers
+% to {\em certify} whether each subsequence chosen by delta debugging reproduces
+% the original bug---has not appeared in the literature before.\\[0.5ex]
+% %
+% \noindent{\bf Broadly Related Work.} We end this section by discussing
+% techniques in the general area of troubleshooting. We characterize the other troubleshooting approaches
+% as (i) instrumentation (tracing),
+% (ii) bug detection (invariant checking),
+% (iii) replay,
+% (iv) root cause analysis (of device failures), (v) log comprehension
+% (visualization), (vi) program slicing, and (vii) automated debugging (fault
+% localization).\\[0.5ex]
+% %
+% \noindent{\bf Instrumentation.} Unstructured
+% log files collected at each node are the most common form of diagnostic information. The goal of
+% tracing frameworks~\cite{pip,fonseca2007x,Chen02pinpoint:problem,ndb14,barham2004using}
+% is to produce structured logs that can be easily analyzed, such as DAGs tracking
+% requests passing through the distributed system. These tools help developers to understand
+% how, when, and where the system broke. In contrast, we focus on making it
+% easier for developers to understand what lead the software
+% to violate an invariant in the first place.\\[0.5ex]
+% %
+% \noindent{\bf Bug Detection.} With instrumentation available, it becomes possible
+% to check expectations about the
+% system's state (either offline~\cite{Liu07widschecker} or online~\cite{d3s}), or about the paths requests take through
+% the system~\cite{pip}. Within the networking community, this research is
+% primarily focused on verifying routing tables~\cite{hsa,hsa_realtime,anteater,khurshid2012veriflow}
+% or forwarding behavior~\cite{Zeng:2012:ATP:2413176.2413205,libra}.
+% We use bug detection techniques (invariant checking) to guide delta debugging's minimization
+% process.\\[0.5ex]
+% %
+% It is also possible to infer
+% performance anomalies by building probabilistic models from
+% collections of traces~\cite{barham2004using,Chen02pinpoint:problem}.
+% Our goal is to produce exact minimal causal sequences, and we are primarily focused on
+% correctness instead of performance.\\[0.5ex]
+% %
+% Model checkers~\cite{musuvathi2008finding,nice} seek to
+% proactively find safety and liveness violations by analyzing all possible code paths.
+% After identifying a bug with model checking, finding a minimal code path leading to it is
+% straightforward. However, the testing systems we aim to improve do not employ
+% formal methods such as model checking, in part because model checking usually suffers from exponential
+% state explosion when run on large systems.\footnote{For example, NICE~\cite{nice} took 30 hours to
+% model check a network with two switches, two hosts, the NOX MAC-learning
+% control program (98 LoC), and five concurrent
+% messages between the hosts.} Nonetheless, in \S\ref{dsec:future_work} we propose the
+% use of model checkers to provide provably
+% minimal MCSes. Crucially, we assume that we are already given a known
+% execution leading to an invariant violation, rather than attempting to find all
+% possible invariant violations without prior knowledge of faulty executions. We
+% believe that the prior knowledge contained in failing test cases can mitigate exponential
+% state explosion, and as far as we know we are the first to use model checkers
+% to minimize existing executions.\\[0.5ex]
+% %In future work we plan to explore the possibilities of model checking techniques with our %Rather than exploring all
+% %possibilities, we discover bugs through testing of selected scenarios, which
+% %makes our problem tractable.
+% %which we believe fits more naturally into software engineers' chosen
+% %way of developing and testing distributed systems.
+% %\colin{TODO: discuss how finding the critical transition is related to finding the MCS}
+% %
+% \noindent{\bf Replay.} Crucial diagnostic information is often missing from traces.
+% Record and replay
+% techniques~\cite{Geels:2006:RDD:1267359.1267386,lin2013defined,Zamfir:2010:EST:1755913.1755946,Yuan:2010:SED:1736020.1736038}
+% instead allow users to step through (deterministic) executions and interactively examine the
+% state of the system in exchange for performance overhead.
+% %Static analysis and symbolic execution can also be applied post-hoc %, without incurring runtime performance overhead,
+% %to find code paths that lead up to software
+% %crashes~\cite{Yuan:2010:SED:1736020.1736038} or thread schedules that reproduce
+% %race conditions~\cite{Zamfir:2010:EST:1755913.1755946}.
+% %Within SDN, OFRewind~\cite{ofrewind} provides
+% %record and replay of OpenFlow channels between controllers and switches.
+% Manually examining long system executions can be tedious, and our goal is to
+% minimize such executions so that developers find it easier to identify the
+% problematic code through replay or other means.\\[0.5ex]
+% %Rx~\cite{qin2005rx} is a technique for improving availability: upon
+% %encountering a crash, it starts from a previous checkpoint, fuzzes
+% %the environment (\eg~random number generator seeds) to avoid triggering the same bug,
+% %and restarts the program. Our
+% %approach perturbs the inputs rather than the environment
+% %prior to a failure.
+% %
+% \noindent{\bf Root Cause Analysis.} Without perfect instrumentation,
+% it is often not possible to know exactly what events are occurring (\eg~which
+% components have failed) in a
+% distributed system. Root cause analysis~\cite{yemini1996,Kandula:2009:DDE:1592568.1592597}
+% seeks to reconstruct those unknown events from limited monitoring data.
+% Here we know exactly which events occurred, but
+% seek to identify a minimal sequence of events.\\[0.5ex]
+% %
+% \noindent{\bf Log Comprehension.} Model inference techniques summarize log files
+% in order to make them more easily understandable by
+% humans~\cite{synoptic,csight,biermann1972synthesis,lorenzoli2008automatic,lou2010mining}.
+% Model inference does not modify the logs, although
+% it can be applied to our minimized logs to further facilitate the
+% troubleshooting process.\\[0.5ex]
+% %
+% \noindent{\bf Program Slicing.} It is worth mentioning another goal outside the purview of distributed systems, but
+% closely in line with ours: program slicing~\cite{weiser1981program} is a
+% technique for finding the
+% minimal subset of a program that could possibly affect the result of a particular line of code.
+% %This can be combined with delta debugging to automatically generate minimal unit tests~\cite{burger2011minimizing}.
+% Our goal is to slice the temporal dimension of an execution rather than the
+% code dimension.\\[0.5ex]
+% %
+% \noindent{\bf Automated Debugging.} Literature following Weisers' original program
+% slicing paper goes so far as to try to
+% automatically locate the exact line(s) of code or state transitions that are responsible for a
+% bug, using statistical data~\cite{zhangzhang}, test coverage
+% data~\cite{coverage_localization,xuan14}, constraint solving~\cite{jose11},
+% fault injection~\cite{zhang13} and
+% experimentally driven executions of the failing program~\cite{zeller2005,comparative_causality}.
+% These approaches aid the debugging process rather than test case
+% simplification,
+% and are therefore complementary.

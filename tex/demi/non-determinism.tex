@@ -1,0 +1,148 @@
+\documentclass[DIV=calc, paper=a4, fontsize=11pt, twocolumn]{scrartcl}   % A4 paper and 11pt font size
+
+\usepackage{lipsum} % Used for inserting dummy 'Lorem ipsum' text into the template
+\usepackage[english]{babel} % English language/hyphenation
+\usepackage[protrusion=true,expansion=true]{microtype} % Better typography
+\usepackage{amsmath,amsfonts,amsthm} % Math packages
+\usepackage[svgnames]{xcolor} % Enabling colors by their 'svgnames'
+\usepackage[hang, small,labelfont=bf,up,textfont=it,up]{caption} % Custom captions under/above floats in tables or figures
+\usepackage{booktabs} % Horizontal rules in tables
+\usepackage{fix-cm}  % Custom font sizes - used for the initial letter in the document
+
+\usepackage{sectsty} % Enables custom section titles
+\allsectionsfont{\usefont{OT1}{phv}{b}{n}} % Change the font of all section commands
+
+\usepackage{fancyhdr} % Needed to define custom headers/footers
+\pagestyle{fancy} % Enables the custom headers/footers
+\usepackage{lastpage} % Used to determine the number of pages in the document (for "Page X of Total")
+
+% Headers - all currently empty
+\lhead{}
+\chead{}
+\rhead{}
+
+% Footers
+\lfoot{}
+\cfoot{}
+\rfoot{\footnotesize Page \thepage\ of \pageref{LastPage}} % "Page 1 of 2"
+
+\renewcommand{\headrulewidth}{0.0pt} % No header rule
+\renewcommand{\footrulewidth}{0.4pt} % Thin footer rule
+
+\usepackage{lettrine} % Package to accentuate the first letter of the text
+\newcommand{\initial}[1]{ % Defines the command and style for the first letter
+\lettrine[lines=3,lhang=0.3,nindent=0em]{
+\color{DarkGoldenrod}
+{\textsf{#1}}}{}}
+
+
+\usepackage{titling} % Allows custom title configuration
+
+\newcommand{\HorRule}{\color{DarkGoldenrod} \rule{\linewidth}{1pt}} % Defines the gold horizontal rule around the title
+
+\pretitle{\vspace{-30pt} \begin{flushleft} \HorRule \fontsize{50}{50} \usefont{OT1}{phv}{b}{n} \color{DarkRed} \selectfont} % Horizontal rule before the title
+
+\title{Article Title} % Your article title
+
+\posttitle{\par\end{flushleft}\vskip 0.5em} % Whitespace under the title
+
+\preauthor{\begin{flushleft}\large \lineskip 0.5em \usefont{OT1}{phv}{b}{sl} \color{DarkRed}} % Author font configuration
+
+\author{John Smith, } % Your name
+
+\postauthor{\footnotesize \usefont{OT1}{phv}{m}{sl} \color{Black} % Configuration for the institution name
+University of California % Your institution
+
+\par\end{flushleft}\HorRule} % Horizontal rule after the title
+
+\date{} % Add a date here if you would like one to appear underneath the title block
+
+%------------------------------------------------------------------
+
+\begin{document}
+
+%\maketitle % Print the title
+
+\thispagestyle{fancy} % Enabling the custom headers/footers for the first page 
+
+\section*{Motivation and Scope}
+
+In order to systematically explore all interleavings within an actor system, we need to eliminate all non-determinism.  This document has been motivated by the discussion of timers and their role in distributed systems.  In order to make this discussion tangible, I am limiting the scope to the following types of systems: (I) DHT stores -- Chord, Kademlia and Pastry (II) A consensus algorithm -- Raft.
+
+In both of those systems, timers are used {\em only} in the scope of the failure detectors. In other words, if we were to care only about exploring all interleavings that do not contain failures, timers would be unnecessary. Timers are used to either keep sending periodic keep-alives or to deduce if some host has not responded in a timely manner.
+
+\section*{System Model}
+
+The question becomes -- how do we express the equivalent behaviour without the use of timers.  To answer this questions, we first have to choose the system model. In order to make the verification feasible, we decided to model a perfect failure detector, thus assuming strong completeness and strong accuracy. There is a way to relax the completeness requirement to include the weak version, but we are not considering this scenario at the moment.  All failures are of a {\em crash-stop} type.
+
+Under no external network events, timers do not cause change of state of a distributed system.  For instance, it doesn't matter what the timers are set to in a heartbeat routine -- it does not change the overall behaviour. It is only when a network event occurs that the value a timer matters. Depending on what the value is set to, the time when a failure {\em happens} and when that failure is {\em detected} is going to differ.
+
+Unfortunately, network events are highly independent with respect to other events, so it becomes unpractical to explore all possible failures.  Therefore, when running verification algorithm, one has to artificially bound the exploration space to $N$ failures
+
+
+\section*{Mechanism}
+
+There are two ways of implementing the above proposal:
+
+\begin{itemize}
+
+\item Interpose on timers in a way that we have the complete control of when they get triggered with respect to other events in the system.  There are two disadvantages.  First, the exploration space increases since we are now interested in exploring states that do not cause change in the internal state of the system and are redundant.  Second, the complexity of this approach is arguably greater.
+
+\item A more intrusive approach is to strip timers in the system under test, and replace them with equivalent receive-blocks.  When a message of type {\tt HostUnreachable(host)} gets received, the same function that is responsible for dealing with timeouts gets executed.  In other words, the scheduler implicitly triggers timers by sending the appropriate message.
+
+\end{itemize}
+
+Currently, the later approach is implemented.  To see how it works, let us consider a sample schedule.\\
+
+\noindent
+{\tt
+ExternalMessage(Client, A)\\
+Message(A, B)\\
+Message(B, C)\\
+Message(C, A)\\
+}
+
+This would explore interleavings for a non-faulty execution (in the case of Raft, we also have to instrument the code to deal with edge case of the {\em  initial} leader election).  Now, if we were to add an external network failure, this schedule would look like:\\
+
+\noindent
+{\tt
+ExternalMessage(Client, A)\\
+Message(A, B)\\
+Message(B, C)\\
+Message(C, A)\\
+NetworkPartition(A, B)\\
+}
+
+It is important to understand the dependency relation -- a {\tt NetworkPartition} event is dependent with all messages that involve either host A or B.  Also, the assumption is that a partition effects both hosts (it is a bidirectional failure). This requirement can also be relaxed.  
+
+Next, the external {\tt NetworkPartition} event gets translated (decomposed) into two internal events -- {\tt DeleteChannel} and {\tt InformFailure}\\
+
+\noindent
+{\tt
+ExternalMessage(Client, A)\\
+Message(A, B)\\
+Message(B, C)\\
+Message(C, A)\\
+DeleteChannel(A, B)\\
+InformFailure(A, B)\\
+InformFailure(B, A)\\
+}
+
+The eternal messages have a very similar dependency relationship with other events (for the sake of simplicity, we are going to assume that it is the same).  There is one invariant when scheduling those decomposed internal messages.  {\tt DeleteChannel} can never happen after its respective {\tt InformFailure} event.  It does not make much sense to explore a schedule in which a host is informed about a failure before it actually happens.
+
+One of the possible interleavings would look like:\\
+
+\noindent
+{\tt
+DeleteChannel(A, B)\\
+ExternalMessage(Client, A)\\
+InformFailure(A, B)\\
+Message(A, B)\\
+Message(B, C)\\
+InformFailure(B, A)\\
+Message(C, A)\\
+}
+
+
+
+\end{document}

@@ -84,12 +84,13 @@ policy changes turns out to be difficult, one could just employ the more
 expensive version of delta debugging to account for
 inconsistency~\cite{Zeller:2002:SIF:506201.506206}.}
 
-\begin{figure*}[t]
+\begin{figure*}[t!]
 \footnotesize
 \begin{boxedminipage}{\textwidth}
-Input: $\cfail$ s.t. $\cfail$ is a trace and $\test(\cfail) = \DFAIL$. Output: $\dfail
-= \ddmin(\cfail)$ s.t. $\dfail \subseteq
+Input: $\cfail$ s.t. $\cfail$ is a sequence of externals, and $\test(\cfail) = \DFAIL$. Output: $\dfail
+= \ddmin(\cfail)$ s.t. $\dfail \sqsubseteq
 \cfail$, $\test(\dfail) = \DFAIL$, and~$\dfail$ is minimal.
+\vspace{-0.4em}
 \begin{align*}
 \ddmin(\cfail) &= \ddmin_2(\cfail, \emptyset) \quad \text{where} \\
 \ddmin_2(\dfail, R) &=
@@ -104,17 +105,18 @@ R\bigr) & \text{otherwise (``interference'')}
 \end{cases}
 \end{align*}
 \begin{center}
-where $\test(T)$ denotes the state of the system after executing the trace $T$,
-$\DFAIL$ denotes an invariant violation, \\
-$\done \subset \dfail$, $\dtwo \subset \dfail$, $\done \cup \dtwo = \dfail$, $\done \cap
+\vspace{-0.8em}
+where $\DFAIL$ denotes an invariant violation,
+$\done \sqsubset \dfail$, $\dtwo \sqsubset \dfail$, $\done \cup \dtwo = \dfail$, $\done \cap
 \dtwo = \emptyset$, and $|\done| \approx |\dtwo| \approx |\dfail| / 2$
 hold.
 \end{center}
 \end{boxedminipage}
-\caption{\colin{Cut if we need space} Automated Delta Debugging Algorithm
-From~\cite{Zeller:1999:YMP:318773.318946}.}
+\caption{Delta Debugging Algorithm
+from~\cite{Zeller:1999:YMP:318773.318946}. $\sqsubseteq$ and $\sqsubset$ denote
+subsequence relations. \textproc{TEST} is defined in Algorithm~\ref{fig:alg_overview}.}
 \label{fig:ddmin}
-\vspace{-0.3cm}
+%\vspace{-0.3cm}
 \end{figure*}
 
 \eat{ % Original O(n^2) algorithm

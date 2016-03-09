@@ -1,0 +1,187 @@
+% TODO(cs): one possible way to work in discussion of program analysis related
+% work, and to argue for our definition of MCS:
+%  - Say: at the extreme, we could require exact same violation exact same
+%  code path. But that is basically what these program analysis papers do, and
+%  this is problematic because it doesn't remove enough events, i.e. it's too
+%  conservative.
+%  - On the other extreme, we could only require same violation. But that
+%  would be intractable, and not clear that the alternate paths we find are always
+%  meaningful. i.e., edit-distance helps us avoid false-positives.
+%  - So we have this notion of edit-distance: a middle between those two
+%  extremes.
+
+% System Definition
+%         States
+%         Events
+%                 Messages
+%                         Internal
+%                         External
+%                 Modifications
+%         Transitions: event takes from one state to another
+%         Enabled events
+%                 Delivery of sent internal messages
+%                 External messages? (enabled by order?)
+%                 Modifications? (enabled by order?)
+%         Valid schedules
+%                 Each event is enabled
+%
+% Troubleshooting:
+%         Invariants
+%         Sequence of events and schedule -> invariant violation
+%         Want to find small sets of such triggering event sequences
+%         “Shrink" formulation:
+%                 E, schedule -> Violation?
+%         Definition of minimal [subset, not minus one]
+%
+% Approximations:
+%         heuristic schedulers
+%         fairness
+%         monotonicity conditions?
+
+We start by introducing a model of distributed systems as
+groundwork for defining our goals.
+As we discuss further in \S\ref{subsec:generality},
+we believe this model is general enough to capture the behavior of many
+practical systems.
+%In \S\ref{dsec:discussion} we
+%discuss how the model described here relates to systems in practice.
+
+\subsection{System Model}
+
+Following~\cite{Fischer:1985:IDC:3149.214121}, we model a distributed system as
+a collection of $N$ single-threaded processes communicating through messages. Each process $p$ has unbounded
+memory, and behaves deterministically according to a transition function of its current state and the messages it receives.
+The overall system $S$ is defined by the transition function and initial
+configuration for each process.
+
+Processes communicate by sending messages over a network. A message is a pair
+$\left(p, m\right)$, where $p$ is the identity of the destination process, and $m$ is the
+message value. The network maintains a buffer of pending messages that have
+been sent but not yet delivered. Timers are modeled as messages a process can request to be delivered
+to itself at a specified later point in the execution.
+
+%Normally, the network is allowed
+%to arbitrarily decide when (if at all) to deliver a message in the buffer. However, the
+%network may also become partitioned, in which case it is disallowed from
+%delivering messages that cross the partition until the partition is healed.
+
+A {\em configuration} of the system consists of the internal state of each process and
+the contents of the network's buffer. Initially the network buffer is empty.
+
+An {\em event} moves the system from one configuration to another. Events can
+be one of two kinds. {\em Internal events} take place by
+removing a message $m$
+from the network's buffer and delivering it to the destination $p$. Then,
+depending on $m$ and $p$'s internal state, $p$ enters a new internal state
+determined by its transition function, and
+sends a finite set of messages to other processes. Since processes are
+deterministic, internal transitions are completely determined by the contents
+of $m$ and $p$'s
+state.
+
+% TODO(cs): Not including partitions as
+% events may in fact be a way to motivate bounded edit-distance -- to emulate
+% the same partition, we need to stay close to original execution.
+% At the very least, we should put that thought in as a footnote.
+Events can also be {\em external}.
+The three external events we consider are:
+process starts, which create a new process; forced restarts (crash-recoveries), which force a process to its initial
+state (though it may maintain non-volatile state); and external
+message sends $\left(p, m\right)$, which insert a message sent from outside the system
+into the network buffer (which may be delivered later as an internal event).
+We do not need to explicitly model fail-stop failures, since these are
+equivalent to permanently partitioning a process from all other processes.
+
+% \fixme{how to model changes in environment?  These don't necessarily invoke a
+% "step". So maybe we should separate the notions of a "step" from "external events"}
+
+A {\em schedule} is a finite sequence $\tau$ of events (both external and
+internal) that can be applied, in
+turn, starting from an initial configuration. Applying each event in the
+schedule results in an {\em execution}. We say that a schedule `contains' a sequence of external
+events $E = [ e_1, e_2, \ldots, e_n  ]$ if it includes only those external
+events (and no other external events) in the given order.
+
+\subsection{Testing}
+
+An {\em invariant} is a predicate $P$ (a safety
+condition) over the internal state of all processes at a particular
+configuration $C$. We say that configuration
+$C$ violates the invariant if $P\left(C\right)$ is false, denoted $\overline{P}\left(C\right)$.
+
+A {\em test orchestrator} generates sequences of external events
+$E = [ e_1, e_2, \ldots, e_n ]$, executes them along with some
+(arbitrary) schedule of internal
+events, and checks whether any invariants were violated during the execution.
+% TODO(cs): Recording performance isn't
+% really an issue for most tests.. The flipside of this though is that, if
+% the instrumentation is in place during runtime, why not just do model
+% checking (and model checking finds minimal results by construction).
+The test orchestrator records the external events it injected, the
+violation it found, and the
+interleavings of internal events that appeared during the execution.
+% though recording of internal message deliveries is not strictly necessary.
+
+
+\subsection{Problem Definition}
+
+We are given a schedule $\tau$ injected by a test orchestrator,\footnote{We
+explain how we obtain these schedules in \S\ref{dsec:implementation}.} along
+with a specific invariant violation $\overline{P}$ observed at the end of the
+test orchestrator's execution.
+
+Our main goal is to find a schedule containing a small sequence of
+external (input) events that reproduces the violation $\overline{P}$.
+Formally, we define a minimal causal sequence (MCS)
+to be a subsequence of external events $E' \sqsubseteq E$ such that there exists
+a schedule containing $E'$ that produces
+$\overline{P}$, but if we were to remove any
+single external event $e$ from $E'$, there would not exist any schedules
+shorter\footnote{We limit the number of internal events to ensure
+that the search space is finite; any asynchronous
+distributed system that requires
+delivery acknowledgment is not guaranteed
+to stop sending messages~\cite{aguilera1997heartbeat}, essentially because nodes cannot distinguish
+between crashes of their peers and indefinite message delays.} than $\tau$
+containing $E' - e$ that produce
+$\overline{P}$.\footnote{It might be possible to reproduce $\overline{P}$ by
+removing multiple events from $E'$,
+but checking all combinations is tantamount to enumerating its powerset.
+Following~\cite{Zeller:2002:SIF:506201.506206}, we
+only require a 1-minimal subsequence $E'$ instead of a globally minimal
+subsequence.}
+
+We start by minimizing external (input) events because they are the first level
+of abstraction that developers reason about. Occasionally, developers can
+understand the root cause simply by examining the external events.
+
+For more difficult bugs, developers typically step through the internal events of
+the execution to understand more precisely how the system arrived at the unsafe
+state. To help with these cases, we turn to minimizing internal events after
+the external events have been minimized. At this stage we fix the external events and search for
+smaller schedules that still triggers the invariant
+violation, for example, by keeping some
+messages pending rather than delivering them.
+Lastly, we seek to minimize the contents (e.g. data payloads) of external messages.
+
+Note that we do not focus on bugs involving only sequential computation (e.g.
+incorrect handling of unexpected input), performance, or human
+misconfiguration. Those three bug types
+are more common than our focus: concurrency bugs.
+We target concurrency bugs because they are the most complex (correspondingly, they take considerably more time to
+debug~\cite{msoft_concurrency}), and because mature debugging tools already exist for sequential code.
+%systems lies,  % and because there are existing tools for sequential code
+
+With a minimized execution in hand, the developer begins debugging.
+Echoing the benefits of sequential test case minimization, we claim that the greatly reduced size of the
+trace makes it easier to understand which code path contains
+the underlying bug, allowing the developer to focus on
+fixing the problematic code itself.
+
+% Our first task is to produce a schedule
+% $\tau^{\circ} = e_1\rightarrow i_1\rightarrow \ldots e_2\rightarrow i_m \ldots$
+% containing the original external events $E$
+% that reproduces the invariant violation $\overline{P}$. If we cannot find a
+% schedule that reproduces the violation, then we cannot proceed with
+% minimization.
+

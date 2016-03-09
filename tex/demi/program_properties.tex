@@ -1,0 +1,221 @@
+% Achieving completeness for the entire space of schedules is intractable.
+% In this light, it's interesting to note that:
+%   - if we had DPOR-style completeness, we wouldn't need delta debugging.
+%   - Why? Because replaying the MCS is equivalent to replaying the original
+%     execution with all extraneous external messages pushed to the end of the
+%     execution. And DPOR would eventually find that schedule!
+%   - But we don't have DPOR-style completeness, hence the need to have a
+%     separate minimization algorithm.
+
+% small-model property is really the overarching theme here. A few examples:
+%   - data-independence (message fingerprinting)
+%   - commutativity (used by DPOR)
+%   - bounded-ed
+% -----
+%   - monotonicity (used by delta debugging)
+%   - collapsibilty (optimizations for minimization function)
+%   - symmetry?
+%   - finite-space?
+%   - recency of state? (Scott's use of the term "quiescence")
+
+% TODO(cs): Possibly blend this section with the algorithms section.
+
+% Attempt at formalizing bounded edit-distance:
+%   https://www.sharelatex.com/project/542b926f58d6bf4a3de00588/output/output.pdf?cache_bust=1422768407864&compileGroup=priority
+
+In general, it is intractable to enumerate the entire set of possible schedules
+for a given sequence $E'$, since the number of schedules to explore is exponential
+in the number of messages sent. Worse, enumerating the schedule space is
+impossible to achieve in finite time whenever the schedule space is unbounded,
+for example when the distributed system is not guaranteed to stop sending
+messages.\footnote{Non-quiescent distributed systems are the norm rather than
+the exception. For example, any distributed system that makes use of a failure
+detector component never stops sending messages~\cite{aguilera1997heartbeat}.}
+
+%Nonetheless, the utility of
+%an MCS does not depend on its being perfectly minimal, but in it being much
+%smaller and easier to understand than the original test case $E$.
+
+% The test oracles we develop in this paper usually restrict their exploration of the
+% schedule space. The MCSes we find as a result are approximate and not exact.
+
+Fortunately, we \num{believe} that many of the distributed systems we are interested in exhibit some
+form of {\em small-model property}. A small-model property holds for a given
+distributed system if its (exponentially large, or possibly infinitely large) schedule space can be reduced
+to a smaller, more tractable schedule space. The reduction must establish that
+there is an {\em equivalence} relation between schedules within the small
+schedule space and the schedules within the larger schedule space, such that
+it is only necessary to check schedules in the smaller space.
+
+\subsection{Properties useful for schedule exploration}
+
+When designing test oracles $f_{S}$, we seek to take advantage of any small-model
+properties exhibited by the distributed systems we test. We do not
+formally prove that any of these properties hold, since in general it is
+highly challenging to verify small-model
+properties (cf.~\cite{rabin1958recursively,de1979social}).\footnote{Note also that a small-model property
+may hold with respect to a particular bug, but not with respect to the entire program.}
+Instead, we structure our
+exploration of the schedule space such that {\em if} a property holds,
+our search is able to quickly find schedules that end in the original safety
+violation.
+
+In the remainder of this section we describe the types of program properties our
+scheduling techniques seek to take advantage of.
+
+\eat{
+% Quiescence:
+\noindent{\bf Test oracle approximations.} If the distributed system does not cease
+sending messages, the test oracle needs to place a bound on how many steps it
+explores before returning an
+answer to the minimization function. Since we only consider safety violations
+and not liveness violations, the test oracle can check the predicate $P$ at any
+point in the execution, and any violation of the predicate it finds mid-way
+through the execution counts as a valid test failure.
+}
+
+% TODO(cs): possibly a major objection to this program property: it requires
+% domain knowledge about message formats, which weakens our "deployability"
+% argument. We should really formally write up Panda's alternative "DepGraph"
+% heuristic for reasoning about message equivalences across executions.
+\noindent{\bf Data-independence.} A distributed system exhibits
+`data-independence' with respect to some set of messages values if those values 
+do not affect how the distributed system behaves, i.e. if
+the distributed system's control-flow is independent of the message values~\cite{shacham2014verifying,wolper}.
+Data-independence is a type of small-model property in the following sense:
+all schedules that differ only by message values are equivalent.
+
+In practice, some types of message fields clearly exhibit
+data-independence. Consider authentication cookies. Distributed systems commonly
+use cookies to track which requests are tied to which users. However, the
+value of the cookie is not in itself relevant to how the distributed system
+behaves, as long as each user attaches a consistent value to their messages. This means that two executions
+with exactly the same users and exactly the same messages except for the
+cookie fields are equivalent.
+
+We apply this observation by providing test oracles with a `message fingerprint' function.
+A message fingerprint function takes a message as input,
+and returns a string that identifies the (domain-specific) relevant fields of the message, but masks over
+semantically extraneous fields (e.g. sequence numbers). A test oracle uses the
+message fingerprint function to reason about the similarities and differences
+between two executions. Currently, we encode message fingerprint functions
+manually before testing, by examining the message protocol specification for each distributed
+system we test. However, it could be possible to analyze the control-flow of
+the program under test to generate message fingerprint functions in a sound
+manner.
+% TODO(cs): description of what fields we mask off for fingerprints?
+% TODO(cs): message fingerprints also help us deal with non-determinism, e.g.
+% randomly seeded sequence numbers.
+% TODO(cs): one lesson we learned: need to be careful when choosing
+% fingerprints! If you're too general, you won't end up ever finding the bug,
+% even on unmodified executions.
+% TODO(cs): George's question: are fingerprints as unqique symbols equivalent
+% to content masks?
+
+\noindent{\bf Commutativity.} Two events are commutative if the distributed
+system arrives at the same configuration after applying the two events
+regardless of the order in which the events were applied. The most obvious
+form of commutativity in distributed systems is captured by the happens-before
+relation~\cite{Lamport:1978:TCO:359545.359563}: two messages $a$ and $b$ are commutative if they are concurrent, i.e.
+$a \not\rightarrow b$ and $b \not\rightarrow a$. Stronger forms of
+commutativity may hold if events cannot possibly be causally unrelated to each other, for
+example when a distributed algorithm is stateless.
+
+Commutativity is a well-known property for reducing state-space
+blowup. For example, partial order
+reduction (POR) reduces the number of event orderings model checkers need to
+explore by inferring which messages are concurrent~\cite{godefroid1995partial,flanagan2005dynamic}.
+We also apply partial order reduction when minimizing executions.
+
+\noindent{\bf Bounded Edit-Distance.} TODO.
+
+% If fp only needs to explore schedules up to a fixed edit-distance away from S0 to be guaranteed to find one (if one exists) that triggers V, then only a bounded number of schedules need to be explored, viz. those within the edit-distance bound.
+
+\colin{Come up with a compelling example!}
+\colin{Bounded edit-distance seems to be a property of {\em failing
+executions}, not programs. Or rather, it's a property that depends on the
+program {\em and} an initial execution. Perhaps bounded insertion-distance is
+a more useful (and simpler) property.}
+\colin{I don't see how this is an instance of a small-model property. In
+particular, what equivalence relation are we establishing? Perhaps it's saying
+that there's an equivalence between all schedules that exceed the
+edit-distance bound?}
+
+\subsection{Properties useful for minimizing external events}
+
+Distributed systems may also exhibit properties that are useful for
+implementing $Min$, i.e. choosing subsequences of external events.\footnote{
+Consider that without knowing anything about the program under test, $Min$
+would have to enumerate the powerset of
+$E$, which is clearly intractable.}
+These properties relate to how the distributed system processes
+external events.
+
+\noindent{\bf Monotonicity.} If a distributed system processes external events
+in a way such that if $f_S(E') = false$ for some subsequence $E'$ (i.e. no
+failure was found for $E'$), then for all subsequences $E'' \sqsubseteq
+E'$, $f_S(E'') = false$, we say that it is monotonic. If monotonicity holds,
+$Min$ knows that it does not need to explore an strict subsequences of $E'$
+whenever $f_S(E') = false$.
+
+% An equivalent formulation:
+% if f_S(E') = true, then for all supersequences E'', f_S(E'') = true.
+
+\colin{TODO: come up with an example or intuition for why programs would be
+monotonic.}
+\colin{TODO: how does that relate to local minima? Scott's claim is that
+monotonicity guarantees that we find some local minima, but I don't see how
+the current definition is relevant to that claim. In particular, it seems that
+one-at-a-time-removal does not assume the current formulation of monotonicity,
+and we know that one-at-a-time-removal finds a local minima.}
+
+% A monotonic program is basically one where there are not "undoing" changes.
+% Once a failure is found, no amount of added events can make the failure
+% disappear.
+
+% Counterexample: non-monotonic program:
+% As an example, assume a program
+% that processes HTML tags: whenever its input contains only the
+% opening HTML tag, but not the closing one, it fails. In the input
+% <A></A><B>, for instance, the HTML tag <B> lacks a closing
+% </B>.
+% If we use Delta Debugging to simplify this failure-inducing input,
+% then it may partition the input into <A> and </A><B>,
+% resulting in the simplified input <A>—although in the concrete
+% example, this failure cause was undone by </A>; it was <B>
+% that had no closing HTML tag.
+
+\noindent{\bf Collapsibility.} \colin{Arvind: it would be great if you could
+take a stab at writing this, since your `1000 paxos commands' example isn't
+quite clear to me}
+
+\subsection{Stop-Gap: Fairness}
+
+Even if some useful program properties hold, the task of exhaustively
+minimizing an execution may still be intractable. In lieu of tractability, we
+would like to at least ensure that we prioritize the computation we devote to
+minimizing different parts of the execution.
+
+In particular, we would like to ensure that $Min$ ensure `fairness'. Informally,
+fairness means that
+$Min$ should not devote all of its time to trying to prune just one
+external event; it should spread its computation over trying to prune each
+of the external events, so that it prunes off external events that are clearly
+extraneous first, and leaves the more difficult cases towards the end.
+Fairness is useful it ensures that $Min$'s progress is most rapid in the
+earliest parts of its computation.
+
+To support `fair' minimization functions, we give test oracles a fixed
+computational budget, so that they are only allowed to explore a fixed
+number of schedules before either finding a failing schedule or notifying the
+minimization function that it is still unsure whether any failing schedule
+exists.
+
+% Earlier idea: interposing at a library layer, e.g. the NIB.
+
+\eat{
+The set of schedules to explore for a fixed sequence E’ may be infinite.
+If the program p is quiescent -- meaning that it is guaranteed to eventually stop sending messages -- then the set of schedules to be explored is finite.
+If the program p is semi-quiescent -- meaning that it is quiescent except for some message type (e.g. heartbeat messages) -- then the set of schedules to be explored is finite if you assume that the non-quiescent component of the program p is correct.
+If the program p is k-quiescent -- meaning that it is guaranteed to stop sending messages within k-steps, then the set of schedules to be explored is bounded.
+}

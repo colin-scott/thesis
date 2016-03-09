@@ -1,0 +1,452 @@
+\setlength{\textfloatsep}{2.0pt plus 2.0pt minus 4.0pt} % Reset \textfloatsep
+
+% TODO(cs): discuss Akka's use of TCP vs UDP?
+
+\begin{table*}
+{
+\centering
+\footnotesize
+\begin{tabular}{|l|l|l|l|l|l||l||l|}
+  \cline{1-8}
+  \textbf{Bug Name} & \textbf{Bug Type} &
+  \textbf{Initial} & \textbf{Provenance} &
+  \textbf{STSSched} & \textbf{TFB} & \textbf{Optimal} & \textbf{NoDiverge} \\\cline{1-7} \hline
+\href{https://docs.google.com/document/d/1alldH4lRSpFQ55-YCNFaIcMpjxrBOMNaB7R_9eEVwfs}{raft-45}
+& Akka-FIFO, reproduced
+& 2160\hfill (E:108) & 2138\hfill (E:108) & 1183\hfill (E:8) & 23 \hfill (E:8)
+& 22 \hfill (E:8) & 1826 \hfill (E:11) \\
+
+% 3 node opt
+\href{https://docs.google.com/document/d/1vhGftMIlmm_uFLmCz2GI0CCPmttDUR617hJ72k2BTbY}{raft-46}
+& Akka-FIFO, reproduced
+& 1250\hfill (E:108) & 1243 \hfill (E:108) & 674\hfill (E:8) & 35 \hfill (E:8)
+& 23 \hfill (E:6) & 896 \hfill (E:9) \\
+
+\href{https://docs.google.com/document/d/1_UPKhjYoSrG9p4FQXqML_WQKa3WNbM2fch2aa0V-9Go}{raft-56}
+& Akka-FIFO, found
+& 2380 \hfill (E:108) & 2376 \hfill (E:108) & 1427 \hfill (E:8) & 82 \hfill
+(E:8) & 21 \hfill (E:8) & 2064 \hfill (E:9) \\
+
+\href{https://docs.google.com/document/d/1_efq5rbOGCG3sG-2qxbbOeIRztW9XYP6xgyh0QFmWXg}{raft-58a}
+% raft-58-initialization
+& Akka-FIFO, found
+& 2850 \hfill (E:108) & 2824 \hfill (E:108) & 953 \hfill (E:32) & 226 \hfill
+(E:31) & 51 \hfill (E:11) & 2368 \hfill (E:35) \\
+
+\href{https://docs.google.com/document/d/1eERBdohTC3UidHJ6cZq12ixpp_eiVqzT7LvzuTeEtR4}{raft-58b}
+% raft-58-log-match
+& Akka-FIFO, found
+& 1500\hfill (E:208) & 1496\hfill (E:208) & 164\hfill (E:13) & 40\hfill (E:8)
+& 28 \hfill (E:8) & 1103 \hfill (E:13) \\
+
+\href{https://docs.google.com/document/d/1BN4hpTKtN_-inqyT5XTGogI8QSlohnP2Y7A01nuW7TI}{raft-42}
+& Akka-FIFO, reproduced
+& 1710 \hfill (E:208) & 1695 \hfill (E:208) & 1093 \hfill (E:39) & 180 \hfill
+(E:21) & 39 \hfill (E:16) & 1264 \hfill (E:43) \\
+
+\href{https://docs.google.com/document/d/1lCAR_IE_U27CA-VTlPCi4Kyxf4h6Ykx-0zbkHe0Gfbg}{raft-66}
+& Akka-UDP, found
+& 400\hfill (E:68) & 392\hfill (E:68) & 262 \hfill (E:23) & 77 \hfill (E:15) &
+29 \hfill (E:10) & 279 \hfill (E:23) \\
+
+\href{https://docs.google.com/document/d/1JQiaLlm6XwLCWKOBOFkaMzg8Gd7NT5gDH3_8OV-oekY}{spark-2294}
+& Akka-FIFO, reproduced
+& 1000 \hfill (E:30) & 886 \hfill (E:30) & 43 \hfill (E:3) & 40 \hfill (E:3) &
+25 \hfill (E:1) & 43 \hfill (E:3) \\
+
+% \href{https://docs.google.com/document/d/1g4jT83N6proW6YwHHhWsFy3hQ-ym2EaeDl24scDY6mY}{spark-2294-caching}
+% & Akka-FIFO, reproduced
+% & 700 \hfill (E:3) & 667 \hfill (E:3) & 64 \hfill (E:3) & 51 \hfill (E:3) & -
+% - \hfill (E:1) \\
+% % TODO(cs): only 3 initial external events?
+
+\href{https://docs.google.com/document/d/1mWbxS2-B0v4fbY_FIASs6HCmAXFh6K89DMYX-XEmeL8}{spark-3150}
+& Akka-FIFO, reproduced
+& 600 \hfill (E:20) & 536 \hfill (E:20) & 18 \hfill (E:3) & 14 \hfill (E:3) &
+11 \hfill (E:3) & 18 \hfill (E:3) \\
+
+\href{https://docs.google.com/document/d/1rPseAbo3FELT8Fj2lrRUMkrDmjLPYI26Jgr8goAMLzU}{spark-9256}
+& Akka-FIFO, found (rare)
+& 300 \hfill (E:20) & 256 \hfill (E:20) & 11 \hfill (E:1) & 11 \hfill (E:1) &
+11 \hfill (E:1) & 11 \hfill (E:1) \\
+
+\hline
+\end{tabular}
+\caption{Overview of case studies. ``E:'' is short for ``Externals:''. The
+`Provenance', `STSSched', and `TFB' techniques are pipelined one after another.
+`Initial' minus `TFB' shows overall reduction; `Provenance' shows how many events can be statically
+removed; `STSSched' minus `TFB' shows how our new techniques
+compare to the previous state of the art~\cite{sts2014};
+ `TFB' minus `Optimal' shows how far from optimal our results are; and
+`NoDiverge' shows the size of minimized executions when no divergent schedules are explored (explained
+in \S\ref{sec:related_work}).}
+\label{dtab:case_studies}
+\vskip -2em
+}
+\end{table*}
+
+\begin{table}
+\centering
+\footnotesize
+\begin{tabular}{|l|l|l|}
+  \cline{1-3}
+  \textbf{Bug Name} &
+  \textbf{STSSched} & \textbf{TFB} \\\cline{1-3} \hline
+\href{https://docs.google.com/document/d/1alldH4lRSpFQ55-YCNFaIcMpjxrBOMNaB7R_9eEVwfs}{raft-45}
+& 56s \hfill (594) & 114s \hfill (2854) \\
+% Total: 170s
+\href{https://docs.google.com/document/d/1vhGftMIlmm_uFLmCz2GI0CCPmttDUR617hJ72k2BTbY}{raft-46}
+& 73s \hfill (384) & 209s \hfill (4518) \\
+% Total: 282s
+\href{https://docs.google.com/document/d/1_UPKhjYoSrG9p4FQXqML_WQKa3WNbM2fch2aa0V-9Go}{raft-56}
+& 54s \hfill (524) & 2078s \hfill (31149) \\
+% Total: 2132s
+\href{https://docs.google.com/document/d/1_efq5rbOGCG3sG-2qxbbOeIRztW9XYP6xgyh0QFmWXg}{raft-58a}
+& 137s \hfill (624) & 43345s \hfill (834972) \\
+% Total: 43482s
+\href{https://docs.google.com/document/d/1eERBdohTC3UidHJ6cZq12ixpp_eiVqzT7LvzuTeEtR4}{raft-58b}
+& 23s \hfill (340) & 31s \hfill (1747) \\ % Seems suspect..
+% Total: 69s
+\href{https://docs.google.com/document/d/1BN4hpTKtN_-inqyT5XTGogI8QSlohnP2Y7A01nuW7TI}{raft-42}
+& 118s \hfill (568) & 10558s \hfill (176517) \\
+% Total: 10676s
+\href{https://docs.google.com/document/d/1lCAR_IE_U27CA-VTlPCi4Kyxf4h6Ykx-0zbkHe0Gfbg}{raft-66}
+& 14s \hfill (192) & 334s \hfill (10334) \\ % Seems suspect..
+% Total: 348s
+\href{https://docs.google.com/document/d/1JQiaLlm6XwLCWKOBOFkaMzg8Gd7NT5gDH3_8OV-oekY}{spark-2294}
+& 330s \hfill (248) & 97s \hfill (78)  \\
+% Total: 427s
+
+% \href{https://docs.google.com/document/d/1g4jT83N6proW6YwHHhWsFy3hQ-ym2EaeDl24scDY6mY}{spark-2294-caching}
+% & 828s \hfill (467) & 270s \hfill (179) \\
+% % Total: 1098s
+
+\href{https://docs.google.com/document/d/1mWbxS2-B0v4fbY_FIASs6HCmAXFh6K89DMYX-XEmeL8}{spark-3150}
+& 219s \hfill (174) & 26s \hfill (21) \\ % Suspect?
+% Total: 245s
+\href{https://docs.google.com/document/d/1rPseAbo3FELT8Fj2lrRUMkrDmjLPYI26Jgr8goAMLzU}{spark-9256}
+& 96s \hfill (73) & 0s \hfill (0) \\
+% Total: 210s
+\hline
+\end{tabular}
+\vskip -1em
+\caption{Minimization runtime in seconds (total schedules executed). Overall runtime is
+the summation of ``STSSched'' and ``TFB''. spark-9256 only
+had unignorable events remaining after STSSched completed, so TFB was not
+necessary.}
+\label{tab:runtime}
+%\vskip -1em
+\end{table}
+
+% TODO(cs): auxiliary metric for MCSes: not the size of the MCS, but instead
+% its 'depth', i.e. how many parallel stages are contained in it. More
+% generally, could consider applying Sylvia's NetComplex metric to our
+% executions.
+% TODO(cs): compare against "without-interposition", i.e. where we don't muck
+% with the akka runtime.
+
+Our evaluation focuses on two key metrics: (i) the size of
+the reproducing sequence found by \sys, and (ii) how quickly
+\sys~is able to make minimization progress within a fixed time
+budget. We show a high-level overview
+of our results in Table~\ref{dtab:case_studies}.
+The ``Bug Type'' column shows two pieces of information: whether the bug can be
+triggered using TCP semantics (denoted as ``FIFO'')
+% assuming a source, destination FIFO scheduling discipline (i.e.
+% assuming TCP)
+or whether it can only be triggered when UDP is used; and whether we discovered
+the bug ourselves or whether we
+reproduced a known bug. The ``Provenance'' column shows how many events from the initial execution
+remain after statically pruning events
+that are concurrent with the safety violation.
+The ``STSSched'' column shows how many events remain after checking the initial schedules
+prescribed by our prior work~\cite{sts2014} for each of delta debugging's
+subsequences. The ``TFB'' column shows the final execution size after
+we apply our techniques (`Type Fingerprints with Backtracks'), where we direct
+DPOR to explore as many backtrack points that match the types of original
+messages (but no other
+backtrack points) as possible within the 12 hour time budget we provided.
+Finally, the ``Optimal'' column shows the size of the smallest
+violation-producing execution we could construct by hand.
+We ran all experiments on a 2.8GHz Westmere processor with 16GB memory.
+
+Overall we find
+that \sys~produces executions that are within
+a factor of 1X to 4.6X (1.6X median) the size of the smallest possible execution
+that triggers that bug, and between 1X and 16X (4X median) smaller than the
+executions produced by our previous technique (STSSched).
+STSSched is effective at minimizing external events (our primary minimization
+target) for most case studies. TFB is
+significantly more effective for minimizing internal events (our secondary
+target), especially for akka-raft.
+Replayable executions for all case studies are available at
+\href{https://github.com/NetSys/demi-experiments}{github.com/NetSys/demi-experiments}.
+
+% TODO(cs): quote how many traces are close to optimal, vs. quoting trace
+% reduction.
+
+We create the initial executions for all of our case studies by generating fuzz tests with \sys~(injecting a fixed number of random external events, and selecting internal
+messages to deliver in a random order)
+and selecting the first execution that triggers the invariant
+violation with $\geq$300 initial message deliveries.
+Fuzz testing terminated after finding a faulty execution within 10s of minutes for most of our case studies.
+
+For case studies where the bug was previously known,
+we set up the initial test conditions (cluster configuration, external events) to
+closely match those described in the bug report. For cases where we discovered
+new bugs, we set up the test environment to explore situations that developers
+would likely encounter in production systems.
+% TODO(cs): mention that we plan to show a more robust evalution in the
+% future: take N randomly generated, failing fuzz runs for each bug, see how
+% well we do across all of them. e.g. show the median, mean, deviation of our
+% minimization.
+
+% TODO(cs): cut? if we need space.
+As noted in the introduction, the systems we focus on are
+akka-raft~\cite{akka-raft} and Apache Spark~\cite{zaharia2012resilient}.
+akka-raft, as an early-stage software project, demonstrates how~\sys~can aid the development process.
+Our evaluation of Spark demonstrates that \sys~can be applied to complex, large scale distributed systems.
+%; and the cluster management portion of
+%OpenDaylight~\cite{odl}, an open source software-defined networking controller developed
+%by over a dozen networking companies
+%, and a Pastry DHT implementation,
+%, and a reliable broadcast implementation,
+
+\noindent{\bf Reproducing Sequence Size.} We compare the size of the
+minimized executions produced by \sys~against the
+smallest fault-inducing executions we could construct by hand (interactively
+instructing \sys~which messages to deliver).
+For 6 of our 10 case studies, \sys~was within a factor of 2 of optimal.
+There is still room for improvement however. For raft-58a for example,
+\sys~exhausted its time budget and produced an execution that was a
+factor of 4.6 from optimal. It could have found a smaller execution without
+exceeding its time budget with a better schedule exploration strategy.
+
+%Quiescent reliable
+%communication---that is, reliable communication that is guaranteed to
+%eventually stop sending messages---can be implemented if a distributed system
+%employs a failure detector~\cite{chandra1996unreliable,aguilera1997heartbeat}, but then the failure
+%detector component itself never stops sending messages. Worse, even if a
+%system is quiescent, we do not necessarily know {\em a priori} the exact
+%point the system is going to stop messages. In short, comparing against
+%an optimal search strategy is impossible for all but the simplest of
+%distributed algorithms.
+
+\eat{
+The size of the output produced by
+\sys~is shown in the \num{second to last} column of
+Table~\ref{dtab:case_studies}, and the size
+of our manually constructed traces is shown in the \num{final} column.\george{The last column does not seem to be the manual result}
+}
+
+\noindent{\bf Minimization Pace.} To measure how quickly \sys~makes
+progress, we graph schedule size as a function of the number of
+executions~\sys tries.
+Figure~\ref{fig:progress} shows an example for
+raft-58b. The other case studies follow the same general pattern of sharply decreasing
+marginal gains.
+
+\begin{figure}[tb]
+    \includegraphics[width=3.25in]{demi/raft_58b_minimization_progress.pdf}
+    %\vspace{-2em}
+    \caption[]{\label{fig:progress} Minimization pace for raft-58b. Significant progress is made early on, then progress becomes rare.}
+    %\vspace{-1em}
+\end{figure}
+
+% TODO(cs): I think raft-42 may also have exceeded its time budget, its just that the
+% time-boxing is approximate, and the absolute time taken is sensitive to where DDmin
+% makes progress.
+
+We also show how much time (\# of replays) \sys~took to reach completion of
+STSSched and TFB in Table~\ref{tab:runtime}.\footnote{It is important
+to understand that \sys~is able to replay executions significantly more quickly
+than the original execution may have taken. This is because~\sys~can trigger timer events before the wall-clock duration for
+those timers has actually passed, without the application being aware of this
+fact (cf.~\cite{Gupta06toinfinity})} The time budget we allotted to~\sys~for all case studies was 12 hours (43200s).
+All case studies except raft-56, raft-58a, and raft-42 reached completion of TFB in less than 10
+minutes.
+
+\noindent{\bf Qualitative Metrics.} We do not evaluate how minimization helps
+with programmer productivity. Data on how humans do debugging is scarce; we
+are aware of only one study that measures how
+quickly developers debug minimized vs. non-minimized traces\cite{fse_web_ddmin}.
+Nonetheless, since humans can only keep a small number of facts in working
+memory~\cite{miller56seven}, minimization seems generally useful. As one
+developer
+puts it,
+``Automatically shrinking test cases to the
+minimal case is immensely helpful''\cite{riak_quote}.
+
+% Personal email from Andreas Zeller:
+
+% data on how humans do debugging and troubleshooting is pretty scarce.  It is
+% not difficult to assume that humans will take less time to debug a program
+% if the assumptions / executions / inputs are fewer / shorter / simpler; but
+% how great the effect is, and by which properties it is most determined, is
+% something we don’t know, in particular in the context of  program debugging.
+% Good luck with your search!
+
+% Cheers,
+% Andreas
+
+
+% TODO(cs): Show specifically that "fairness" is effective at distributing the
+% time budget?
+
+% It is possible to implement all of these systems in a way that
+% uses failure detectors rather than timers. We either modify existing systems to do so, or we implemented the
+% the system ourselves from the ground up to use only failure detectors.
+% Crucially, we put the behavior of the failure detector under our control, so
+% that it only sends out crash suspicions but not heartbeat messages.
+%
+% To incorporate failure detectors into
+% our DPOR exploration, we begin by modeling a perfect failure detector (providing strong
+% accuracy, i.e. no incorrect crash suspicions) as a first
+% order approximation. Whenever DPOR injects a partition event, we have the
+% failure detector immediately deliver {\tt NodeUnreachable(node)} messages to all other hosts involved
+% in the partition.
+%
+% Note that there are two caveats to this approach. First, even a perfect
+% failure detector is not required to immediately deliver failure notifications.
+% It may deliver them any point after the failure, but before the end of the
+% execution. In theory we would need to explore all valid placements of {\tt
+% NodeUnreachable} deliveries. Second, it is tricky to incorporate network partitions into
+% DPOR's notion of dependency analysis. See Vjeko's document for how we do this.
+% It is worth noting that, ultimately, DPOR is an optimization; if we find that
+% incorporating network partitions into DPOR is too difficult, we could just run
+% na\"{\i}ve model checking.
+%
+% Later, we might try to model weaker failure detectors. We know that the weakest failure detector needed for consensus
+% is the $\diamondsuit W$ failure detector~\cite{chandra1996weakest}, which
+% guarantees that after some (unknown) finite time, there exists at least one
+% non-crashed node which is never incorrectly suspected by all other nodes.
+% Notice that $\diamondsuit W$ may incorrectly suspect nodes as crashed! To
+% incorporate weaker failure detectors into our DPOR search, we would need to
+% enumerate all possible placements of both correct crash suspicions and
+% incorrect crash suspicions for all schedule of length $\le |\tau^{\circ}|$. It
+% may be easiest to simply model $W$ rather than $\diamondsuit W$, since
+% $\diamondsuit W$ requires that we also explore an infinite space of delays
+% until the failure detector stabilizes.
+
+\subsection{Raft Case Studies} Our first set of case studies are taken from
+akka-raft~\cite{akka-raft}. akka-raft is implemented in 2,300 lines of Scala excluding tests. akka-raft has existing unit and integration tests, but it
+has not been deployed in production. The known
+bugs we reproduced had not yet been fixed; these were
+found by a recent manual audit of the code.
+
+For full descriptions of each case study, see \S\ref{app:raft_case_studies}.
+The lessons we took away from our akka-raft case studies are twofold. First,
+fuzz testing is quite effective for finding bugs in
+early-stage software.
+We found and fixed these
+bugs in less than two weeks, and several of the
+bugs would have
+been difficult to anticipate a priori. Second, debugging unminimized faulty
+executions would be very time consuming and conceptually challenging;
+we found that the most fruitful debugging process was to walk through events
+one-by-one to understand how the system arrived at the unsafe state, which would take hours for unminimized executions.
+
+\subsection{Spark Case Studies}
+
+Spark~\cite{spark_repo} is a mature software project, used
+widely in production. The version of Spark we used for our evaluation consists of more
+than 30,000 lines of Scala for just the core execution engine.
+Spark is also interesting because it has a significantly different
+communication pattern than
+Raft (e.g., statically defined masters).
+
+For a description of our Spark case studies, see \S\ref{app:spark_case_studies}.
+Our main takeaway from Spark is that for the simple Spark jobs we submitted,
+STSSched does
+surprisingly well. We believe this
+is because Spark's communication tasks were all almost entirely independent
+of each other. If we had
+submitted more complex Spark jobs with more dependencies between messages
+(e.g. jobs that make use of intermediate
+caching between stages) STSSched likely would not have performed as well.
+
+% However, for more complex Spark jobs,
+% particularly those that {\em cache}
+% intermediate result to be used as inputs to later stages, STSSched does not minimize
+% as effectively (as demonstrated in the spark-2294-caching case study, where we
+% modified our Spark job to cache intermediate results).
+% This is because the messages Spark sends to track the locations of cached
+% intermediate results are {\em history-dependent}.
+
+\subsection{Auxiliary Evaluation}
+
+\noindent{\bf External message shrinking.} We demonstrate the benefits of
+external message shrinking with an akka-raft case study. Recall that akka-raft
+processes receive an external bootstrapping message that informs
+them of the IDs of all other processes. We started with a 9 node akka-raft
+cluster, where we triggered the raft-45 bug.
+We then shrank message contents by removing each element (process ID) of bootstrap messages,
+replaying these along with all other events in the failing execution, and
+checking whether the violation was still triggered. We were able to shrink the
+bootstrap message contents from 9 process IDs to 5 process IDs. Finally, we
+ran STSSched to completion, and compared the output to STSSched without the
+initial message shrinking. The results shown in
+Table~\ref{tab:message_shrinking} demonstrate that message shrinking can help
+minimize both external events and message contents.
+
+\begin{table}
+\centering
+\footnotesize
+\begin{tabular}{|l|l|l|}
+  \cline{2-3}
+  \multicolumn{1}{c|}{~} & \textbf{Without Shrinking} & \textbf{With
+  shrinking} \\\cline{2-3} \hline
+{\bf Initial Events} & 360 \hfill (E: 9 bootstraps) & 360 \hfill (E: 9 bootstraps) \\
+\hline
+{\bf After STSSched} & 81 \hfill (E: 8 bootstraps) & 51 \hfill (E: 5 bootstraps) \\
+\hline
+\end{tabular}
+\vskip -1em
+\caption{External message shrinking results for raft-45 starting with 9
+processes. Message shrinking + minimization was able to reduce the cluster
+size to 5 processes.}
+\label{tab:message_shrinking}
+\vskip -1.5em
+\end{table}
+
+\noindent{\bf Instrumentation Overhead.} Table~\ref{tab:instrumentation} shows
+the complexity in terms of lines of Scala code needed to define message fingerprint
+functions, mitigate non-determinism (with the application modifications
+described in \S\ref{dsec:implementation}), specify invariants, and configure
+\sys. In total we spent roughly one person-month debugging
+non-determinism.
+% For the non-determinism mitigation row, we exclude our AspectJ
+% interposition on the Akka APIs.
+
+\begin{table}
+\centering
+\footnotesize
+\begin{tabular}{|l|l|l|}
+  \cline{2-3}
+  \multicolumn{1}{c|}{~} & \textbf{akka-raft} & \textbf{Spark} \\\cline{2-3} \hline
+% 26 * 5 => atomic blocks
+% 4 => sorting
+% 4 => timeouts
+% 6 + 7 => no exceptions
+% 1 => no DNS
+% 1 => use actor system
+% 33 => actorBlocked
+% 30 => run on a single JVM
+{\bf Message Fingerprint} & 59 & 56 \\
+\hline
+{\bf Non-Determinism} & 2 & {\footnotesize $\sim$}250 \\
+\hline
+{\bf Invariants} & 331 & 151 \\
+\hline
+{\bf Test Configuration} & 328 & 445 \\
+\hline
+%{\bf Akka Interposition} & - & 336 \\
+%\hline
+\end{tabular}
+\vskip -1em
+\caption{Complexity (lines of Scala code) needed to define message
+fingerprints, mitigate non-determinism, define invariants, and configure \sys.
+Akka API interposition (336 lines of AspectJ) is application independent.}
+\label{tab:instrumentation}
+%\vskip -1em
+\end{table}
