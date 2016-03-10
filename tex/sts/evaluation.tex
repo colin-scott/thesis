@@ -152,7 +152,7 @@ Pyretic periodically flushed all flow entries.
 %\begin{figure}[t]
 %    %\hspace{-10pt}
 %    \includegraphics[width=3.25in]{../graphs/runtime/pyretic_loop.pdf}
-%    \caption[]{\label{fig:pyretic_loop} Minimizing the Pyretic loop. (total
+%    \caption{\label{fig:pyretic_loop} Minimizing the Pyretic loop. (total
 %    runtime: 266.2, original runtime: 5.8s)}
 %\end{figure}
 
@@ -187,7 +187,7 @@ exception.
 \begin{figure}[t]
     %\hspace{-10pt}
     \includegraphics[width=3.25in]{../graphs/runtime/list_remove_error.pdf}
-    \caption[]{\label{fig:list_runtime} Minimizing the POX list remove trace.}
+    \caption{\label{fig:list_runtime} Minimizing the POX list remove trace.}
 \end{figure}
 
 We invoked \projectname~to identify a two element MCS (runtime
@@ -245,28 +245,28 @@ was able to root-cause the bug in \textasciitilde30 minutes.
 \begin{figure*}[!htb]
 \begin{subfigure}{0.33\textwidth}
     \includegraphics[width=\textwidth]{../graphs/runtime/pyretic_loop.pdf}
-    \caption[]{\label{fig:pyretic_loop} Pyretic loop.}
+    \caption{\label{fig:pyretic_loop} Pyretic loop.}
 \end{subfigure}\hfill
 \begin{subfigure}{0.33\textwidth}
     %\hspace{-10pt}
     \includegraphics[width=\textwidth]{../graphs/runtime/pox_early_packetin.pdf}
-    \caption[]{\label{fig:pox_handshake} POX premature packet-in.}
+    \caption{\label{fig:pox_handshake} POX premature packet-in.}
 \end{subfigure}\hfill
 \begin{subfigure}{0.33\textwidth}
     \includegraphics[width=\textwidth]{../graphs/runtime/pox_blackhole.pdf}
-    \caption[]{\label{fig:pox_discovery} POX in-flight blackhole. }
+    \caption{\label{fig:pox_discovery} POX in-flight blackhole. }
 \end{subfigure}\hfill
 \begin{subfigure}{0.33\textwidth}
     \includegraphics[width=\textwidth]{../graphs/runtime/pox_migration_blackhole.pdf}
-    \caption[]{\label{fig:pox_migration} POX migration blackhole. }
+    \caption{\label{fig:pox_migration} POX migration blackhole. }
 \end{subfigure}\hfill
 \begin{subfigure}{0.33\textwidth}
     \includegraphics[width=\textwidth]{../graphs/runtime/nox_loop.pdf}
-    \caption[]{\label{fig:nox_discovery} NOX discovery loop. }
+    \caption{\label{fig:nox_discovery} NOX discovery loop. }
 \end{subfigure}\hfill
 \begin{subfigure}{0.33\textwidth}
     \includegraphics[width=\textwidth]{../graphs/runtime/floodlight_loop.pdf}
-    \caption[]{\label{fig:fl_loop} Floodlight loop. }
+    \caption{\label{fig:fl_loop} Floodlight loop. }
 \end{subfigure}
 \caption{Minimization results.}
 \end{figure*}
@@ -283,7 +283,7 @@ and waiting on POX's logging messages. \projectname~returned a $7$ input MCS
 %\begin{figure}[t]
 %    %\hspace{-10pt}
 %    \includegraphics[width=3.25in]{../graphs/runtime/pox_blackhole.pdf}
-%    \caption[]{\label{fig:pox_discovery} Minimizing the POX in-flight
+%    \caption{\label{fig:pox_discovery} Minimizing the POX in-flight
 %    blackhole. (total runtime: 641.1, original runtime: 4.9s)}
 %\end{figure}
 
@@ -310,7 +310,7 @@ and two switches S1 and S2 connected by a single link.
 \begin{figure}[t]
     %\hspace{-10pt}
     \includegraphics[width=3.25in]{../diagrams/state_machines/mesh_topo.pdf}
-    \caption[]{\label{fig:simple_topo} Topology for POX
+    \caption{\label{fig:simple_topo} Topology for POX
     in-flight blackhole. Numbers denote port labels.}
 \end{figure}
 
@@ -402,7 +402,7 @@ entries expired.\\[0.5ex]
 %\begin{figure}[t]
 %    %\hspace{-10pt}
 %    \includegraphics[width=3.25in]{../graphs/runtime/pox_migration_blackhole.pdf}
-%    \caption[]{\label{fig:pox_migration} Minimizing the POX migration
+%    \caption{\label{fig:pox_migration} Minimizing the POX migration
 %    blackhole. (total runtime: 1796.0s, original runtime: 10.3s}
 %\end{figure}
 \noindent{\textbf{NOX Discovery Loop.}} Next we tested NOX on a four-node mesh, and discovered a
@@ -412,7 +412,7 @@ roughly 20 runs of randomly generated inputs.
 %\begin{figure}[t]
 %    %\hspace{-10pt}
 %    \includegraphics[width=3.25in]{../graphs/runtime/nox_loop.pdf}
-%    \caption[]{\label{fig:nox_discovery} Minimizing the NOX discovery loop.
+%    \caption{\label{fig:nox_discovery} Minimizing the NOX discovery loop.
 %    (total runtime: 4990.9s, original runtime: 4.0s)}
 %\end{figure}
 
@@ -490,7 +490,7 @@ Figure~\ref{fig:fl_loop}).
 %\begin{figure}[t]
 %    %\hspace{-10pt}
 %    \includegraphics[width=3.25in]{../graphs/runtime/floodlight_loop.pdf}
-%    \caption[]{\label{fig:fl_loop} Minimizing the Floodlight loop. (total
+%    \caption{\label{fig:fl_loop} Minimizing the Floodlight loop. (total
 %    runtime: 27930.6s, original runtime: 194.0s)}
 %\end{figure}
 
@@ -581,7 +581,7 @@ switch configurations unless they detect that the master has crashed.
 \begin{figure}[t]
   %\hspace{-10pt}
   \includegraphics[width=3.25in]{../diagrams/case_study/example_bug.pdf}
-  \caption[]{\label{fig:example} Floodlight failover bug. External inputs
+  \caption{\label{fig:example} Floodlight failover bug. External inputs
              are depicted as red dots, internal events are depicted as black
              dots, and the dotted message line depicts a timeout.}
 \end{figure}
@@ -790,7 +790,7 @@ times is effective in coping with non-determinism, at the cost of increased runt
 9 & 6 & 11.13 \\\hline
 10 & 6 & 12.86 \\\hline
 \end{tabular}
-\caption[]{\label{tab:non-determinism} Effectiveness of replaying
+\caption{\label{tab:non-determinism} Effectiveness of replaying
 subsequences multiple times in mitigating non-determinism.}
 %\vskip -1em
 \end{table}
@@ -798,7 +798,7 @@ subsequences multiple times in mitigating non-determinism.}
 \eat{
 \begin{figure}[t]
     \includegraphics[trim=0 0 0 0, width=3.25in]{../graphs/non-determinism/replays.pdf}
-    \caption[]{\label{fig:non-determinism} Effectiveness of replaying
+    \caption{\label{fig:non-determinism} Effectiveness of replaying
     subsequences multiple times in mitigating non-determinism.}
 \end{figure}
 }
@@ -853,7 +853,7 @@ relevant for the control software, except perhaps for host discovery.
     \centering
     %\hspace{-10pt}
     \includegraphics[width=3.25in]{../graphs/scalability/scaling.pdf}
-    \caption[]{\label{fig:scaling} Simulation time for bootstrapping FatTree
+    \caption{\label{fig:scaling} Simulation time for bootstrapping FatTree
     networks, cutting 5\% of links, and processing the controller's response.}
 \end{figure}
 
@@ -1108,7 +1108,7 @@ network.}
 \begin{figure}[t]
     %\hspace{-10pt}
     \includegraphics[width=3.25in]{../graphs/hsa_overhead_graph/graph.pdf}
-    \caption[]{\label{fig:hsa_runtime} Serial runtime of correspondence
+    \caption{\label{fig:hsa_runtime} Serial runtime of correspondence
     checking on PORTLAND fat tree networks. Each datapoint consists of
     $x^3/4$ hosts and $5x^2/4$ switches (\eg{} 48 pods means 27,468 hosts
     attached to 2,880 switches)}
@@ -1130,7 +1130,7 @@ simulator round) was well within the bounds for interactive use.
 \begin{figure}[t]
     %\hspace{-10pt}
     \includegraphics[width=3.25in]{../graphs/scalability_graph/scale.pdf}
-    \caption[]{\label{fig:scalability} Time to send and process messages
+    \caption{\label{fig:scalability} Time to send and process messages
     between controller and simulated switches. Each datapoint consists of
     $x^3/4$ hosts and $5x^2/4$ switches (\eg{} 48 pods means 27,468 hosts
     attached to 2,880 switches)}
