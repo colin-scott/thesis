@@ -1,3 +1,218 @@
+Our primary contribution, a technique for interleaving events,
+made it possible for us to apply input minimization algorithms (\cf~Delta
+Debugging~\cite{Zeller:1999:YMP:318773.318946,Zeller:2002:SIF:506201.506206} and
+domain-specific algorithms~\cite{claessen2000quickcheck,whitaker2004configuration,regehr2012test}) to bugs
+in blackbox distributed systems. We described the closest work to us, thread schedule
+minimization and program flow reduction, in \S\ref{subsec:algorithm}.
+
+We characterize the other approaches taken by the troubleshooting literature
+as (i) instrumentation (tracing),
+(ii) bug detection (invariant checking),
+(iii) replay, and
+(iv) root cause analysis (of network device failures).
+
+\vspace{0.05in}
+\noindent{\textbf{Instrumentation.}} Unstructured
+log files collected at each node are the most common form of diagnostic information. The goal of
+tracing frameworks~\cite{pip,fonseca2007x,Chen02pinpoint:problem,ndb14,barham2004using}
+is to produce structured logs that can be easily analyzed, such as DAGs tracking
+requests passing through the distributed system. An example within the SDN
+problem space is NetSight~\cite{ndb14}, which
+allows users to retroactively examine the paths dataplane packets
+take through OpenFlow networks. Tools like NetSight allow developers to understand
+how, when, and where the dataplane broke. In contrast, we focus on making it
+easier for developers to understand why the control software
+misconfigured the network.%in the first place.
+
+\vspace{0.05in}
+\noindent{\textbf{Bug Detection.}} With instrumentation available, it becomes possible
+to check expectations about the
+system's state (either offline~\cite{Liu07widschecker} or online~\cite{d3s}), or about the paths requests take through
+the system~\cite{pip}. Within the networking community, this research is
+primarily focused on verifying routing tables~\cite{hsa,hsa_realtime,anteater,khurshid2012veriflow}
+or forwarding behavior~\cite{Zeng:2012:ATP:2413176.2413205,libra}.
+We use bug detection techniques (invariant checking) to guide delta debugging's minimization
+process.
+
+It is also possible to infer
+performance anomalies by building probabilistic models from
+collections of traces~\cite{barham2004using,Chen02pinpoint:problem}.
+Our goal is to produce exact minimal causal sequences without
+depending on probabilistic models, and we are primarily focused on correctness
+instead of performance.
+
+Model checkers~\cite{musuvathi2008finding,nice} seek to
+proactively find bugs by analyzing all possible code paths.
+After identifying a bug with model checking, finding a minimal code path leading to it is
+straightforward. However, the testing systems we aim to improve do not employ
+formal methods such as model checking, in part because model checking usually suffers from exponential
+state explosion when run on large systems,\footnote{For example, NICE~\cite{nice} took 30 hours to
+model check a network with two switches, two hosts, the NOX MAC-learning
+control program (98 LoC), and five concurrent
+messages between the hosts.} and because large systems often comprise
+multiple (interacting) languages, which may not be amenable to formal methods.
+We are currently exploring the use of model checking to provide provably
+minimal MCSes.
+%In future work we plan to explore the possibilities of model checking techniques with our %Rather than exploring all
+%possibilities, we discover bugs through testing of selected scenarios, which
+%makes our problem tractable.
+%which we believe fits more naturally into software engineers' chosen
+%way of developing and testing distributed systems.
+%\colin{TODO: discuss how finding the critical transition is related to finding the MCS}
+
+\vspace{0.05in}
+\noindent{\textbf{Replay.}} Crucial diagnostic information is often missing from traces.
+Record and replay techniques~\cite{Geels:2006:RDD:1267359.1267386,lin2013defined}
+instead allow users to step through (deterministic) executions and interactively examine the
+state of the system in exchange for runtime recording overhead.
+%Static analysis and symbolic execution can also be applied post-hoc %, without incurring runtime performance overhead,
+%to find code paths that lead up to software
+%crashes~\cite{Yuan:2010:SED:1736020.1736038} or thread schedules that reproduce
+%race conditions~\cite{Zamfir:2010:EST:1755913.1755946}.
+Within SDN, OFRewind~\cite{ofrewind} provides
+record and replay of OpenFlow channels between controllers and switches.
+Manually examining long system executions can be tedious, and our goal is to
+minimize such executions so that developers find it easier to identify the
+problematic code through replay or other means.
+%Rx~\cite{qin2005rx} is a technique for improving availability: upon
+%encountering a crash, it starts from a previous checkpoint, fuzzes
+%the environment (\eg~random number generator seeds) to avoid triggering the same bug,
+%and restarts the program. Our
+%approach perturbs the inputs rather than the environment
+%prior to a failure.
+
+\vspace{0.05in}
+\noindent{\textbf{Root Cause Analysis.}} Without perfect instrumentation,
+it is often not possible to know exactly what events are occurring (\eg~which
+network components have failed) in a
+distributed system. Root cause analysis~\cite{yemini1996,Kandula:2009:DDE:1592568.1592597}
+seeks to reconstruct those unknown events from limited monitoring data.
+Here we know exactly which events occurred, but
+seek to identify the minimal sequence of events that trigger a particular bug.
+
+\colin{Cut if we need space:}
+\vspace{0.05in}
+It is worth mentioning another goal outside the purview of distributed systems, but
+closely in line with ours: program slicing~\cite{weiser1981program} is a
+technique for finding the
+minimal subset of a program that could possibly affect the result of a particular line of code,
+which can be applied to automatically generate minimal unit tests~\cite{burger2011minimizing}.
+Our goal is to slice the temporal dimension of an execution rather than the
+code dimension.
+%Our technique can be viewed as a form of program slicing,
+%except that our `program' is a distributed event schedule,
+%and the result we are interested in is the network misconfiguration at
+%the end of the execution.
+
+\eat{ % ----- OLD TEXT ---------
+Our work spans three fields: software engineering, programming languages, and
+systems and networking.
+
+\noindent{\textbf{Software Engineering \& Programming Languages}}
+Sherlog~\cite{Yuan:2010:SED:1736020.1736038} takes on-site logs from a
+single program that ended in a failure as input, and applies static analysis to infer the
+program execution (both code paths and data values) that lead up to the failure.
+Along a similar vein, execution
+synthesis~\cite{Zamfir:2010:EST:1755913.1755946} takes a program and a bug
+report as input, and employs symbolic execution to find a thread schedule that will
+reproduce the failure. The authors of delta debugging
+applied their technique to multi-threaded (single-core) programs
+to identify the minimum set of thread
+switches from a thread schedule (a single input file) that reproduces
+a race condition~\cite{choi2002isolating}. Chronus presents a simpler search
+algorithm than delta debugging that is specific to configuration
+debugging~\cite{whitaker2004configuration}.
+All of these techniques focus on troubleshooting single, non-distributed
+systems.
+
+Rx~\cite{qin2005rx} is a technique for improving availability: upon
+encountering a crash, it starts from a previous checkpoint, fuzzes
+the environment (\eg~random number generator seeds) to avoid triggering the same bug,
+and restarts the program. Our
+approach perturbs the inputs rather than the environment
+prior to a failure.
+
+Model checkers such as Mace~\cite{Killian:2007:MLS:1250734.1250755} and
+NICE~\cite{nice} enumerate all possible code paths taken by control software (NOX)
+and identify concrete inputs that cause
+the system to enter invalid configurations. Model checking works well for small
+control programs and a small number of machines, but suffers from exponential
+state explosion when run on large systems. For example, NICE took 30 hours to
+model check a network with two switches, two hosts, the MAC-learning
+control program (98 LoC), and five concurrent
+messages between the hosts~\cite{nice}. Rather than exploring all
+possibilities, we discover bugs through testing and systematically
+enumerate subsequences of their event traces
+in polynomial time.
+
+\noindent{\textbf{Systems and Networking}}
+We share the common goal of improving troubleshooting
+of software-defined networks with OFRewind~\cite{ofrewind} and
+recent project ndb~\cite{handigol2012debugger}. OFRewind provides
+record and replay of OpenFlow control channels, and
+allows humans to manually step through and filter input traces.
+We focus on testing corner cases and automatically
+isolating minimal input traces.
+
+ndb provides a
+trace view into the OpenFlow forwarding tables
+encountered by historical and current packets in the network.
+This approach is well suited for troubleshooting hardware problems, where the
+network configuration is correct but the forwarding behavior is not.
+In contrast, we focus on bugs in control software; our technique
+automatically identifies the control plane decisions that installed
+erroneous routing entries.
+
+Neither ndb nor OFRewind address the problem of diagnostic information
+overload: with millions of packets on the wire, it can
+be challenging to pick just the right subset to interactively debug.
+To the
+best of our knowledge, \projectname~is the first system that programmatically provides
+information about precisely what caused the network to enter an invalid
+configuration in the first place.
+
+\colin{
+Runtime invariant checking.
+WiDS checker introduced the notion of recording
+production executions to be later replayed and verified in a controlled simulation~\cite{Liu07widschecker}.
+D3S made this invariant checking process realtime.
+}
+
+Trace analysis frameworks such as Pip~\cite{pip} allow developers
+to programmatically check whether their expectations about the structure of
+recorded causal
+traces hold. MagPie~\cite{barham2004using} automatically identifies anomalous
+traces, as well as unlikely transitions within anomalous traces by constructing
+a probabilistic state machine from a large collection of traces and
+identifying low probability paths.
+Our approach identifies the exact minimal causal set of inputs without
+depending on probabilistic models.
+
+\colin{Cut:}
+Network simulators such as
+Mininet~\cite{handigol2012reproducible}, ns-3~\cite{ns3}, and ModelNet~\cite{Vahdat:2002:SAL:844128.844154}
+are used to prototype and test network software.
+Our focus on comparing diverged histories requires us
+to provide precise replay of event sequences, which is in tension with the performance
+fidelity goals of pre-existing simulators.
+
+% Could remove dependency inference citation if strapped for space
+Root cause analysis~\cite{yemini1996} and dependency inference~\cite{Kandula:2009:DDE:1592568.1592597}
+techniques seek to identify the minimum set of failed
+components (\eg~link failures) needed to explain a collection of alarms. Rather than
+focusing on individual component failures, we seek to minimize inputs that affect the behavior
+of the overall distributed system.
+
+% Debug Determinism~\cite{zamfir2011debug}: suggests that replay debuggers should not seek to achieve
+% perfect fidelity -- the utility of the replay can still be high, even if all failure modes can't be reproduced.
+% Our approach follows this argument: can't catch everything, but it's still useful!
+
+\colin{Reviewer OD: read Knowledge Plane For The
+Internet~\cite{Clark:2003:KPI:863955.863957}}
+} % \eat most recent version
+
+% ---------------------------------------------------------------
+
 % \colin{Move to section 2?}
 
 % Delta from related work (also see: STS FAQ):
