@@ -27,10 +27,29 @@ If the application assumes ordering guarantees from the transport
 layer (e.g. TCP's FIFO delivery), \sys~adheres to these guarantees
 during testing and minimization to maintain soundness.
 
+\begin{table}[tb]
+\centering
+\footnotesize
+\begin{tabular}{l|l}
+\textbf{Programmer-provided Specification} & \textbf{Default} \\
+\hline
+Initial cluster configuration & - \\
+External event probabilities & No external events \\
+%Scheduling discipline & UDP \\
+Invariants & Uncaught exceptions \\
+Violation fingerprint & Match on any violation \\
+Message fingerprint function & Match on message type \\
+Non-determinism mitigation & Replay multiple times
+\end{tabular}
+\caption{\label{tab:programmer_tasks} Tasks we assume the application
+programmer completes in order to test and minimize using~\sys. Defaults
+of `-' imply that the task is not optional.}
+\end{table}
+
 \noindent{\textbf{Fuzz testing with \sys.}} We begin by using \sys~to generate
 faulty executions. Developers give \sys~a test configuration (we
 tabulate all programmer-provided specifications in
-Appendix~\ref{app:programmer_effort}), which
+Table~\ref{tab:programmer_tasks}), which
 specifies an initial sequence of external events to inject before fuzzing, the types
 of external events to inject during fuzzing (along with probabilities to
 determine how often each event type is injected), the safety conditions to
@@ -76,6 +95,10 @@ a totally ordered recording of all events it
 executed, and information about which messages were sent in
 response to which events. Users can then replay the execution exactly, or
 instruct \sys~to minimize the execution as described in \S\ref{dsec:approach}.
+
+In Table~\ref{tab:programmer_tasks} we summarize the various tasks, both
+optional and necessary, that we assume programmers
+complete in order to test and minimize using~\sys.
 
 \noindent{\textbf{Mitigating non-determinism.}} Processes may behave non-deterministically.
 A process is non-deterministic if the messages it emits

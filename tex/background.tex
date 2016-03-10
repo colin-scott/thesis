@@ -1,0 +1,173 @@
+\section{Delta Debugging}
+
+% TODO(cs): include this discussion of complements..
+% An updated version of the ddmin simplification algorithm appeared
+% in~\cite{Zeller:2002:SIF:506201.506206}. We use the simpler version of ddmin
+% (which is equivalent to the version ddmin
+% from~\cite{Zeller:2002:SIF:506201.506206}, except that it does not consider
+% complements) because we ensure that each subsequence
+% of external events is consistent (semantically valid), and therefore are still
+% guarenteed to find a 1-minimal output without needing
+% to consider complements.
+
+\begin{figure*}[t!]
+\footnotesize
+\begin{boxedminipage}{\textwidth}
+Input: $\cfail$ s.t. $\cfail$ is a sequence of externals, and $\test(\cfail) = \DFAIL$. Output: $\dfail
+= \ddmin(\cfail)$ s.t. $\dfail \sqsubseteq
+\cfail$, $\test(\dfail) = \DFAIL$, and~$\dfail$ is minimal.
+%\vspace{-0.4em}
+\begin{align*}
+\ddmin(\cfail) &= \ddmin_2(\cfail, \emptyset) \quad \text{where} \\
+\ddmin_2(\dfail, R) &=
+\begin{cases}
+\dfail & \text{\hphantom{else }if $|\dfail| = 1$ (``base case'')} \\
+\ddmin_2\bigl(\done, R\bigr) &
+\text{else if $\test(\done \cup R) = \DFAIL$ (``in $\done$'')} \\
+\ddmin_2\bigl(\dtwo, R\bigr) &
+\text{else if $\test(\dtwo \cup R) = \DFAIL$ (``in $\dtwo$'')} \\
+\ddmin_2\bigl(\done, \dtwo \cup R\bigr) \cup \ddmin_2\bigl(\dtwo, \done \cup
+R\bigr) & \text{otherwise (``interference'')}
+\end{cases}
+\end{align*}
+\begin{center}
+%\vspace{-0.8em}
+where $\DFAIL$ denotes an invariant violation,
+$\done \sqsubset \dfail$, $\dtwo \sqsubset \dfail$, $\done \cup \dtwo = \dfail$, $\done \cap
+\dtwo = \emptyset$, and $|\done| \approx |\dtwo| \approx |\dfail| / 2$
+hold.
+\end{center}
+\end{boxedminipage}
+\caption{Delta Debugging Algorithm
+from~\cite{Zeller:1999:YMP:318773.318946}. $\sqsubseteq$ and $\sqsubset$ denote
+subsequence relations. \textproc{TEST} is defined in Algorithm~\ref{fig:alg_overview}.}
+\label{fig:ddmin}
+%\vspace{-0.3cm}
+\end{figure*}
+
+\eat{ % Original O(n^2) algorithm
+\begin{figure*}[t]
+\caption{Minimizing Delta Debugging Algorithm From~\cite{Zeller:2002:SIF:506201.506206}}
+\begin{boxedminipage}{\textwidth}
+Input: $\cfail$ s.t. $\cfail$ is a trace and $\test(\cfail) = \FAIL$. Output: $\dfail
+= \ddmin(\cfail)$ s.t. $\dfail \subseteq
+\cfail$, $\test(\dfail) = \FAIL$, and~$\dfail$ is 1-minimal.
+\begin{align*}
+\ddmin(\cfail) &= \ddmin_2(\cfail, 2) \quad \text{where} \\
+\ddmin_2(\dfail, n) &= 
+\begin{cases}
+\ddmin_2(\Delta_i, 2) & \text{\hphantom{else }if $\exists i \in \{1, \dots, n\} \cdot \test(\Delta_i) = \FAIL$ (``reduce to subset'')} \\
+\ddmin_2\bigl(\nabla_i, \max(n - 1, 2)\bigr) & 
+\text{else if $\exists i \in \{1, \dots, n\} \cdot \test(\nabla_i) = \FAIL$ (``reduce to complement'')} \\
+\ddmin_2\bigl(\dfail, \min(|\dfail|, 2n)\bigr) & \text{else if $n < |\dfail|$ (``increase granularity'')} \\
+\dfail & \text{otherwise (``done'').}
+\end{cases}
+\end{align*}
+where $\test(T)$ denotes the state of the system after executing the trace $T$,
+$\FAIL$ denotes a correctness violation, \\
+$\nabla_i = \dfail - \Delta_i$, $\dfail = \Delta_1 \cup \Delta_2 \cup \dots \cup \Delta_n$, all
+$\Delta_i$ are pairwise disjoint sequences of inputs, and $\forall \Delta_i \cdot |\Delta_i| \approx |\dfail| / n$
+holds.
+\end{boxedminipage}
+\label{fig:ddmin}
+\end{figure*}
+}
+
+\begin{table}[b]
+\centering
+\footnotesize
+\begin{tabular}{l|llllllll|l}
+\hline
+  Step & \multicolumn{8}{l|}{External Event Subsequence} & \textproc{TEST} \\
+\hline
+1 & $e_1$   & $e_2$   & $e_3$   & $e_4$   & $\cdot$ & $\cdot$ & $\cdot$ & $\cdot$ & $\PASS$ \\
+2 & $\cdot$ & $\cdot$ & $\cdot$ & $\cdot$ & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\PASS$ \\
+3 & $e_1$   & $e_2$   & $\cdot$ & $\cdot$ & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\PASS$ \\
+4 & $\cdot$ & $\cdot$ & $e_3$   & $e_4$   & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\DFAIL$ \\
+5 & $\cdot$ & $\cdot$ & $e_3$   & $\cdot$ & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\DFAIL\ $($e_3$ found) \\
+6 & $e_1$   & $e_2$   & $e_3$   & $e_4$   & $e_5$   & $e_6$   & $\cdot$ & $\cdot$ & $\DFAIL$ \\
+7 & $e_1$   & $e_2$   & $e_3$   & $e_4$   & $e_5$   & $\cdot$ & $\cdot$ & $\cdot$ & $\PASS\ $($e_6$ found) \\
+\hline
+Result & $\cdot$   & $\cdot$   & $e_3$   & $\cdot$   & $\cdot$   & $e_6$ & $\cdot$ & $\cdot$ &
+\end{tabular}
+\caption{\label{fig:ddmin_example} Example execution of Delta Debugging,
+taken from~\cite{Zeller:1999:YMP:318773.318946}.
+`$\cdot$' denotes an excluded original external event.}
+\end{table}
+
+\section{Dynamic Partial Order Reduction}
+\label{app:dpor}
+
+We show the original depth-first version of Dynamic Partial Order Reduction
+in Algorithm~\ref{alg:dpor}. Our modified DPOR algorithm uses a priority queue
+rather than a (recursive) stack, and tracks which schedules it has explored
+in the past. Tracking which schedules we have explored in the past is
+necessary to avoid exploring redundant schedules (an artifact of our non depth-first
+exploration order). The memory footprint required for tracking previously explored
+schedules continues growing for every new schedule we explore. Because we
+assume a fixed time budget though,
+we typically exhaust our time budget before \sys~runs out of memory.
+
+There are a few desirable properties of DPOR we want to maintain,
+despite our prioritized exploration order:
+
+\noindent{\textbf{Soundness:}} any executed schedule should be valid, i.e. possible
+to execute on an uninstrumented version of the program starting from the
+initial configuration.
+
+\noindent{\textbf{Efficiency:}} the happens-before partial order for every executed schedule
+should never be a prefix of any other partial orders that have been
+previously explored.
+
+\noindent{\textbf{Completeness:}} when the state space is acyclic, the strategy is guaranteed to
+find every possible safety violation.
+
+Because we experimentally execute each schedule, soundness is easy to
+ensure (we simply ensure that we do not violate TCP semantics if the application
+assumes TCP, and we make sure that
+we cancel timers whenever the application asks to do so).
+Improved efficiency is the main contribution of partial order reduction. The last
+property---completeness---holds for our modified version of DPOR so long as we
+always set at least as many backtrack points as depth-first
+DPOR.
+
+\begin{algorithm*}[tb!]
+\begin{algorithmic}
+\State Initially: \Call{Explore}{$\emptyset$}
+\Procedure{Explore}{$S$}
+\State{$\kappa \gets last(S)$}
+\ForAll{message $m \in pending(\kappa)$}
+\If{$\exists i = max(\{i \in dom(S) | S_i$ is dependent and may be coenabled
+with $next(\kappa,m)$ and $i \not\rightarrow_S m \})$}
+\State{$E \gets \{m' \in enabled(pre(S,i)) | m' = m$ or $\exists j \in dom(S)
+: j > i$ and $m' = msg(S_j)$ and $j \rightarrow_S m \}$}
+\If{$E \neq \emptyset$}
+\State{add any $m' \in E$ to $backtrack(pre(S,i))$}
+\Else
+\State{add all $m \in enabled(pre(S,i))$ to $backtrack(pre(S,i))$}
+\EndIf
+\EndIf
+\EndFor
+
+\If{$\exists m \in enabled(\kappa)$}
+\State{$backtrack(\kappa) \gets \{m\}$}
+\State{$done \gets \emptyset$}
+\While{$\exists m \in (backtrack(\kappa) \setminus done)$}
+\State{add $m$ to $done$}
+\State{\Call{Explore}{$S.next(\kappa,m)$}}
+\EndWhile
+\EndIf
+
+\EndProcedure
+\end{algorithmic}
+\caption{{\label{alg:dpor} The original depth-first version of Dynamic Partial Order Reduction
+from~\cite{flanagan2005dynamic}. $last(S)$ denotes the configuration reached
+after executing $S$;
+$next(\kappa,m)$ denotes the state transition (message delivery) where the message m is
+processed in configuration $\kappa$; $\rightarrow_S$ denotes `happens-before';
+$pre(S,i)$ refers to the configuration where the transition $t_i$ is executed; $dom(S)$ means the set
+$\{1,\dots,n\}$; $S.t$ denotes
+$S$ extended with an additional transition $t$.}}
+\end{algorithm*}
+
+

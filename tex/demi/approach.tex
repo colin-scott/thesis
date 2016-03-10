@@ -20,7 +20,7 @@ This leads us to our key challenge:
 
 To find MCSes in reasonable time, we split schedule exploration into two
 parts. We start by using delta debugging~\cite{Zeller:2002:SIF:506201.506206}
-(shown in \S\ref{app:ddmin}), a minimization
+(shown in \S\ref{subsec:delta_debugging}), a minimization
 algorithm similar to binary search, to prune extraneous external events. Delta debugging works by picking subsequences of external events, and checking whether
 it is possible to trigger the violation with just those external
 events starting from the initial configuration. We assume the user gives us a time budget, and we spread this budget evenly across each subsequence's exploration.
@@ -102,7 +102,7 @@ We therefore apply
 delta debugging~\cite{Zeller:1999:YMP:318773.318946,Zeller:2002:SIF:506201.506206}, an algorithm similar to
 binary search, to achieve $O(log(|E|))$ average case runtime (worst case
 $O(|E|)$). The delta debugging algorithm we use is shown in
-\S\ref{app:ddmin}.
+\S\ref{subsec:delta_debugging}.
 
 Efficient implementations of $ExtMin$ should not waste time trying to execute invalid
 (non-sensical) external event subsequences. We maintain validity by

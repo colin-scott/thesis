@@ -50,7 +50,8 @@ debugging to iteratively select subsequences of $E_L$ and replay each
 subsequence with some timing $T$. If the bug persists for a given subsequence, delta debugging ignores the
 other inputs, and proceeds with the search for an MCS within this subsequence.
 %In what follows, we use the term {\em delta debugging} to refer to our algorithm for finding relevant subsequences.
-The delta debugging algorithm is shown in Figure~\ref{fig:ddmin}.
+The delta debugging algorithm is shown in Figure~\ref{fig:ddmin}, and an
+example execution of Delta Debugging is shown in Table~\ref{fig:ddmin_example}.
 %(with `$test$' replaced by `$replay$').
 
 The input subsequences chosen by delta debugging are not always
@@ -83,69 +84,6 @@ dependencies.\footnote{If codifying the semantic dependencies of
 policy changes turns out to be difficult, one could just employ the more
 expensive version of delta debugging to account for
 inconsistency~\cite{Zeller:2002:SIF:506201.506206}.}
-
-\begin{figure*}[t!]
-\footnotesize
-\begin{boxedminipage}{\textwidth}
-Input: $\cfail$ s.t. $\cfail$ is a sequence of externals, and $\test(\cfail) = \DFAIL$. Output: $\dfail
-= \ddmin(\cfail)$ s.t. $\dfail \sqsubseteq
-\cfail$, $\test(\dfail) = \DFAIL$, and~$\dfail$ is minimal.
-%\vspace{-0.4em}
-\begin{align*}
-\ddmin(\cfail) &= \ddmin_2(\cfail, \emptyset) \quad \text{where} \\
-\ddmin_2(\dfail, R) &=
-\begin{cases}
-\dfail & \text{\hphantom{else }if $|\dfail| = 1$ (``base case'')} \\
-\ddmin_2\bigl(\done, R\bigr) &
-\text{else if $\test(\done \cup R) = \DFAIL$ (``in $\done$'')} \\
-\ddmin_2\bigl(\dtwo, R\bigr) &
-\text{else if $\test(\dtwo \cup R) = \DFAIL$ (``in $\dtwo$'')} \\
-\ddmin_2\bigl(\done, \dtwo \cup R\bigr) \cup \ddmin_2\bigl(\dtwo, \done \cup
-R\bigr) & \text{otherwise (``interference'')}
-\end{cases}
-\end{align*}
-\begin{center}
-%\vspace{-0.8em}
-where $\DFAIL$ denotes an invariant violation,
-$\done \sqsubset \dfail$, $\dtwo \sqsubset \dfail$, $\done \cup \dtwo = \dfail$, $\done \cap
-\dtwo = \emptyset$, and $|\done| \approx |\dtwo| \approx |\dfail| / 2$
-hold.
-\end{center}
-\end{boxedminipage}
-\caption{Delta Debugging Algorithm
-from~\cite{Zeller:1999:YMP:318773.318946}. $\sqsubseteq$ and $\sqsubset$ denote
-subsequence relations. \textproc{TEST} is defined in Algorithm~\ref{fig:alg_overview}.}
-\label{fig:ddmin}
-%\vspace{-0.3cm}
-\end{figure*}
-
-\eat{ % Original O(n^2) algorithm
-\begin{figure*}[t]
-\caption{Minimizing Delta Debugging Algorithm From~\cite{Zeller:2002:SIF:506201.506206}}
-\begin{boxedminipage}{\textwidth}
-Input: $\cfail$ s.t. $\cfail$ is a trace and $\test(\cfail) = \FAIL$. Output: $\dfail
-= \ddmin(\cfail)$ s.t. $\dfail \subseteq
-\cfail$, $\test(\dfail) = \FAIL$, and~$\dfail$ is 1-minimal.
-\begin{align*}
-\ddmin(\cfail) &= \ddmin_2(\cfail, 2) \quad \text{where} \\
-\ddmin_2(\dfail, n) &= 
-\begin{cases}
-\ddmin_2(\Delta_i, 2) & \text{\hphantom{else }if $\exists i \in \{1, \dots, n\} \cdot \test(\Delta_i) = \FAIL$ (``reduce to subset'')} \\
-\ddmin_2\bigl(\nabla_i, \max(n - 1, 2)\bigr) & 
-\text{else if $\exists i \in \{1, \dots, n\} \cdot \test(\nabla_i) = \FAIL$ (``reduce to complement'')} \\
-\ddmin_2\bigl(\dfail, \min(|\dfail|, 2n)\bigr) & \text{else if $n < |\dfail|$ (``increase granularity'')} \\
-\dfail & \text{otherwise (``done'').}
-\end{cases}
-\end{align*}
-where $\test(T)$ denotes the state of the system after executing the trace $T$,
-$\FAIL$ denotes a correctness violation, \\
-$\nabla_i = \dfail - \Delta_i$, $\dfail = \Delta_1 \cup \Delta_2 \cup \dots \cup \Delta_n$, all
-$\Delta_i$ are pairwise disjoint sequences of inputs, and $\forall \Delta_i \cdot |\Delta_i| \approx |\dfail| / n$
-holds.
-\end{boxedminipage}
-\label{fig:ddmin}
-\end{figure*}
-}
 
 \subsection{Searching for Timings}
 \label{subsec:algorithm}
