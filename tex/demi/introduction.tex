@@ -89,8 +89,8 @@ events occur.
 
 With the exception of our prior work~\cite{sts2014}, we are unaware of any other
 tool that solves this problem without needing to analyze the code.
-Our prior work targeted a specific distributed system (SDN controllers), and focused
-on minimizing input events given limited control over the execution~\cite{sts2014}.
+The \projectname~system described in Chapter~\ref{sec:sts} targeted a specific distributed system (SDN controllers), and focused
+on minimizing input events given limited control over the execution.
 Here we target a broader range of systems, define the
 general problem of execution minimization, exercise significantly greater
 control, and systematically explore the state space. We also articulate new minimization
@@ -109,7 +109,8 @@ Across 10 known and discovered bugs, \sys~produces executions that are within
 a factor of 1X to 4.6X (1.6X median) the size of the smallest possible
 bug-triggering execution,
 and between 1X and 16X (4X median) smaller than the
-executions produced by the previous state-of-the-art blackbox technique~\cite{sts2014}.
+executions produced by the previous state-of-the-art blackbox technique
+(\S\ref{sec:sts}).
 The results we find for these two very different systems leave us optimistic that these
 techniques, along with adequate visibility into events (either through a
 framework like Akka, or through

@@ -76,7 +76,7 @@
 `Provenance', `STSSched', and `TFB' techniques are pipelined one after another.
 `Initial' minus `TFB' shows overall reduction; `Provenance' shows how many events can be statically
 removed; `STSSched' minus `TFB' shows how our new techniques
-compare to the previous state of the art~\cite{sts2014};
+compare to the previous state of the art (\S\ref{sec:sts});
  `TFB' minus `Optimal' shows how far from optimal our results are; and
 `NoDiverge' shows the size of minimized executions when no divergent schedules are explored (explained
 in \S\ref{sec:related_work}).}
@@ -160,7 +160,7 @@ reproduced a known bug. The ``Provenance'' column shows how many events from the
 remain after statically pruning events
 that are concurrent with the safety violation.
 The ``STSSched'' column shows how many events remain after checking the initial schedules
-prescribed by our prior work~\cite{sts2014} for each of delta debugging's
+prescribed by our prior work (Chapter~\ref{sec:sts}) for each of delta debugging's
 subsequences. The ``TFB'' column shows the final execution size after
 we apply our techniques (`Type Fingerprints with Backtracks'), where we direct
 DPOR to explore as many backtrack points that match the types of original
