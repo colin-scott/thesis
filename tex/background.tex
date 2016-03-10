@@ -132,6 +132,7 @@ always set at least as many backtrack points as depth-first
 DPOR.
 
 \begin{algorithm*}[tb!]
+{\footnotesize
 \begin{algorithmic}
 \State Initially: \Call{Explore}{$\emptyset$}
 \Procedure{Explore}{$S$}
@@ -160,6 +161,7 @@ with $next(\kappa,m)$ and $i \not\rightarrow_S m \})$}
 
 \EndProcedure
 \end{algorithmic}
+}
 \caption{{\label{alg:dpor} The original depth-first version of Dynamic Partial Order Reduction
 from~\cite{flanagan2005dynamic}. $last(S)$ denotes the configuration reached
 after executing $S$;
