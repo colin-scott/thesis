@@ -183,10 +183,10 @@ we avoid using hashmaps that hash keys according to their memory address,
 and sort all list return values.
 
 We also optionally interpose on the controller software itself.
-Routing the {\tt gettimeofday()} syscall through \projectname~helps ensure timer
+Routing the {\texttt{gettimeofday()}} syscall through \projectname~helps ensure timer
 accuracy.\footnote{When the pruned trace differs from the original, we make a
 best-effort guess at what the return values of these calls should be. For example,
-if the altered execution invokes {\tt gettimeofday()} more times than we recorded
+if the altered execution invokes {\texttt{gettimeofday()}} more times than we recorded
 in the initial run, we interpolate the timestamps of neighboring events.}\footnote{Only
 supported for POX and Floodlight at the moment.\label{fn:pox_fl}} When sending data over multiple sockets, the operating system exhibits
 non-determinism in the order it schedules I/O operations.
@@ -220,7 +220,7 @@ until \projectname~gives explicit acknowledgment.
 \subsection{Checkpointing}
 \label{subsec:snapshotting}
 
-To efficiently implement the {\sc Peek()} algorithm depicted in
+To efficiently implement the {\textsc{Peek()}} algorithm depicted in
 Figure~\ref{fig:peek} we assume the ability to record checkpoints (snapshots) of the state of the
 system under test. We currently implement checkpointing for the POX
 controller\footnote{We only use the event scheduling heuristics described in
@@ -237,12 +237,12 @@ algorithm~\cite{Chandy:1985:DSD:214451.214456}, which is available in several op
 implementations~\cite{ansel2009dmtcp}.
 
 If developers do not choose to employ checkpointing,
-they can use our implementation of {\sc Peek()} that replays all inputs from
+they can use our implementation of {\textsc{Peek()}} that replays all inputs from
 the beginning of the execution, thereby increasing replay runtime by
 a factor of $n$. Alternatively, they can
-avoid {\sc Peek()} and solely use the event scheduling heuristics described in \S\ref{subsec:timing_heuristics}.
+avoid {\textsc{Peek()}} and solely use the event scheduling heuristics described in \S\ref{subsec:timing_heuristics}.
 
-Beyond its use in {\sc Peek()}, snapshotting has three advantages.
+Beyond its use in {\textsc{Peek()}}, snapshotting has three advantages.
 As mentioned in \S\ref{subsec:complexity}, only considering events starting
 from a recent checkpoint rather than the beginning of the execution decreases the number of events to
 be minimized. By shortening the replay time, checkpointing coincidentally helps cope
@@ -257,7 +257,7 @@ execution share common input prefixes.
 
 We have found a number of
 heuristics useful for ensuring that invariant violations are consistently reproduced during replay.
-These heuristics may be used alongside or instead of {\sc Peek()}. We evaluated the effectiveness
+These heuristics may be used alongside or instead of {\textsc{Peek()}}. We evaluated the effectiveness
 of these heuristics using visualization tools
 (described in \S\ref{subsec:root_causing}) to compare replay executions with and
 without the heuristics enabled.

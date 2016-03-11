@@ -276,7 +276,8 @@ after roughly 20 runs of randomly generated inputs. We noticed a persistent
 blackhole while POX was bootstrapping its discovery of link and host locations.
 There were $46$ inputs in the initial trace. The initial trace was affected by
 non-determinism and only replayed successfully 15/20 times.
-We were able to reliably replay it by employing multiplexed sockets, overriding {\tt gettimeofday()},
+We were able to reliably replay it by employing multiplexed sockets,
+overriding {\texttt{gettimeofday()}},
 and waiting on POX's logging messages. \projectname~returned a $7$ input MCS
 (runtime shown in Figure~\ref{fig:pox_discovery}).
 
@@ -806,7 +807,7 @@ subsequences multiple times in mitigating non-determinism.}
 \subsection{Instrumentation Complexity}
 
 For POX and Floodlight, we added shim layers to the controller software
-to redirect {\tt gettimeofday()}, interpose on logging
+to redirect {\texttt{gettimeofday()}}, interpose on logging
 statements, and demultiplex sockets. For Floodlight we needed 722 lines of Java to obtain this
 indirection, and for POX we needed 415 lines of Python.
 

@@ -366,7 +366,7 @@ that was delivered instead of b (variable m in the elif branch of \textproc{STSS
   \State{reinitialize system, remove b from backtracks}
   \State{prefix $\gets$ b.predecessors $+\; [$ b $]$}
   \If{prefix (or superstring) already executed}
-    \State{{\bf continue}}
+    \State{{\textbf{continue}}}
   \EndIf
   \State{\Call{STSSched}{$E'$,prefix + b.successors}}
   \If{execution reproduced $\DFAIL$}
@@ -374,7 +374,7 @@ that was delivered instead of b (variable m in the elif branch of \textproc{STSS
   \EndIf
 \EndWhile
 %\Return{$\PASS$}
-\State{{\bf return} $\PASS$}
+\State{{\textbf{return}} $\PASS$}
 \EndProcedure
 
 % Play prefix, before backtrack point, plus wildcards...

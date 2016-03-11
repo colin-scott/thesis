@@ -392,7 +392,7 @@ master will never receive a link failure notification and
 transition to and from \emph{Send Flush}.}
 
 We handle this by attempting to infer the presence of internal
-events before we replay each subsequence. Our algorithm (called {\sc Peek()}) for inferring the
+events before we replay each subsequence. Our algorithm (called {\textsc{Peek()}}) for inferring the
 presence of internal events is depicted in
 Figure~\ref{fig:peek}. The algorithm injects each input, records a checkpoint\footnote{We discuss the implementation details of checkpointing
 in~\ref{subsec:snapshotting}.} of
@@ -402,7 +402,7 @@ events, and matches the
 recorded events with the functionally equivalent internal events observed in
 the original trace.\footnote{In the
 case that, due
-to non-determinism, an internal event occurs during {\sc Peek()} but does not occur
+to non-determinism, an internal event occurs during {\textsc{Peek()}} but does not occur
 during replay, we time out on internal events after $\epsilon$ seconds of
 their expected occurrence.}
 
@@ -474,7 +474,7 @@ in Figure~\ref{fig:replay}.
     \RETURN{inferred}
     \ENDPROCEDURE
   \end{pseudocode}
-  \caption{{\sc Peek} determines which internal events
+  \caption{{\textsc{Peek}} determines which internal events
   from the original sequence occur for a given subsequence.
   \label{fig:peek}}
   %\vskip -1em
@@ -538,7 +538,7 @@ the controllers quickly converge to a single state (either ``Master'' or
 \noindent{\textbf{Recap.}} We combine the above heuristics to replay each
 subsequence chosen by delta debugging: we compute functional equivalency
 for each internal event intercepted by our
-interposition layer, we invoke {\sc Peek()} to infer absent internal events,
+interposition layer, we invoke {\textsc{Peek()}} to infer absent internal events,
 and with these inferred causal dependencies we replay
 the subsequence, waiting to inject each input until each of its
 (functionally equivalent) predecessors have occurred while allowing
@@ -551,7 +551,7 @@ The delta debugging algorithm terminates after $\Omega(\log n)$
 invocations of $replay$ in the best case, and $O(n)$ in the worst case, where $n$ is the number of inputs in the original
 trace~\cite{Zeller:1999:YMP:318773.318946}.
 Each invocation of $replay$ takes $O(n)$ time
-(one iteration for {\sc Peek()} and one iteration for the replay itself),
+(one iteration for {\textsc{Peek()}} and one iteration for the replay itself),
 for an overall runtime of $\Omega(n \log n)$ best case and $O(n^2)$ worst case replayed inputs.
 The runtime can be decreased by parallelizing delta debugging:
 speculatively replaying subsequences in parallel, and joining the results.
