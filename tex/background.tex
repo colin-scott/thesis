@@ -1,5 +1,23 @@
 \section{Delta Debugging}
 
+% \noindent{\bf Techniques for Selecting Subsequences.} Checking
+% random subsequences of $E_L$ would be one viable but inefficient
+% approach to achieving our first task. A better approach is
+% %divide-and-conquer search technique from the software engineering community:
+% the delta debugging algorithm~\cite{Zeller:1999:YMP:318773.318946,Zeller:2002:SIF:506201.506206}, a
+% divide-and-conquer algorithm for
+% isolating fault-inducing inputs. We use delta
+% debugging\footnote{Domain-specific
+% minimization algorithms also
+% exist~\cite{regehr2012test,claessen2000quickcheck,whitaker2004configuration},
+% but we focus on the general case.} to iteratively select subsequences of $E_L$ and $replay$ each
+% subsequence with some timing $T$.\\[0.5ex]
+% %If the bug persists for a given subsequence, delta debugging ignores the
+% %other inputs, and proceeds with the search for an MCS within this subsequence.
+% %In what follows, we use the term {\em delta debugging} to refer to our algorithm for finding relevant subsequences.
+% %The delta debugging algorithm we implement is shown in Figure~\ref{fig:ddmin}.
+
+
 % TODO(cs): include this discussion of complements..
 % An updated version of the ddmin simplification algorithm appeared
 % in~\cite{Zeller:2002:SIF:506201.506206}. We use the simpler version of ddmin
