@@ -19,9 +19,21 @@ To my family
 \listoffigures % optional
 \listoftables % optional
 
+\makeatletter
+\let\@currsize\normalsize
+\makeatother
+\setstretch{1.1}
+\setlength{\parskip}{.25\baselineskip}%
+
 \include{acknowledgements}
 
 \end{frontmatter}
+
+\makeatletter
+\let\@currsize\normalsize
+\makeatother
+\setstretch{1.1}
+\setlength{\parskip}{.25\baselineskip}%
 
 \chapter{Introduction}
 \label{sec:intro}

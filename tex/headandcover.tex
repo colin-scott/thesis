@@ -2,6 +2,9 @@
 \documentclass{ucbthesis}
 \usepackage[backend=bibtex]{biblatex}
 
+\DisemulatePackage{setspace}
+\usepackage{setspace}
+
 %\nofiles
 % The above command prevents latex from writing its auxiliary
 % files. This is useful if you want to manually tweak them before you
@@ -101,6 +104,7 @@
 }
 \usepackage{fixltx2e}
 \usepackage{textgreek}
+
 
 % ----------------- STS Macros: ---------------------
 \newcommand{\projectname}{{STS}}
@@ -296,8 +300,10 @@ node[rounded corners,fill=green!80,draw,inner sep=0pt,minimum size=0.4cm] {$i_{#
 
 \bibliography{bib}
 
+
 %\sloppy
 \begin{document}
+\ssp % single spacing
 
 \title{Minimizing Faulty Executions of Distributed Systems}
 \author{Robert Colin Butler Scott}
