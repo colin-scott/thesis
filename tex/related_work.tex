@@ -229,21 +229,12 @@ techniques in the general area of troubleshooting.
 \noindent{\textbf{Interposition on blackbox distributed systems} \sys's
 software architecture closely resembles other automated testing systems for
 distributed
-systems~\cite{lin2009modist,leesatapornwongsa2014samc,simsa2010dbug}, which
-interpose on timers and message send and receive events.
-
-%MoDist does not make assumptions about the language of the
-%system under test. As we discussed in \S\ref{subsec:generality}, interposing
-%at the message layer has several advantages over interposing at a lower layer
-
-% As we discussed in \S\ref{}...
-%%%%% One way to increase the generality of \sys~would be to interpose at a lower layer (e.g.
-%%%%% the network or syscall layer) rather than the application layer. This has
-%%%%% several limitations. First, some of our scheduling strategies depend on application
-%%%%% semantics (e.g. message types) which would be difficult to access at a lower
-%%%%% layer. Transport layer complexities would also increase the size of the schedule
-%%%%% space. Lastly, some amount of application layer interposition would still be
-%%%%% necessary, e.g. interposition on user-level threads or blocking operations.
+systems~\cite{lin2009modist,leesatapornwongsa2014samc,simsa2010dbug}. All of
+these tools interpose on timers and message send and receive events. MoDist~\cite{lin2009modist}
+interposes at the syscall level, whereas SAMC~\cite{leesatapornwongsa2014samc} and dBug~\cite{simsa2010dbug}
+interpose (in part) at the application layer (similar to \sys). As we discussed in \S\ref{subsec:generality}, interposing
+at the application layer has several advantages over interposing at a lower
+layer, while syscall level interposition is more broadly applicable.
 
 % TODO(cs): say something about STS' interposition? Similar to Mininet, but we
 % focus not on performance, and instead on fine grained control over timings..
@@ -303,6 +294,8 @@ It is also possible to infer
  collections of traces~\cite{barham2004using,Chen02pinpoint:problem}.
  Our goal is to produce exact minimal causal sequences, and we are primarily focused on
  correctness instead of performance.
+
+% TODO(cs): cite other topics from blog post, e.g. dynamic analysis for race condition detection.
 
 
 % TODO(cs): cite MoDist, as where we got our software architecture from.
