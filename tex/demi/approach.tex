@@ -131,10 +131,12 @@ the events affect a disjoint set of nodes ($e_1$ changes the state at $c$, while
 $e_1$ and $e_2$ are therefore commutative. This example
 illustrates a form of commutativity captured by the happens-before relation~\cite{Lamport:1978:TCO:359545.359563}: two message delivery events
 $a$ and $b$ are commutative if they are concurrent, i.e. $a \not\rightarrow b$
-and $b \not\rightarrow a$, and they affect a disjoint set of nodes.
-% Stronger forms of
-% commutativity may hold if events cannot possibly be causally unrelated to each other, for
-% example when a distributed algorithm is stateless.
+and $b \not\rightarrow a$, and they affect a disjoint set of nodes.\footnote{
+Stronger forms of
+commutativity may hold if events cannot possibly be causally unrelated to each other, for
+example when a distributed algorithm is stateless. Inferring such cases of
+commutativity would require understanding of application semantics; in
+contrast, happens-before commutativity is independent of the application.}
 
 Partial order reduction (POR)~\cite{godefroid1995partial,flanagan2005dynamic} is a well-studied technique for pruning commutative schedules from the search space. In the above example, given two schedules that only differ in the order
 in which $e_1$ and $e_2$ appear, POR would only explore one schedule. Dynamic POR (DPOR)~\cite{flanagan2005dynamic} is a
@@ -179,8 +181,11 @@ A scheduling strategy implements a backtrack prioritization order.
 %that return the smallest schedule they can find ($\tau'$) containing a given external event
 %subsequence $E'$ that triggers the violation $\overline{P}$. If a scheduling strategy cannot find a
 %reproducing schedule within its time budget, it returns a special marker $\bot$.
-Scheduling strategies return the first violation-reproducing schedule they
-find (if any) within their time budget. We design our key strategy (shown in
+Scheduling strategies return the first violation-reproducing schedule
+(containing a given external event subsequence $E'$) they
+find within their time budget. If a scheduling strategy cannot find a
+reproducing schedule within its time budget, it returns a special marker $\bot$.
+We design our key strategy (shown in
 Algorithm~\ref{fig:alg_overview})
 with the following observations in mind:
 
@@ -202,8 +207,8 @@ move to the next message from the original execution. Similarly, we
 ignore any pending messages that do not match any events delivered in the original
 execution. In the case where multiple pending messages match, it does not
 matter which we choose (see Observation \#2).
-%We show an example initial
-%schedule in Figure~\ref{fig:matching}.
+We show an example initial
+schedule in Figure~\ref{fig:matching}.
 
 \begin{figure}[tb!]
     \centering
@@ -216,7 +221,7 @@ matter which we choose (see Observation \#2).
     events. We choose an initial schedule that is close to the original,
     except for the masked `seq' field. The violation is not triggered after
     the initial schedule (depicted as $\PASS$), so we next match messages by type,
-    allowing us to deliver pending messages with smaller `Term' numbers.}%clocks (`Term' numbers). The violation is still not triggered, so we continue exploring.}
+    allowing us to deliver pending messages with smaller `Term' numbers. The violation is still not triggered, so we continue exploring.}
     %\vspace{-1.5em}
 \end{figure}
 
@@ -241,13 +246,13 @@ unsafe state. Formally, this property is known as
 `data-independence', meaning that the values of some message contents
 do not affect the system's control-flow~\cite{shacham2014verifying,wolper}.
 
-% Some types of message fields clearly exhibit
-% data-independence. Consider authentication cookies. Distributed systems commonly
-% use cookies to track which requests are tied to which users. However, the
-% value of the cookie is not in itself relevant to how the distributed system
-% behaves, as long as each user attaches a consistent value to their messages. This means that two executions
-% with exactly the same users and exactly the same messages except for the
-% cookie fields are equivalent.
+Some types of message fields obviously exhibit
+data-independence. Consider authentication cookies. Distributed systems commonly
+use cookies to track which requests are tied to which users. However, the
+value of the cookie is not in itself relevant to how the distributed system
+behaves, as long as each user attaches a consistent value to their messages. This means that two executions
+with exactly the same users and exactly the same messages except for the
+cookie fields can be considered equivalent.
 
 To leverage data independence, application developers can (optionally) supply us
 with a `message fingerprint' function,\footnote{It may be possible to extract
@@ -496,7 +501,7 @@ match according to the user-defined message fingerprints from the original execu
 can achieve both these goals by considering a more coarse-grained $match$
 function: the {\em type} of pending messages. By `type', we mean the
 language-level type tag of the message object, which is
-available to the RPC layer at runtime. %, before the message is converted to bits on the wire.
+available to the RPC layer at runtime before the message is converted to bits on the wire.
 
 We choose the next schedules to explore by looking for pending messages whose
 {\em types} (not contents) match those in the original execution, in the exact same order
@@ -521,13 +526,12 @@ Of all these backtrack points, those that match the type of the corresponding me
 from the original trace should be most fruitful, because they keep the execution close to the causal structure of the
 original schedule except for small ambiguities in message contents.
 
-
 We show the pseudocode implementing Observation \#3 and Observation \#4 as the while loop in Algorithm~\ref{fig:alg_overview}.
 Whenever we find a backtrack point (pending message) that matches the type but not the
 fingerprint of an original delivery event from $\tau$, we replace the original
 delivery with the backtrack's pending message, and execute the events before
-and after the backtrack point as before. %We also track which schedules we have executed in the past
-%to avoid redundant exploration.
+and after the backtrack point as before. We also track which schedules we have executed in the past
+to avoid redundant exploration.
 
 Backtracking allow us to eventually explore all combinations of pending messages that
 match by type. Note here that we do not ignore the user-defined message

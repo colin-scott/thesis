@@ -7,7 +7,7 @@
 % model checking minimization: MAX-Sat, interpolation (ConcBugAssist, DSPs)
 %   many disadvantages of model checking. See STS FAQ.
 % deterministic replay log minimization (schedule minimization, program analysis)
-%   don’t allow divergence during replay! i.e. minimization specification is overly specific -> minimization results aren’t great
+%   don't allow divergence during replay! i.e. minimization specification is overly specific -> minimization results aren’t great
 %   program flow analysis work is tied to a single language, + high perf overhead
 % model inference, log summarization (synoptic, csight, invariant mining)
 %   summarize the events that occurred, but don’t actually minimize the test case. Apply this after you minimize the test case with our techniques.
@@ -108,19 +108,25 @@ distributed systems.
 % (thereby shortening the execution trace), but they cannot remove extraneous events from
 % the middle of the trace.
 %
-% TODO(cs): more descriptive title?
-\noindent{\textbf{Thread Schedule Minimization Augmented with Program Analysis.}} By analyzing the program's control- and
-dataflow dependencies, one can remove events in the middle of the deterministic
-replay log without causing
-divergence~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean,cai2013lock,elyasov2013guided,wang2015fast}.
+\noindent{\textbf{Thread Schedule Minimization Augmented with Program Analysis.}} One can remove events in the middle of the deterministic
+replay log by analyzing the program's control- and
+dataflow dependencies and providing a proof that removing those events will not shift the
+program's context switch points~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean,cai2013lock,elyasov2013guided,wang2015fast}.
 These techniques do not explore alternate code paths. Program analysis also over-approximates
-reachability,
-disallowing them from removing dependencies that actually commute.
+state reachability (because some conditionals are undecidable or difficult to
+model; e.g., EFF takes the transitive closure of all possible
+dependencies~\cite{Lee:2011:TGR:1993498.1993528}), disallowing them from removing dependencies that actually commute.
 
 We compare against thread schedule minimization (without divergence) by configuring \sys~to minimize as before, but abort any execution
 where it detects a previously unobserved state transition. Column `NoDiverge'
 of Table~\ref{dtab:case_studies} shows the results, which demonstrate that
 divergent executions are crucial to \sys's reduction gains for the akka-raft case studies.
+
+Although previous program analysis papers did not consider
+exploring alternate code
+paths~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean,cai2013lock,elyasov2013guided,wang2015fast},
+program analysis could be applied to help prune \sys's search space. We plan
+to investigate this idea in future work.
 
 % %\noindent{\textbf{Program Flow Analysis.}} Other than delta debugging,
 % %the closest work to ours involves reasoning about
@@ -159,7 +165,7 @@ divergent executions are crucial to \sys's reduction gains for the akka-raft cas
 % or perform program flow analysis. By avoiding assumptions about the language of the control software,
 % we were able to easily apply our system to five different control platforms
 % written in three different languages.
-%
+
 \noindent{\textbf{Model Checking.}} The algorithmic aspects of this
 dissertation are most closely
 related to the model checking literature.

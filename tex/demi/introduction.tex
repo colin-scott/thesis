@@ -9,7 +9,8 @@ of distributed systems face
 additional challenges, such as concurrency, asynchrony, and partial failure, which require them to
 consider all possible ways that non-determinism might manifest itself. Since
 the number of event orderings %(e.g.,message deliveries, failure notifications)
-a distributed system may encounter grows exponentially with the number of events, bugs are commonplace.
+a distributed system may encounter grows exponentially with the number of
+events, bugs due to unanticipated event orderings are commonplace.
 
 % TODO(cs): simpler version of the above paragraph:
 % Developers
@@ -117,7 +118,7 @@ framework like Akka, or through
 custom monitoring), can be applied successfully to a wider range of systems.
 
 %\colin{"Integrated programming environment"}
-% \colin{articulate tradeoff between overly-specific vs overly-general
+%\colin{articulate tradeoff between overly-specific vs overly-general
 % minimization specifications. Have this as part of a discussion section?}
 
 % Contributions:
