@@ -87,34 +87,33 @@ in \S\ref{sec:related_work}).}
 
 \begin{table}
 \centering
-\footnotesize
-\begin{tabular}{|l|l|l|}
-  \cline{1-3}
+\begin{tabular}{|l|l|l||l|}
+  \cline{1-4}
   \textbf{Bug Name} &
-  \textbf{STSSched} & \textbf{TFB} \\\cline{1-3} \hline
+  \textbf{STSSched} & \textbf{TFB} & \textbf{Total} \\\cline{1-4} \hline
 \href{https://docs.google.com/document/d/1alldH4lRSpFQ55-YCNFaIcMpjxrBOMNaB7R_9eEVwfs}{raft-45}
-& 56s \hfill (594) & 114s \hfill (2854) \\
+& 56s \hfill (594) & 114s \hfill (2854) & 170s (3448) \\
 % Total: 170s
 \href{https://docs.google.com/document/d/1vhGftMIlmm_uFLmCz2GI0CCPmttDUR617hJ72k2BTbY}{raft-46}
-& 73s \hfill (384) & 209s \hfill (4518) \\
+& 73s \hfill (384) & 209s \hfill (4518) & 282s (4902) \\
 % Total: 282s
 \href{https://docs.google.com/document/d/1_UPKhjYoSrG9p4FQXqML_WQKa3WNbM2fch2aa0V-9Go}{raft-56}
-& 54s \hfill (524) & 2078s \hfill (31149) \\
+& 54s \hfill (524) & 2078s \hfill (31149) & 2132s (31763) \\
 % Total: 2132s
 \href{https://docs.google.com/document/d/1_efq5rbOGCG3sG-2qxbbOeIRztW9XYP6xgyh0QFmWXg}{raft-58a}
-& 137s \hfill (624) & 43345s \hfill (834972) \\
+& 137s \hfill (624) & 43345s \hfill (834972) & 43482s (835596) \\
 % Total: 43482s
 \href{https://docs.google.com/document/d/1eERBdohTC3UidHJ6cZq12ixpp_eiVqzT7LvzuTeEtR4}{raft-58b}
-& 23s \hfill (340) & 31s \hfill (1747) \\ % Seems suspect..
+& 23s \hfill (340) & 31s \hfill (1747) & 69s (2087) \\ % Seems suspect..
 % Total: 69s
 \href{https://docs.google.com/document/d/1BN4hpTKtN_-inqyT5XTGogI8QSlohnP2Y7A01nuW7TI}{raft-42}
-& 118s \hfill (568) & 10558s \hfill (176517) \\
+& 118s \hfill (568) & 10558s \hfill (176517) & 10676s (177085) \\
 % Total: 10676s
 \href{https://docs.google.com/document/d/1lCAR_IE_U27CA-VTlPCi4Kyxf4h6Ykx-0zbkHe0Gfbg}{raft-66}
-& 14s \hfill (192) & 334s \hfill (10334) \\ % Seems suspect..
+& 14s \hfill (192) & 334s \hfill (10334) & 348s (10526) \\ % Seems suspect..
 % Total: 348s
 \href{https://docs.google.com/document/d/1JQiaLlm6XwLCWKOBOFkaMzg8Gd7NT5gDH3_8OV-oekY}{spark-2294}
-& 330s \hfill (248) & 97s \hfill (78)  \\
+& 330s \hfill (248) & 97s \hfill (78) & 427s (326) \\
 % Total: 427s
 
 % \href{https://docs.google.com/document/d/1g4jT83N6proW6YwHHhWsFy3hQ-ym2EaeDl24scDY6mY}{spark-2294-caching}
@@ -122,16 +121,15 @@ in \S\ref{sec:related_work}).}
 % % Total: 1098s
 
 \href{https://docs.google.com/document/d/1mWbxS2-B0v4fbY_FIASs6HCmAXFh6K89DMYX-XEmeL8}{spark-3150}
-& 219s \hfill (174) & 26s \hfill (21) \\ % Suspect?
+& 219s \hfill (174) & 26s \hfill (21) & 254s (195) \\ % Suspect?
 % Total: 245s
 \href{https://docs.google.com/document/d/1rPseAbo3FELT8Fj2lrRUMkrDmjLPYI26Jgr8goAMLzU}{spark-9256}
-& 96s \hfill (73) & 0s \hfill (0) \\
+& 96s \hfill (73) & 0s \hfill (0) & 210s (73) \\
 % Total: 210s
 \hline
 \end{tabular}
 %\vskip -1em
-\caption{Minimization runtime in seconds (total schedules executed). Overall runtime is
-the summation of ``STSSched'' and ``TFB''. spark-9256 only
+\caption{Minimization runtime in seconds (total schedules executed). spark-9256 only
 had unignorable events remaining after STSSched completed, so TFB was not
 necessary.}
 \label{tab:runtime}
@@ -248,7 +246,7 @@ marginal gains.
 
 \begin{figure}[tb]
     \centering
-    \includegraphics[width=3.25in]{demi/raft_58b_minimization_progress.pdf}
+    \includegraphics{demi/raft_58b_minimization_progress.pdf}
     %\vspace{-2em}
     \caption{\label{fig:progress} Minimization pace for raft-58b. Significant progress is made early on, then progress becomes rare.}
     %\vspace{-1em}
@@ -392,7 +390,6 @@ minimize both external events and message contents.
 
 \begin{table}
 \centering
-\footnotesize
 \begin{tabular}{|l|l|l|}
   \cline{2-3}
   \multicolumn{1}{c|}{~} & \textbf{Without Shrinking} & \textbf{With
@@ -421,7 +418,6 @@ non-determinism.
 
 \begin{table}
 \centering
-\footnotesize
 \begin{tabular}{|l|l|l|}
   \cline{2-3}
   \multicolumn{1}{c|}{~} & \textbf{akka-raft} & \textbf{Spark} \\\cline{2-3} \hline

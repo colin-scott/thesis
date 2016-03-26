@@ -17,7 +17,7 @@ switch configurations unless they detect that the master has crashed.
 
 \begin{figure}[t]
   %\hspace{-10pt}
-  \includegraphics[width=3.25in]{../diagrams/case_study/example_bug.pdf}
+  \includegraphics{../diagrams/case_study/example_bug.pdf}
   \caption{\label{fig:example} Floodlight failover bug. External inputs
              are depicted as red dots, internal events are depicted as black
              dots, and the dotted message line depicts a timeout.}
@@ -289,7 +289,6 @@ successfully reproduce bugs.}
 
 \begin{table}[tb]
 \centering
-\footnotesize
 \begin{tabular}{|l|l|}
 \hline
 {\textbf{Internal message}} & {\textbf{Masked values}} \\
@@ -336,7 +335,6 @@ happens-before relation.
 
 \begin{table}[tb]
 \centering
-\footnotesize
 \begin{tabular}{|l|l|}
 \hline
 \textbf{Input Type} & \textbf{Implementation} \\
@@ -371,7 +369,7 @@ Non-deterministic TCAMs & Modified switches \\
 \eat{
 \begin{figure}[t]
     %\hspace{-10pt}
-    \includegraphics[width=3.25in]{../diagrams/state_machines/controller_switch.pdf}
+    \includegraphics{../diagrams/state_machines/controller_switch.pdf}
     \caption{\label{fig:state_machines} Simplified state machines for the switch and
     controllers in the example Floodlight bug. Double outlined states
     represent presence of the blackhole.}
@@ -421,7 +419,6 @@ in Figure~\ref{fig:replay}.
 
 \eat{ % Somewhat redundant with peek()
 \begin{figure}
-  \footnotesize
   \begin{pseudocode}[framebox]{CausalInference}{events}
     \PROCEDURE{Replay}{subsequence}
     subsequence \GETS \CALL{Peek}{subsequence} \\
@@ -457,7 +454,6 @@ in Figure~\ref{fig:replay}.
 }
 
 \begin{figure}
-  \footnotesize
   \begin{pseudocode}[framebox]{Peek}{events}
     \PROCEDURE{Peek}{input\ subsequence}
     inferred \GETS [\ ] \\
