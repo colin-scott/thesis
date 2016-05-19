@@ -21,7 +21,7 @@
 % %algorithms~\cite{claessen2000quickcheck,regehr2012test,whitaker2004configuration})
 % to blackbox distributed systems.
 
-% TODO(cs): cite "Leveraging SDN layers" paper?
+% TODO(cs): discuss symbolic execution, NICE? (As part of "model checking")
 
 We start our discussion of related work with the most closely
 related literature.
@@ -31,7 +31,7 @@ related literature.
 \noindent{\textbf{Input Minimization for Sequential Programs.}} Minimization
 algorithms for sequentially processed inputs are
 well-studied~\cite{Zeller:2002:SIF:506201.506206,claessen2000quickcheck,regehr2012test,whitaker2004configuration,burger2011minimizing,fse_web_ddmin,chang2007simulation}.
-These form a component of our solution, but they do not consider
+These (particularly: delta debugging) form a component of our solution, but they do not consider
 interleavings of internal events from concurrent processes.
 
 \noindent{\textbf{Minimization without Interposition.}} Several
@@ -42,7 +42,7 @@ multiple times and check whether the violation is reproduced at least once~\cite
 Their major advantage is that they avoid the engineering effort required to
 interpose. Their drawback, as we found in Chapter~\ref{sec:sts},
  is that bugs are often not easily reproducible without
-interposition. Additionally, without interposition these techniques cannot
+interposition. Furthermore, without interposition these techniques cannot
 (directly) minimize internal events.
 
 % TODO(cs): the QuickCheck papers all seem quite optimistic about how
@@ -63,10 +63,10 @@ schedule space their minimization would likely be improved.
 interleavings leading up to concurrency
 bugs~\cite{choi2002isolating,jalbert2010trace,huang2011efficient,el2014efficient}.
 These generally work by iteratively feeding a single input (mutations of a
-recorded thread schedule) to a single entity (a deterministic scheduler). These approaches
+recorded thread schedule) to a single entity (a deterministic thread scheduler). These approaches
 ensure that the program never diverges from the control flow of the
-original schedule (otherwise the recorded context switch points from the
-original execution would become useless). Besides minimizing context
+original schedule (otherwise the recorded I/O responses and context switch points
+from the original execution would become useless). Besides minimizing context
 switches, these approaches at
 best {\em truncate} thread executions by having threads exit earlier than they did in the original
 execution (thereby shortening the execution trace), but they cannot remove extraneous events from
@@ -74,13 +74,14 @@ the middle of the trace.
 
 Although these thread schedule minimization techniques do not
 explore divergent schedules,\footnote{PRES
-explores divergent code paths for best-effort replay of multithreaded
+explores divergent schedules for best-effort replay of multithreaded
 executions, but does not minimize executions~\cite{park2009pres}}
- that constraint is not fundamental. Rather
-than only considering the original recorded thread schedule, one
-could instead explore new (divergent) schedules and store the newly recorded
-thread schedules to be replayed deterministically later on. Such a system
-for muticore schedule minimization would be equivalent to \sys~as we apply it to message passing
+ that constraint is not fundamental. Rather than
+only considering the original recorded thread schedule, one
+could explore new (divergent) schedules, store the newly recorded
+I/O responses and context switch points, and replay those recordings
+deterministically later on. Such a system
+for multicore schedule minimization would be equivalent to \sys~as we apply it to message passing
 distributed systems.
 
 % To deterministically
@@ -108,16 +109,19 @@ distributed systems.
 % (thereby shortening the execution trace), but they cannot remove extraneous events from
 % the middle of the trace.
 %
-\noindent{\textbf{Thread Schedule Minimization Augmented with Program Analysis.}} One can remove events in the middle of the deterministic
+\noindent{\textbf{Thread Schedule Minimization Augmented with Program
+Analysis.}} One can remove events in the middle of a recorded deterministic
 replay log by analyzing the program's control- and
 dataflow dependencies and providing a proof that removing those events will not shift the
-program's context switch points~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean,cai2013lock,elyasov2013guided,wang2015fast}.
-These techniques do not explore alternate code paths. Program analysis also over-approximates
+execution's context switch points~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean,cai2013lock,elyasov2013guided,wang2015fast}.
+These techniques do not explore alternate code paths. Program analysis also
+over-approximates
 state reachability (because some conditionals are undecidable or difficult to
 model; e.g., EFF takes the transitive closure of all possible
 dependencies~\cite{Lee:2011:TGR:1993498.1993528}), disallowing them from removing dependencies that actually commute.
 
-We compare against thread schedule minimization (without divergence) by configuring \sys~to minimize as before, but abort any execution
+We compare against thread schedule minimization (without divergence) by configuring \sys~to minimize as before,
+but to abort any execution
 where it detects a previously unobserved state transition. Column `NoDiverge'
 of Table~\ref{dtab:case_studies} shows the results, which demonstrate that
 divergent executions are crucial to \sys's reduction gains for the akka-raft case studies.
@@ -125,7 +129,7 @@ divergent executions are crucial to \sys's reduction gains for the akka-raft cas
 Although previous program analysis papers did not consider
 exploring alternate code
 paths~\cite{Lee:2011:TGR:1993498.1993528,tallam2007enabling,huang2012lean,cai2013lock,elyasov2013guided,wang2015fast},
-program analysis could be applied to help prune \sys's search space. We plan
+program analysis could be leveraged to help prune \sys's search space. We plan
 to investigate this idea in future work.
 
 % %\noindent{\textbf{Program Flow Analysis.}} Other than delta debugging,
@@ -170,16 +174,16 @@ to investigate this idea in future work.
 dissertation are most closely
 related to the model checking literature.
 
-Abstract model checkers convert (concurrent) programs to logical formulas, find
-logical contradictions (invariant violations) using solvers, and minimize the logical
+Abstract model checkers convert (possibly concurrent) programs to logical formulas, find
+logical contradictions (assertion violations) using solvers, and minimize the logical
 conjunctions to aid
 understanding~\cite{christ2013flow,khoshnood2015concbugassist,machado2015concurrency}.
 Model checkers are very powerful, but they are typically tied to a single
-language, and assume access to source code, whereas the systems we target (e.g.
+language and assume access to source code, whereas the systems we target (e.g.
 Spark) are composed of multiple languages and may use proprietary
 libraries.
 
-It is also possible to extract formulas from raw binaries~\cite{avgerinos2014enhancing}.
+It is also possible to extract logic formulas from raw binaries~\cite{avgerinos2014enhancing}.
 Fuzz testing is significantly lighter weight.
 
 If, rather than randomly fuzzing, testers
@@ -192,24 +196,26 @@ most of our reported bugs within 10s of minutes).
 Furthermore, minimization is
 useful beyond testing, e.g. for simplifying production traces.
 
-Because systematic input enumeration is intractable, many papers
+Motivated by the intractability of systematic input enumeration, many papers
 develop heuristics for finding bugs
 quickly~\cite{tzoref2007instrumenting,musuvathi2007iterative,musuvathi2008finding,yabandeh2009crystalball,burckhardt2010randomized,terragnirecontest,fonseca2014ski,leesatapornwongsa2014samc,lin2009modist,park2009ctrigger,coons2010gambit}.
 We do the same, but crucially, we are able to use
 information from previously failing executions to guide our search.
-We are also the first to observe that the
-application's use
-of TCP constrains the schedule space.
+We are also the first to observe that
+an application's use
+of TCP constrains its schedule space.
 
 As far as we know, we are the first to combine DPOR and delta debugging to
 minimize executions. Others have modified DPOR to keep state~\cite{yang2008efficient,yi2006stateful}
 and to apply heuristics for choosing initial schedules~\cite{lauterburg2010evaluating}, but these
-changes are intended to help find new bugs.
+changes are intended to help find new bugs rather than minimize existing
+faulty executions.
 
 \noindent{\textbf{Program Slicing \& Automated Debugging.}} Program slicing~\cite{weiser1981program}
-seeks to find a minimal subset of a program that could possibly affect the result of a particular line of code.
+seeks to find a minimal subset of the statements in a program that could
+possibly affect the outcome of an assertion.
 Literature following Weisers' original program
-slicing paper goes so far as to try to
+slicing paper goes further to try to
 automatically locate the exact line(s) of code or state transitions that are responsible for a
 bug, using statistical data~\cite{zhangzhang}, test coverage
 data~\cite{coverage_localization,xuan14}, constraint solving~\cite{jose11},
@@ -218,12 +224,18 @@ experimentally driven executions of the failing program~\cite{zeller2005,compara
 Our goal is to slice the temporal dimension of an execution rather than the
 code dimension.
 
+\noindent{\textbf{Log Comprehension.}} Model inference techniques summarize log files
+in order to make them more easily understandable by
+humans~\cite{ernst2001dynamically,synoptic,csight,biermann1972synthesis,lorenzoli2008automatic,lou2010mining}.
+Model inference is complementary, as it does not modify the event logs.
+
 \section{Debugging for Networked \& Concurrent Systems}
 
 We end this chapter by discussing
-techniques in the general area of troubleshooting.
+literature on the general topic of troubleshooting. For an in-depth overview of
+systematic troubleshooting techniques, see our HotSDN publication~\cite{heller2013leveraging}.
 
-% TODO(cs): include this preface:
+% TODO(cs): include this preface?:
 % We characterize the other troubleshooting approaches
 % as (i) instrumentation (tracing),
 % (ii) bug detection (invariant checking),
@@ -232,77 +244,244 @@ techniques in the general area of troubleshooting.
 % (visualization), (vi) program slicing, and (vii) automated debugging (fault
 % localization).\\[0.5ex]
 
-\noindent{\textbf{Interposition on blackbox distributed systems} \sys's
+\noindent{\textbf{Interposition on blackbox distributed systems}} \sys's
 software architecture closely resembles other automated testing systems for
 distributed
 systems~\cite{lin2009modist,leesatapornwongsa2014samc,simsa2010dbug}. All of
 these tools interpose on timers and message send and receive events. MoDist~\cite{lin2009modist}
 interposes at the syscall level, whereas SAMC~\cite{leesatapornwongsa2014samc} and dBug~\cite{simsa2010dbug}
-interpose (in part) at the application layer (similar to \sys). As we discussed in \S\ref{subsec:generality}, interposing
-at the application layer has several advantages over interposing at a lower
-layer, while syscall level interposition is more broadly applicable.
+interpose primarily at the application layer (similar to \sys). As we discussed in \S\ref{subsec:generality}, interposing
+at the application layer has several advantages over interposing at the
+syscall level, although syscall level interposition is more broadly applicable.
 
-% TODO(cs): say something about STS' interposition? Similar to Mininet, but we
-% focus not on performance, and instead on fine grained control over timings..
+\projectname's software architecture closely resembles other network
+simulators~\cite{handigol2012reproducible,ns-3,Vahdat:2002:SAL:844128.844154}.
+Most of these simulators are focused on producing high fidelity performance
+behaviors, whereas we designed \projectname~with the intent of providing
+precise control over event timings without focusing on performance.
 
-\noindent{\textbf{Bug Reproduction.}} Record and replay
-techniques seek to reproduce a given concurrency bug~\cite{zamfir2011debug,Zamfir:2010:EST:1755913.1755946,altekar2009odr,park2009pres,Yuan:2010:SED:1736020.1736038}. One a bug has been
-reproduced, users can step through the (deterministic) execution and interactively examine the
-state of the system. Within networking, OFRewind~\cite{ofrewind} provides
-record and replay of OpenFlow channels between controllers and switches.
-Manually examining long system executions can be tedious, and our goal is to
-minimize such executions so that developers find it easier to identify the
-problematic code through replay or other means.
-
-\noindent{\textbf{Probabilistic Diagnosis.}} To avoid the runtime overhead of deterministic replay, other techniques
-capture carefully selected diagnostic information from production execution(s), and correlate this information
-to provide best guesses at the root causes of
-bugs~\cite{barham2004using,Chen02pinpoint:problem,Yuan:2010:SED:1736020.1736038,kasikci2015failure,sangmin}.
-We assume more complete runtime instrumentation (during testing), but provide exact reproducing
-scenarios.
-
-\noindent{\textbf{Log Comprehension.}} Model inference techniques summarize log files
-in order to make them more easily understandable by
-humans~\cite{ernst2001dynamically,synoptic,csight,biermann1972synthesis,lorenzoli2008automatic,lou2010mining}.
-Model inference is complementary, as it does not modify the event logs, and is therefore complementary.
-
-\noindent{\textbf{Root Cause Analysis.}}
-Without perfect instrumentation,
+\noindent{\textbf{Root Cause Analysis.}} Without perfect instrumentation,
 it is often not possible to know exactly what events are occurring (\eg~which
  components have failed) in a
  distributed system. Root cause analysis~\cite{yemini1996,Kandula:2009:DDE:1592568.1592597}
  seeks to reconstruct those unknown events from limited monitoring data.
- Here we know exactly which events occurred, but
+ Here we know exactly which events occurred, and instead
  seek to identify a minimal sequence of events.
 
-% TODO(cs): update this to include material from the blog post.
-\noindent{\textbf{Instrumentation.}} Unstructured
-log files collected at each node are the most common form of diagnostic information. The goal of
-tracing frameworks~\cite{pip,fonseca2007x,Chen02pinpoint:problem,ndb14,barham2004using}
-is to produce structured logs that can be easily analyzed, such as DAGs tracking
-requests passing through the distributed system. These tools help developers to understand
-how, when, and where the system broke. In contrast, we focus on making it
-easier for developers to understand what lead the software
-to violate an invariant in the first place.
+\noindent{\textbf{Bug Reproduction.}} Record and replay
+techniques seek to reproduce a given concurrency
+bug~\cite{zamfir2011debug,Zamfir:2010:EST:1755913.1755946,altekar2009odr,park2009pres,Yuan:2010:SED:1736020.1736038,ofrewind}.
+Once a bug has been
+reproduced, users can step through the (deterministic) execution and interactively examine the
+state of the system.
+%Closely related to \projectname, OFRewind~\cite{} provides
+%record and replay of OpenFlow channels between controllers and switches.
+Manually examining long system executions can be tedious, and our goal is to
+minimize such executions so that developers find it easier to identify the
+problematic code through replay or other means.
 
-% TODO(cs): update this to include material from the blog post.
-\noindent{\textbf{Bug Detection.}} With instrumentation available, it becomes possible
-to check expectations about the
-system's state (either offline~\cite{Liu07widschecker} or online~\cite{d3s}), or about the paths requests take through
-the system~\cite{pip}. Within the networking community, this research is
-primarily focused on verifying routing tables~\cite{hsa,hsa_realtime,anteater,khurshid2012veriflow}
+\noindent{\textbf{Probabilistic Diagnosis.}} Record and replay systems incur
+performance overheads at runtime that can be too prohibitive for production deployments.
+With the aim of avoiding the runtime overhead of deterministic replay, probabilistic diagnosis
+techniques~\cite{Yuan:2010:SED:1736020.1736038,sangmin,kasikci2015failure} seek
+to capture carefully selected diagnostic information (e.g. stack traces,
+thread \& message interleavings) that should have high
+probability of helping developers find the root cause of a problem. One key insight
+underlying these techniques is cooperative debugging: the realization that
+even if one does not collect enough diagnostic information from a single bug report,
+it is quite likely that the bug will happen more than once so that diagnostic
+information can be correlated~\cite{coop_debugging}.
+We assume more complete runtime instrumentation (during testing, not in production), but provide exact reproducing scenarios.
+
+\noindent{\textbf{Detecting Bugs in Production.}} Despite our best efforts, bugs invariably make it into production. Still,
+we would prefer to discover these issues through means that are more
+proactive than user complaints. An old idea is useful here: distributed
+snapshots~\cite{Chandy:1985:DSD:214451.214456},
+a subset of the events in
+the system's execution such if any event e is contained in the subset, all
+`happens-before' predecessors of e are also contained in the subset.
+Distributed snapshots allow us to obtain a global view of the state of all
+machines in the system, without needing to stop the world. Once we have a
+distributed snapshot in hand, we can check assertions about the state of the
+overall system (either offline~\cite{Liu07widschecker} or online~\cite{d3s}).
+Within the networking community, research along these lines has focused on
+verifying routing tables~\cite{hsa,hsa_realtime,anteater,khurshid2012veriflow}
 or forwarding behavior~\cite{Zeng:2012:ATP:2413176.2413205,libra}.
-We use bug detection techniques (invariant checking) to guide delta debugging's minimization
-process.
 
-It is also possible to infer
- performance anomalies by building probabilistic models from
- collections of traces~\cite{barham2004using,Chen02pinpoint:problem}.
- Our goal is to produce exact minimal causal sequences, and we are primarily focused on
- correctness instead of performance.
+%With instrumentation available, it becomes possible
+%to check expectations about the
+%system's state (either offline~\cite{Liu07widschecker} or online~\cite{d3s}), or about the paths requests take through
+%the system~\cite{pip}.
+
+% ### Regression Testing for Performance (Latency) Bugs
+%
+% The regression testing problem for latency bugs is similar to above, with a
+% few differences:
+%
+%  - **We're given**: (i) an assertion that we know the system has
+%    violated in the past, usually statistical in nature, about how long requests should take to be
+%    processed by the system, and (ii) a description of the system's workload
+%    at the time the latency problem was detected.
+%  - **Our goal**: we want to produce an oracle that will notify us
+%    whenever request latency gets notably worse as we make new changes to the
+%    system.
+%
+% A few challenges:
+%
+%  - **a) Flakiness**: Performance characteristics typically exhibit large
+%    variance. Despite variance, we need our assertion to avoid reporting too
+%    many false positives. Conversely, we need to prevent the assertion from
+%    missing too many true positives.
+%  - **b) Workload characterization**: it can be difficult to reproduce production
+%    traffic mixes in a test environment.
+%
+% Regardless of whether your system is distributed or located on a single machine,
+% request latency is defined by the time it takes to execute the program's *control flow* for that request.
+% In a system where concurrent tasks process a single request, it is useful to
+% consider the *critical path*: the longest chain of dependent tasks
+% starting with the request's arrival, and ending with completion of the control
+% flow.
+%
+% The challenges with observing control flow for distributed systems are the
+% following:
+%
+%   - **c) Limited Visibility**: the control flow for a single request can touch
+%     thousands of machines, any one of which might be the source of a latency
+%     problem.[^16] So, we need to aggregate timing information across
+%     machines. Simple aggregation of statistics often isn't sufficient though, since a
+%     single machine doesn't have a way of knowing which local tasks were
+%     triggered by which incoming request.
+%   - **d) Instrumentation Overhead**: It's possible that the act of measuring execution times can
+%     itself significantly perturb the execution time, leading to false positives or false negatives.
+%   - **e) Intrusiveness**: if we're using our production deployment to find performance problems, we need to
+%     avoid increasing latency too much for clients.
+%
+% #### Solutions
+%
+% The main technique for addressing these challenges is **distributed tracing**. The
+% core idea is simple:[^25] have the first machine assign an ID to the incoming request,
+% and attach that ID (plus a pointer to the parent task) to all messages that are generated in response to the
+% incoming request. Then have each downstream task that is involved in processing those
+% messages log timing information associated with the request ID to disk.
+%
+% Propagating the ID across all machines results in a *tree* of
+% timing information, where each vertex contains timing information for a single
+% task (the ingress being the root), and each edge represents a control flow dependency between tasks.
+% This timing information
+% can be retrieved asynchronously from each machine.
+% To minimize instrumentation overhead and intrusiveness, we can *sample*:
+% only attach an ID to a fraction of incoming requests. As long as overhead
+% is low enough, we could overcome the
+% challenge of workload characterization by running causal tracing on our
+% production deployment.
+%
+% <!-- TODO: how does causal tracing overcome flakiness -->
+%
+% Here is an illustration[^17]:
+%
+% ![Trace Example](http://eecs.berkeley.edu/~rcs/research/tracing_example.png){:height="700px" width="700px"}
+%
+% What can we do with causal trees? A bunch of cool stuff: characterize the
+% production workload so that we can reproduce it in a test environment,[^20]
+% resource accounting[^21] and 'what-if' predictions for resource planning,[^22]
+% track flows across administrative domains,[^23] visualize traces and express expectations about how flows should
+% or should not be structured,[^24] monitor performance isolation in a multi-tenant environment,[^27] and most relevant for performance regression
+% testing: detecting and diagnosing performance anomalies.[^26]
+%
+% Distributed tracing does require a fair amount of engineering effort: we need to
+% modify our system to attach and propagate IDs (it's unfortunately non-trivial to
+% 'bolt-on' a tracing system like Zipkin). Perhaps the simplest form of
+% performance regression testing we can do is to analyze performance statistics
+% **without correlating** across machines. We can still get end-to-end latency
+% numbers by instrumenting clients, or by ensuring that
+% the machine processing the incoming request is the same as the machine sending
+% an acknowledgment to the client. The key issue then is figuring
+% out the source of latency once we have detected a problem.
+
+\noindent{\textbf{Instrumentation.}} Making sense of unstructured diagnostic
+information pieced together from a large collection of machines is
+challenging. The goal of distributed tracing frameworks is to
+produce structured event logs that can be easily analyzed to understand performance and
+correctness bugs. The core idea~\cite{path} is simple: have the first machine assign an ID to the incoming request,
+and attach that ID (plus a pointer to the parent task) to all messages that are generated in response to the
+incoming request. Then have each downstream task that is involved in processing those
+messages log timing information associated with the request ID to disk.
+Propagating the ID across all machines results in a tree of
+timing and causality information.
+%, where each vertex contains timing information for a single
+%task (the ingress being the root), and each edge represents a control flow dependency between tasks.
+%This timing information
+%can be retrieved asynchronously from each machine.
+%To minimize instrumentation overhead and intrusiveness, we can sample:
+%only attach an ID to a fraction of incoming requests.
+% As long as overhead
+% is low enough, we could overcome the
+% challenge of workload characterization by running causal tracing on our
+% production deployment.
+
+Causal trees can be used\footnote{See~\cite{tracing_overview} for a
+comprehensive survey of distributed tracing tradeoffs and use-cases.} to: characterize the
+production workload~\cite{barham2004using}, handle
+resource accounting~\cite{stardust} and `what-if' predictions for resource
+planning~\cite{ironmodel},
+track flows across administrative domains~\cite{fonseca2007x}, visualize traces and express expectations about how flows should
+be structured~\cite{pip}, monitor performance isolation in a multi-tenant
+environment~\cite{retro}, track the flow of packets through a
+network~\cite{ndb}, and detect performance anomalies~\cite{perf_changes}.
+These use-cases enable developers to understand
+how, when, and where the system broke. In contrast, we focus on providing the
+minimal set of events needed for the software
+to violate an invariant.
+
+% It is also possible to infer
+% performance anomalies by building probabilistic models from
+% collections of traces~\cite{barham2004using,Chen02pinpoint:problem}.
+% Our goal is to produce exact minimal causal sequences, and we are primarily focused on
+% correctness instead of performance.
+
+% ### Discovering Problems in Production
+%
+% Despite our best efforts, bugs invariably make it into production.[^28] Still,
+% we'd prefer to discover and diagnose these issues through means that are more
+% proactive than user complaints.
+% What are the challenges of detecting problems in production?:
+%
+%  - **a) Runtime overhead**: It's crucial that our instrumentation doesn't incur noticeable
+%    latency costs for users.
+%  - **b) Possible privacy concerns**: In some cases, our monitoring data
+%    will contain sensitive user information.
+%  - **c) Limited visibility**: We can't just stop the world to collect
+%    our monitoring data, and no single machine has global visibility into
+%    the state of the overall system.
+%  - **d) Failures in the monitoring system**: The monitoring system is itself a
+%    distributed system that needs to deal with faults gracefully.
+%
+% #### Solutions
+%
+% An old idea is particularly useful here: **distributed snapshots**~\cite{Chandy:1985:DSD:214451.214456}.
+% Distributed snapshots are defined by consistent cuts: a subset of the events in
+% the system's execution such if any event e is contained in the subset, all
+% 'happens-before' predecessors of e are also contained in the subset.
+%
+% Distributed snapshots allow us to obtain a global view of the state of all
+% machines in the system, without needing to stop the world. Once we have a
+% distributed snapshot in hand, we can check assertions about the state of the
+% overall system (either offline~\cite{Liu07widschecker} or online~\cite{d3s}).
 
 % TODO(cs): cite other topics from blog post, e.g. dynamic analysis for race condition detection.
+%  - Fault tolerance testing
+%  - Test case reduction
+%  - Distributed debugging
+%  - Tools to help you write correctness conditions
+%  - Tools to help you better comprehend diagnostic information
+%  - Dynamic analysis for finding race conditions & atomicity violations
+%  - Model checking & symbolic execution
+%  - Configuration testing
+%  - Verification
+%  - Liveness issues
+%  - ...
 
+% Cite
 
 % TODO(cs): cite MoDist, as where we got our software architecture from.
 %    Describes the design of a model checker that acts on *unmodified*
@@ -598,3 +777,76 @@ of the overall distributed system.
 Internet~\cite{Clark:2003:KPI:863955.863957}}
 } % \eat most recent version
 
+% [^1]: "Heartbeat: A Timeout-Free Failure Detector for Quiescent Reliable Communication." International Workshop on Distributed Algorithms '97
+%
+% [^3]: The test framework can't modify the messages sent by the system, but it can control other sources of non-determinism, e.g. the order in which messages are delivered.
+%
+% [^2]: "To Infinity and Beyond: Time-Warped Network Emulation", NSDI '06
+%
+% [^4]: "Replay Debugging For Distributed Applications", ATC '06
+%
+% [^5]: "Hardware and software approaches for deterministic multi-processor replay of concurrent programs", Intel Technology Journal '09
+%
+% [^6]: "Execution Synthesis: A Technique For Automated Software Debugging", EuroSys '10
+%
+% [^7]: "ReVirt: Enabling Intrusion Analysis Through Virtual-Machine Logging and Replay", OSDI '02
+%
+% [^8]: "Deterministic Process Groups in dOS", OSDI '10.
+%
+% [^9]: "DDOS: Taming nondeterminism in distributed systems", ASPLOS '13
+%
+% [^10]: "Minimizing Faulty Executions of Distributed Systems", NSDI '16
+%
+% [^11]: "Testing a Database for Race Conditions with QuickCheck", Erlang '11
+%
+% [^12]: "PRES: Probabilistic Replay with Execution Sketching on Multiprocessors", SOSP '09
+%
+% [^15]: "ODR: Output-Deterministic Replay for Multicore Debugging", SOSP '09
+%
+% [^13]: "Analyzing Multicore Dumps to Facilitate Concurrency Bug Reproduction", ASPLOS '10
+%
+% [^14]: "Debug Determinism: The Sweet Spot for Replay-Based Debugging", HotOS '11
+%
+% [^16]: We might not need to aggregrate statistics from all the machines, but at the very least we need timings from the first machine to process the request and the last machine to process the request.
+%
+% [^17]: "So, you want to trace your distributed system? Key design insights from years of practical experience", CMU Tech Report
+%
+% [^18]: "DDOS: Taming nondeterminism in distributed systems", ASPLOS '13.
+%
+% [^19]: "Deterministic Process Groups in dOS, OSDI '10". [Technically deterministic execution, not deterministic replay]
+%
+% [^20]: "Using Magpie for request extraction and workload modelling", SOSP '04
+%
+% [^21]: "Stardust: tracking activity in a distributed storage system", SIGMETRICS '06
+%
+% [^22]: "Ironmodel: robust performance models in the wild",  SIGMETRICS '08
+%
+% [^23]: "X-trace: a pervasive network tracing framework", NSDI '07
+%
+% [^24]: "Pip: Detecting the Unexpected in Distributed Systems", NSDI '06
+%
+% [^25]: "Path-based failure and evolution management", SOSP '04
+%
+% [^26]: "Diagnosing performance changes by comparing request flows", NSDI '11
+%
+% [^27]: "Retro: Targeted Resource Management in Multi-tenant Distributed Systems", NSDI '15
+%
+% [^28]: 'Hark', you say! 'Verification will make bugs a thing of the past!' --I'm not entirely convinced...
+%
+% [^29]: Distributed Snapshots: Determining Global States of Distributed Systems, ACM TOCS '85
+%
+% [^30]: WiDS Checker: Combating Bugs in Distributed Systems, NSDI '07
+%
+% [^31]: D3S: Debugging Deployed Distributed Systems, NSDI '08
+%
+% [^32]: SherLog: Error Diagnosis by Connecting Clues from Run-time Logs, ASPLOS '10
+%
+% [^33]: Effective Fault Localization Techniques for Concurrent Software, PhD Thesis
+%
+% [^34]: Failure Sketching: A Technique for Automated Root Cause Diagnosis of In-Production Failures, SOSP '15
+%
+% [^bofa]: Cooperative Bug Isolation, PhD Thesis
+%
+% [^36]: A Survey of Fault Localization Techniques in Computer Networks, SCP '05
+%
+% [^37]: Detailed Diagnosis in Enterprise Networks, SIGCOMM '09
