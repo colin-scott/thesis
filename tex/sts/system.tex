@@ -73,7 +73,7 @@ and follow our intuition to induce event orderings that we believe may trigger b
 \noindent{\textbf{Performing Minimization.}} After discovering an invariant
 violation of interest, we apply delta debugging to minimize the recorded trace. We use the
 testing infrastructure itself to $replay()$ the events in each intermediate subsequence.
-During $replay()$ the \tester~enforces event orderings as needed to maintain the original happens-before
+During $replay()$ the \tester~enforces event orderings as needed to maintain the original ns-before
 relation, by using its interposition on message channels to
 manage the order in which (functionally equivalent) messages are let through,
 and waiting until the appropriate time to inject inputs. For example, if the
@@ -338,7 +338,7 @@ original trace to the switches, and creates mock TCP connections that drop
 \noindent{\textbf{Packet Tracing}}. Especially for SDN controllers that react to
 flow events, we found it useful to trace the path of individual
 packets throughout the network. \projectname~includes tracing instrumentation
-similar to NetSight~\cite{ndb14} for this purpose.
+similar to NetSight~\cite{ndb} for this purpose.
 
 \noindent{\textbf{OpenFlow Reduction}}. The OpenFlow commands sent by controller software
 are often somewhat redundant. For example, controllers may override routing

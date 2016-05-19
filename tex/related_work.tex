@@ -75,7 +75,7 @@ the middle of the trace.
 Although these thread schedule minimization techniques do not
 explore divergent schedules,\footnote{PRES
 explores divergent schedules for best-effort replay of multithreaded
-executions, but does not minimize executions~\cite{park2009pres}}
+executions, but does not minimize executions~\cite{park2009pres}.}
  that constraint is not fundamental. Rather than
 only considering the original recorded thread schedule, one
 could explore new (divergent) schedules, store the newly recorded
@@ -244,7 +244,7 @@ systematic troubleshooting techniques, see our HotSDN publication~\cite{heller20
 % (visualization), (vi) program slicing, and (vii) automated debugging (fault
 % localization).\\[0.5ex]
 
-\noindent{\textbf{Interposition on blackbox distributed systems}} \sys's
+\noindent{\textbf{Interposition on blackbox distributed systems.}} \sys's
 software architecture closely resembles other automated testing systems for
 distributed
 systems~\cite{lin2009modist,leesatapornwongsa2014samc,simsa2010dbug}. All of
@@ -283,8 +283,8 @@ problematic code through replay or other means.
 \noindent{\textbf{Probabilistic Diagnosis.}} Record and replay systems incur
 performance overheads at runtime that can be too prohibitive for production deployments.
 With the aim of avoiding the runtime overhead of deterministic replay, probabilistic diagnosis
-techniques~\cite{Yuan:2010:SED:1736020.1736038,sangmin,kasikci2015failure} seek
-to capture carefully selected diagnostic information (e.g. stack traces,
+techniques~\cite{Yuan:2010:SED:1736020.1736038,sangmin,kasikci2015failure}
+capture carefully selected diagnostic information (e.g. stack traces,
 thread \& message interleavings) that should have high
 probability of helping developers find the root cause of a problem. One key insight
 underlying these techniques is cooperative debugging: the realization that
@@ -306,7 +306,10 @@ distributed snapshot in hand, we can check assertions about the state of the
 overall system (either offline~\cite{Liu07widschecker} or online~\cite{d3s}).
 Within the networking community, research along these lines has focused on
 verifying routing tables~\cite{hsa,hsa_realtime,anteater,khurshid2012veriflow}
-or forwarding behavior~\cite{Zeng:2012:ATP:2413176.2413205,libra}.
+or forwarding behavior~\cite{Zeng:2012:ATP:2413176.2413205,libra}. We focus on
+minimizing executions leading up to bugs, assuming we already have access to
+some mechanism for detecting those bugs.
+
 
 %With instrumentation available, it becomes possible
 %to check expectations about the
