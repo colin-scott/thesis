@@ -1,7 +1,8 @@
 \label{subsec:case_studies}
 
+%\begin{adjustbox}{center}
 \begin{table*}
-\begin{adjustwidth}{-2cm}{}
+\begin{adjustwidth}{-1.5cm}{}
 \centering
 \footnotesize
 \begin{tabular}{|l||l|l|r|r|r|l|}
@@ -97,9 +98,10 @@ rarely used codepath & 20 switch FatTree & 157.4 & 62 & 2 & Yes \\
 \end{tabular}
 \caption{Overview of Case Studies.}
 \label{tab:case_studies}
-%\vskip -1em
- \end{adjustwidth}
+\vskip -1em
+\end{adjustwidth}
 \end{table*}
+%\end{adjustbox}
 
 We first demonstrate \projectname's viability in troubleshooting real bugs. We found
 seven new bugs by fuzz testing five open source SDN control platforms:
