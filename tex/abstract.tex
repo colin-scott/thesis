@@ -1,21 +1,35 @@
-% SIGCOMM
-Software bugs are inevitable in software-defined networking control software,
-and troubleshooting
-is a tedious, time-consuming task. In this paper we discuss how to improve
-control software troubleshooting by presenting a technique
-for automatically identifying
-a minimal sequence of inputs responsible for triggering a given bug, without
-making assumptions about the language or instrumentation of the software under
-test. We apply our technique to five open source SDN control
-platforms---Floodlight, NOX, POX, Pyretic, ONOS---and
-illustrate how the minimal causal sequences our system found aided the
-troubleshooting process.
-\colin{Include key insight?}
+% Between 1 and 3 paragraphs.
 
-% NSDI
-When troubleshooting buggy executions of distributed systems, developers typically
-start by manually separating out events that are responsible for triggering the bug (signal) from those that are extraneous (noise).
-We present \sys, a tool for automatically performing this minimization.
-We apply \sys~to buggy executions of two very different distributed systems,
-Raft and Spark, and find that it produces minimized executions that are
-between 1X and 4.6X the size of optimal executions.
+% SIGCOMM
+% Software bugs are inevitable in software-defined networking control software,
+% and troubleshooting
+% is a tedious, time-consuming task. In this paper we discuss how to improve
+% control software troubleshooting by presenting a technique
+% for automatically identifying
+% a minimal sequence of inputs responsible for triggering a given bug, without
+% making assumptions about the language or instrumentation of the software under
+% test. We apply our technique to five open source SDN control
+% platforms---Floodlight, NOX, POX, Pyretic, ONOS---and
+% illustrate how the minimal causal sequences our system found aided the
+% troubleshooting process.
+% \colin{Include key insight?}
+%
+% % NSDI
+% When troubleshooting buggy executions of distributed systems, developers typically
+% start by manually separating out events that are responsible for triggering the bug (signal) from those that are extraneous (noise).
+% We present \sys, a tool for automatically performing this minimization.
+% We apply \sys~to buggy executions of two very different distributed systems,
+% Raft and Spark, and find that it produces minimized executions that are
+% between 1X and 4.6X the size of optimal executions.
+
+Bugs are commonplace in distributed systems software. When confronted with a buggy execution,
+understanding what went wrong requires significant expertise, time, and luck, since any combination of the
+thousands of concurrent events in the execution may have caused the system to arrive at the unsafe state.
+
+Software developers typically
+start debugging by manually separating out events that are responsible for triggering the bug (signal) from those that are extraneous (noise).
+In this thesis, we investigate whether it is possible to automate this separation process. We show that the general problem of execution
+minimization is intractable, but we develop, formalize, and
+empirically validate a set of heuristics---for both partially instrumented code, and completely instrumented code---that prove effective at
+reducing execution size to within a factor of 4.6X of minimal.
+To validate our heuristics, we relay our experiences applying our minimization tool to 7 different open source distributed systems.
