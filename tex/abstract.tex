@@ -23,11 +23,12 @@
 % between 1X and 4.6X the size of optimal executions.
 
 Bugs are commonplace in distributed systems software. When confronted with a buggy execution,
-understanding what went wrong requires significant expertise, time, and luck, since any combination of the
-thousands of concurrent events in the execution may have caused the system to arrive at the unsafe state.
+understanding what went wrong requires significant expertise, time, and luck.
 
 Software developers typically
 start debugging by manually separating out events that are responsible for triggering the bug (signal) from those that are extraneous (noise).
+% since any combination of the
+% thousands of concurrent events in the execution may have caused the system to arrive at the unsafe state.
 In this thesis, we investigate whether it is possible to automate this separation process. We show that the general problem of execution
 minimization is intractable, but we develop, formalize, and
 empirically validate a set of heuristics---for both partially instrumented code, and completely instrumented code---that prove effective at
