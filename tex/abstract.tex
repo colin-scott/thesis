@@ -22,15 +22,23 @@
 % Raft and Spark, and find that it produces minimized executions that are
 % between 1X and 4.6X the size of optimal executions.
 
-Bugs are commonplace in distributed systems software. When confronted with a buggy execution,
-understanding what went wrong requires significant expertise, time, and luck.
-
-Software developers typically
+When confronted with a buggy execution of a distributed system---which are
+commonplace for distributed
+systems software---understanding what went wrong requires significant expertise, time, and luck.
+As the first step towards fixing the underlying bug, software developers typically
 start debugging by manually separating out events that are responsible for triggering the bug (signal) from those that are extraneous (noise).
+
 % since any combination of the
 % thousands of concurrent events in the execution may have caused the system to arrive at the unsafe state.
-In this thesis, we investigate whether it is possible to automate this separation process. We show that the general problem of execution
+In this thesis, we investigate whether it is possible to automate this
+separation process. Our aim is to reduce time and effort spent on
+troubleshooting, and we do so by eliminating
+events from buggy executions that are not causally related to the bug, producing a ``minimal
+causal sequence'' (MCS) of triggering events.
+
+We show that the general problem of execution
 minimization is intractable, but we develop, formalize, and
 empirically validate a set of heuristics---for both partially instrumented code, and completely instrumented code---that prove effective at
 reducing execution size to within a factor of 4.6X of minimal.
-To validate our heuristics, we relay our experiences applying our minimization tool to 7 different open source distributed systems.
+To validate our heuristics, we relay our experiences applying our minimization
+tools to 7 different open source distributed systems.
