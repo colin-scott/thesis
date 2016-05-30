@@ -21,8 +21,8 @@ This act of ``troubleshooting'' (which precedes the act of debugging the
 code) is highly time-consuming, as developers spend hours poring
 over multigigabyte execution traces.\footnote{Software developers in general spend roughly half (49\% according to one
 study~\cite{msoft_concurrency}) of their time troubleshooting and debugging, and spend
-considerable time troubleshooting bugs that are difficult to trigger (the same study found
-that 70\% of the reported concurrency bugs take days to months to fix).}
+considerable time troubleshooting bugs that are difficult to trigger (70\% of reported concurrency bugs
+in~\cite{msoft_concurrency} took days to months to fix).}
 % Bugs are a fact of life;
 Our aim is to reduce effort spent on troubleshooting distributed systems like
 SDN control software, by automatically eliminating
@@ -37,15 +37,15 @@ sequence of events involving
 multiple actors. We therefore need to carefully
 control the interleaving of events in the face of asynchrony, concurrency and non-determinism in
 order to reproduce bugs throughout the minimization process.
-Contrary to deterministic replay
+In contrast to deterministic replay
 approaches, we strive to explore divergent execution paths. Crucially, we aim to
 minimize traces without making assumptions about the language
 or instrumentation of the control software.
 
-We have built a troubleshooting system that,
+In this chapter we demonstrate a troubleshooting system that,
 as far as we know, is the first to meet these challenges
 (as we discuss further in \S\ref{sec:related_work}). %(\cf~\S\ref{sec:related_work}).
-Once it reduces a given execution trace to an MCS (or an approximation thereof), the developer embarks
+Once our system reduces a given execution trace to an MCS (or an approximation thereof), the developer embarks
 on the debugging process. We claim that the greatly reduced size of the
 trace makes it easier for the developer to figure out which code path contains
 the underlying bug, allowing them to focus their effort on
@@ -56,7 +56,7 @@ and can help identify redundant bug reports where the MCSes are the same.
 Our troubleshooting system, which we call {\projectname} ({\projectmeaning}),
 consists of 23,000 lines of Python, and is designed so that organizations can
 implement the technology within their existing QA infrastructure (discussed in
-\S\ref{sec:architecture}); over the last year we have worked with a
+\S\ref{sec:architecture}); we have worked with a
 commercial SDN company to integrate \projectname. We evaluate {\projectname} in
 two ways. First and most significantly, we use {\projectname} to troubleshoot
 seven previously unknown bugs---involving concurrent events,
