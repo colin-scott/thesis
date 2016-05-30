@@ -5,25 +5,26 @@ SDN's purpose is to make networks easier to manage. SDN
 does this, however, by pushing complexity into SDN control software itself. Just
 as sophisticated compilers are hard to write, but make programming easy, SDN
 control software makes network management easier, but only by forcing the
-developers of SDN control software to confront the challenges of asynchrony,
+developers of SDN control software to confront the challenges of concurrency, asynchrony,
 partial failure, and other notoriously hard problems inherent to all distributed
 systems.
 %Thus, people will be troubleshooting and debugging SDN control software for many
 %years to come, until it becomes as stable as compilers are now.
 
-Current techniques for troubleshooting SDN control software are primitive; they
-essentially involve manual inspection of logs in the hope of identifying the
-relevant inputs. Here we developed a technique for automatically
+%Current techniques for troubleshooting SDN control software are primitive; they
+%essentially involve manual inspection of logs in the hope of identifying the
+%relevant inputs.
+In this chapter we demonstrated a technique for automatically
 identifying a minimal sequence of inputs responsible for triggering a given
 bug, without making assumptions about the language or instrumentation of the
-software. We believe our technique will be especially valuable for troubleshooting
-distributed controllers running complex applications, which are just now
-becoming available to the public and the broader research community.
+software. We focused specifically on SDN control software here, but in the
+next chapter we will show that these minimization heuristics are applicable
+to other distributed systems.
 
-We focused on SDN control software, but we believe our techniques
-are applicable to general distributed systems. As distributed systems
-proliferate, we hope that our technique helps ameliorate the dearth of
-tools in this important area.
+%We focused on SDN control software, but we believe our techniques
+%are applicable to general distributed systems. As distributed systems
+%proliferate, we hope that our technique helps ameliorate the dearth of
+%tools in this important area.
 
 %We have applied this system to three open source SDN platforms.
 %Of the five bugs we encountered in a five day investigation,
@@ -62,5 +63,4 @@ learned in this work, the challenges of maintaining virtualized and distributed
 views in a failure-prone environment are
 notably different from the challenges encountered in traditional,
 fully distributed control planes.
-
 }

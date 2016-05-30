@@ -1,11 +1,14 @@
-Distributed systems, like most software systems, are becoming increasingly complex over time.
-In comparison to other areas of software engineering however, the development
-tools that help programmers cope with the complexity of distributed \&
-concurrent systems are lagging behind their sequential counterparts.
-Inspired by the obvious utility of test case reduction tools, we sought to develop a
-minimization tool for distributed executions. Our evaluation results for two
-very different systems leave us optimistic that these techniques can be
-successfully applied to a wide range of concurrent systems.
+In this chapter, we started by observing that the actor model allows engineers to interpose
+on sources of non-determinism in their distributed system with low effort.
+Then, we demonstrated that with
+more complete control over sources of non-determinism, we can achieve
+significantly greater reduction in execution size (through systematic
+exploration of the space of possible schedules), as well as a cleaner
+problem formulation. Within the actor model we articulated new minimization
+strategies that quickly reduce both input events,
+internal events, and message contents. We ended the chapter by relaying our
+experiences applying these minimization strategies to two actor-based
+distributed systems.
 
 % TODO(cs): future work: try building up sequences rather than minimizing
 % them, using a model checker. (Small model hypothesis.)
