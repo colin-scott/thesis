@@ -149,7 +149,7 @@ topology.% may yield faster minimization, since bugs will often only involve a
 %small number of nodes in the distributed system.
 }
 
-\noindent{\textbf{Enabling analysis of production logs.}} \projectname~does
+\noindent{\textbf{Enabling analysis of production executions.}} \projectname~does
 not currently support reduction of production (as opposed
 to QA) executions. Production systems would need to include Lamport
 clocks on each message~\cite{Lamport:1978:TCO:359545.359563} or have
@@ -168,7 +168,7 @@ the failure actually occurred.
 to QA) logs.
 Here we present a sketch of how \projectname~might support production logs as input.
 
-While we take as input a single, totally-ordered log of the events in the
+While we take as input a single, totally-ordered trace of the events in the
 distributed system, production systems maintain a log at each node.
 Production systems would need to include Lamport
 clocks on each message~\cite{Lamport:1978:TCO:359545.359563} or have

@@ -390,7 +390,7 @@ output a non-minimal causal sequence. In the common case this is still
 better than what developers had before, since developers generally
 do not have tools for reproducing non-deterministic bugs.
 In the worst case \projectname~leaves the
-developer where they started: an unpruned log.
+developer where they started: an unpruned execution trace.
 
 \noindent{\textbf{Lack of Guarantees.}} Due to partial visibility and
 non-determinism, we do not provide guarantees on MCS minimality.
@@ -434,7 +434,7 @@ We are primarily focused on correctness bugs, not performance bugs.
 \noindent{\textbf{Bugs Found Through Fuzzing.}}
 We generate bugs primarily through fuzz testing, not by finding them in
 operational traces. There is a substantial practical hurdle in instrumenting
-operational systems to produce logs that can be injected into our system, as
+operational systems to produce execution traces that can be injected into our system, as
 discussed in \S\ref{sec:discussion}.
 % , and we have not addressed those issues yet.
 %In practice some bugs
@@ -442,8 +442,8 @@ discussed in \S\ref{sec:discussion}.
 
 \noindent{\textbf{Scaling.}}
 Our discussions with companies with large SDN deployments suggest that scaling to the size of the
-large logs they collect will be a substantial challenge.
-On the other hand, the fact that these logs are so large makes the need for finding MCSes even more acute.
+large execution traces they collect will be a substantial challenge.
+On the other hand, the fact that these execution traces are so large makes the need for finding MCSes even more acute.
 
 \eat{
 \noindent{\textbf{Proactive vs.\ Reactive Configuration.}} We focus primarily on

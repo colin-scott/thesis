@@ -14,9 +14,10 @@ An invariant is a predicate $P$ over forwarding state (a safety
 condition, \eg~loop-freedom). We say that configuration
 $c$ violates the invariant if $P(c)$ is false, denoted $\overline{P}(c)$.
 
-We are given a log $L$ generated
-by a centralized QA test orchestrator.\footnote{We discuss how these logs are generated in \S\ref{sec:systems_challenges}.\label{fn:log_gen}}
-The log $L$ contains a sequence of events
+We are given an execution trace $L$ generated
+by a centralized QA test orchestrator.\footnote{We discuss how these execution
+traces are generated in \S\ref{sec:systems_challenges}.\label{fn:log_gen}}
+The execution trace $L$ contains a sequence of events
 \setlength{\belowdisplayskip}{0.3pt} \setlength{\belowdisplayshortskip}{0.3pt}
 \setlength{\abovedisplayskip}{0pt} \setlength{\abovedisplayshortskip}{0pt}
 \begin{align*}
@@ -31,7 +32,7 @@ triggered by the control software (\eg~OpenFlow messages).
 The external events include timestamps $\left\{ (\text{\external{k}}, t_k) \right\}$ recorded from the
 orchestrator's clock.% of when the test orchestrator injected them.
 
-A replay of log $L$ involves replaying the external events $E_L$, possibly
+A replay of execution trace $L$ involves replaying the external events $E_L$, possibly
 taking into account the occurrence of internal events $I_L$.
 We denote a replay attempt by $replay(\tau)$.
 The output of $replay$ is a sequence of forwarding state configurations
@@ -40,13 +41,13 @@ sequence of network configurations that occurred originally, but as we discuss l
 this does not always hold.
 
 If the configuration sequence $C_L = c_1,c_2,\dots,c_n$ associated with the
-log $L$ violated predicate $P$
+execution trace $L$ violated predicate $P$
 (\ie$\exists_{c_i \in C_L}. \overline{P}(c_i)$)
 then we say $replay(\tau) = C_R$ reproduces that violation
 if $C_R$ contains another faulty configuration
 (\ie$\exists_{\hat{c}_i \in C_R}. \overline{P}(\hat{c}_i)$).
 
-The goal of our work is, when given a log $L$ that exhibited an
+The goal of our work is, when given an execution trace $L$ that exhibited an
 invariant violation,\footref{fn:log_gen} to find a small, replayable sequence of events that reproduces that
 invariant violation. Formally, we define a minimal causal sequence (MCS)
 to be a sequence $\tau_M$ where the external events $E_M \in \tau_M$ are a

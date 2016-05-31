@@ -1,7 +1,7 @@
-Given a log $L$ generated from testing infrastructure,\footref{fn:log_gen}
+Given an execution trace $L$ generated from testing infrastructure,\footref{fn:log_gen}
 our goal is to find an approximate MCS, so that a human can examine the
 reduced execution
-rather than the full log. This involves two tasks:
+rather than the full trace. This involves two tasks:
 searching through subsequences of $E_L$, and deciding when to inject external
 events for each subsequence so that, whenever possible, the invariant
 violation is retriggered.
@@ -238,7 +238,7 @@ It optionally obtains partial visibility into (b) by instrumenting controller
 software with a simple interposition layer (to be described in \S\ref{subsec:mitigating}).
 By virtue of managing inputs and message deliveries from a central location, we are
 able to totally-order the event trace $\tau_L$.
-%We thereby augment the log $(E_L, T_L)$ with a schedule
+%We thereby augment the trace $(E_L, T_L)$ with a schedule
 %$\tau_L\!=\!e_1\!\rightarrow\!i_1\!\rightarrow\!\dots\!e_2\!\rightarrow\!\dots$, where
 %each $i$ is an internal event observed in the original run.
 
@@ -311,7 +311,8 @@ Log statements & varargs parameters to printf \\
 \end{table}
 
 \noindent{\textbf{Functional Equivalence.}} Internal events may differ syntactically (\eg~sequence numbers
-of control packets may all differ) when replaying a subsequence of the original log.
+of control packets may all differ) when replaying a subsequence of the
+original execution trace.
 We observe that many internal events are {\em functionally
 equivalent}, in the sense that they
 have the same effect on the state of the system with respect to triggering the
@@ -330,7 +331,7 @@ applied programmatically to event traces.
 We show the fields we mask in Table~\ref{tab:fingerprints}. We consider an
 internal event $i'$ observed in the replay
 equivalent (in the sense of inheriting all of its happens-before relations) to an internal
-event $i$ from the original log if and only if all unmasked fields have the same value
+event $i$ from the original execution trace if and only if all unmasked fields have the same value
 and $i$ occurs between $i'$'s preceding and succeeding inputs in the
 happens-before relation.
 
@@ -378,8 +379,8 @@ Non-deterministic TCAMs & Modified switches \\
 }
 
 \noindent{\textbf{Handling Absent Internal Events.}} Some internal events from the original
-log that causally ``happen before'' some external input
-may be absent when replaying a subsequence of that log.
+execution trace that causally ``happen before'' some external input
+may be absent when replaying a subsequence of that execution.
 For instance, if we prune a link failure event, then
 the corresponding link failure notification will never arise.
 \eat{
@@ -478,7 +479,7 @@ in Figure~\ref{fig:replay}.
 \end{figure}
 
 \noindent{\textbf{Handling New Internal Events.}} The last possible change induced by pruning is the occurrence of new
-internal events that were not observed in the original log.
+internal events that were not observed in the original execution trace.
 New events present multiple possibilities for where
 we should inject the next input. Consider the following case:
 if $i_2$ and $i_3$ are internal events observed
