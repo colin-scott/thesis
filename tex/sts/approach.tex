@@ -1,5 +1,6 @@
 Given a log $L$ generated from testing infrastructure,\footref{fn:log_gen}
-our goal is to find an approximate MCS, so that a human can examine the MCS
+our goal is to find an approximate MCS, so that a human can examine the
+reduced execution
 rather than the full log. This involves two tasks:
 searching through subsequences of $E_L$, and deciding when to inject external
 events for each subsequence so that, whenever possible, the invariant
@@ -95,7 +96,7 @@ reproducing violations.
 \noindent{\textbf{Existing Approaches.}} The most natural approach to scheduling
 external events is to maintain the original wall-clock timing intervals
 between them.
-If this is able to find all minimization opportunities,
+If this is able to find all reduction opportunities,
 \ie~reproduce the violation for all
 subsequences that are a superset of some MCS, we say that the inputs are
 isolated. The original applications of delta
@@ -116,7 +117,7 @@ t'_i = t'_{i-1} + |t_{i} - t_{i-1}|
 }
 }
 
-We tried this approach for minimizing our executions, but were rarely
+We tried this approach for reducing our executions, but were rarely
 able to reproduce invariant violations. As our case studies demonstrate
 (\S\ref{sec:evaluation}), this is largely due
 to the concurrent, asynchronous nature of distributed systems; consider that the network
@@ -135,8 +136,8 @@ We must therefore consider the internal events of the control software. To deter
 reproduce bugs, we would need visibility into every I/O request and response (\eg~clock
 values or network messages), as well as all thread scheduling
 decisions for each controller. This information is the starting point for thread schedule
-minimization
-techniques, which seek to minimize thread interleavings leading up to race conditions.
+reduction
+techniques, which seek to reduce thread interleavings leading up to race conditions.
 These approaches involve iteratively feeding a single input (the thread
 schedule) to a single entity (a deterministic scheduler)~\cite{choi2002isolating,claessen2009finding,jalbert2010trace}, or
 statically analyzing feasible thread schedules~\cite{huang2011efficient}.
@@ -153,10 +154,10 @@ may no longer be executed).
 By fixing the inputs, these approaches are forced to stay on the original code
 path, and are unable to find alternate paths that still
 trigger the invariant violation. They can only indirectly
-minimize inputs by truncating thread executions (\ie~causing them to
+reduce inputs by truncating thread executions (\ie~causing them to
 exit early), or by removing threads that are entirely extraneous.
 They consequently strive for a subtly different goal than ours:
-minimization of thread context switches rather than input events.
+reducing thread context switches rather than input events.
 
 %\noindent{\bf Program Flow Analysis.} Other than delta debugging,
 %the closest work to ours involves reasoning about
@@ -180,7 +181,7 @@ With access to the instruction-level execution, they can compute
 program flow dependencies, and thereby remove input events from anywhere in the trace as long as they
 can prove that doing so cannot possibly cause the faulty execution path (\ie~the program slice) to diverge.
 
-While program flow reduction is able to minimize inputs rather than thread context switches,
+While program flow reduction is able to reduce inputs rather than thread context switches,
 these techniques are still not able to find alternate states that still
 trigger the invariant violation. They are also overly conservative in
 removing inputs (\eg~EFF takes the transitive closure of all possible
@@ -188,17 +189,17 @@ dependencies~\cite{Lee:2011:TGR:1993498.1993528}) causing them to miss opportuni
 remove dependencies that actually semantically commute.
 
 \noindent{\textbf{Allowing Divergence.}} Our approach is
-to dynamically respond to I/O requests during minimization
+to dynamically respond to I/O requests during execution reduction
 rather than recording all I/O requests and thread scheduling decisions.
 This has several advantages. Unlike
 the other approaches, we can find shorter alternate code paths that still
 trigger the invariant violation, since we are not constrained to executing the exact code path
-from the original run. Previous {\em best-effort} execution minimization
+from the original run. Previous {\em best-effort} execution reduction
 techniques~\cite{clause2007technique,tucek2007triage} also allow alternate
 code paths, but do not systematically
 consider concurrency and asynchrony.\footnote{Park et al.\cite{park2009pres}
 also reproduce multithreaded executions in a best-effort fashion (allowing for
-alternate code paths), but do not minimize the execution or consider event
+alternate code paths), but do not reduce the execution or consider event
 modifications.}
 We also avoid the runtime overhead of recording all I/O
 requests and later replaying them (\eg~EFF incurs roughly 10x slowdown during
@@ -242,11 +243,11 @@ able to totally-order the event trace $\tau_L$.
 %each $i$ is an internal event observed in the original run.
 
 Note that we do not control the occurrence of internal events, and therefore do
-not attempt to minimize them. Crucially though, we need to ensure that the ordering
+not attempt to reduce them. Crucially though, we need to ensure that the ordering
 of input and internal events during
 $replay()$ of each subsequence is consistent with the happens-before relation,
 so that we can report invariant violations
-(minimization opportunities) to delta debugging as often as possible.
+(reduction opportunities) to delta debugging as often as possible.
 To meet this requirement our test orchestrator may use its interposition on
 messages to reorder or drop messages as necessary during replay.
 %The final MCS produced by our system therefore includes a schedule

@@ -33,7 +33,7 @@ start debugging by manually separating out events that are responsible for trigg
 In this thesis, we investigate whether it is possible to automate this
 separation process. Our aim is to reduce time and effort spent on
 troubleshooting, and we do so by eliminating
-events from buggy executions that are not causally related to the bug, producing a ``minimal
+events from buggy executions that are not causally related to the bug, ideally producing a ``minimal
 causal sequence'' (MCS) of triggering events.
 
 We show that the general problem of execution
@@ -41,5 +41,5 @@ minimization is intractable, but we develop, formalize, and
 empirically validate a set of heuristics---for both partially instrumented code, and completely instrumented code---that prove effective at
 reducing execution size to within a factor of 4.6X of minimal within a bounded
 time budget of 12 hours.
-To validate our heuristics, we relay our experiences applying our minimization
+To validate our heuristics, we relay our experiences applying our execution reduction
 tools to 7 different open source distributed systems.

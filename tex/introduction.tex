@@ -2,20 +2,27 @@ Research Statement
 Colin Scott (cs@cs.berkeley.edu)
 
 My approach to research is to start by understanding the problems faced by the people I intend to support, then to formalize these problems and develop principled tools and techniques to solve them, and finally to close the loop by evaluating whether my ideas succeed in supporting those people. The genesis of my dissertation topic was an internship I did at Nicira, where I saw that the company’s most skilled developers spent the majority of their time sifting through log files from buggy executions. I spent the next 4 years experimenting with formal methods and systems for aiding their debugging effort, building out usable prototypes, and eliciting feedback from the software development communities I intended to support.
-Dissertation Work: Minimizing Faulty Executions of Distributed Systems
+Dissertation Work: Reducing Faulty Executions of Distributed Systems
 
 When a bug is found in a long-running distributed system, developers typically start by identifying (i) which events in the execution caused their system to arrive at the unsafe state, and (ii) which events are irrelevant. This process of troubleshooting can be highly time-consuming, as developers might spend hours poring over multigigabyte traces containing thousands of events.
 
-My dissertation work aims to reduce effort spent on troubleshooting distributed systems, by automatically eliminating events from buggy executions that are not causally related to the bug at hand. The developer is left with a `minimal causal sequence' of triggering events, each of which is necessary for triggering the bug. We claim that the greatly reduced size of the trace makes it easier for the developer to figure out which code path contains the underlying bug, allowing them to focus their effort on the task of fixing the problematic code itself.
+My dissertation work aims to reduce effort spent on troubleshooting
+distributed systems, by automatically eliminating events from buggy executions
+that are not causally related to the bug at hand. We seek to leave the developer with a `minimal causal sequence' of triggering events, each of which is necessary for triggering the bug. We claim that the greatly reduced size of the trace makes it easier for the developer to figure out which code path contains the underlying bug, allowing them to focus their effort on the task of fixing the problematic code itself.
 
 My investigation into this problem took place in two parts:
 Focus on SDN control software, with limited control over the execution.
 
 I started in the context of software-defined networking [1,2,3], where I posed the question:
 
-Is it possible to minimize executions of distributed SDN control software, without making any assumptions about the language or instrumentation of the software under test?
+Is it possible to reduce executions of distributed SDN control software, without making any assumptions about the language or instrumentation of the software under test?
 
-I discovered that, although input minimization is well studied for sequential programs, I could find no principled approaches to minimization for blackbox concurrent systems. My investigation lead me to identify several challenges posed by concurrency. Most importantly, input events (e.g., node failures) are interleaved with the internal events (e.g., state transitions) of concurrent processes. In searching for a minimal execution, minimization algorithms must therefore consider both which of the input events and which of the (exponentially many) event schedules are likely to still trigger the bug. This lead to the first key challenge: 
+I discovered that, although input reduction is well studied for sequential
+programs, I could find no principled approaches to reducing executions of
+blackbox concurrent systems. My investigation lead me to identify several
+challenges posed by concurrency. Most importantly, input events (e.g., node
+failures) are interleaved with the internal events (e.g., state transitions)
+of concurrent processes. In searching for a minimal execution, reduction algorithms must therefore consider both which of the input events and which of the (exponentially many) event schedules are likely to still trigger the bug. This lead to the first key challenge: 
 
 	How should we interleave events while we search for a minimal execution?
 
@@ -30,7 +37,10 @@ I took an experimental approach to this challenge. Through case studies I discov
 Impact: STS has gained adoption by both academics and industrial organizations: it has been used as part of the development process for the ONOS open source SDN controller; I sent an undergraduate on an internship to Big Switch Networks to integrate STS; and STS has been used as the basis for research projects at EPFL and Duke [12,13].
 Focus on classical distributed systems, with nearly perfect control.
 
-STS focused narrowly on one kind of distributed system, and the heuristics we developed for STS left significant room for improvement. In my next project [4] I identified a computational model that would allow us to cleanly reason about new minimization heuristics, and I applied these heuristics successfully to several types of distributed systems besides SDN software.
+STS focused narrowly on one kind of distributed system, and the heuristics we
+developed for STS left significant room for improvement. In my next project
+[4] I identified a computational model that would allow us to cleanly reason
+about new reduction heuristics, and I applied these heuristics successfully to several types of distributed systems besides SDN software.
 
 The computational model I identified---the actor model---showed how we could gain (nearly) perfect control over the execution of events in actor-based distributed systems. With this control in place, it would be theoretically possible to simply enumerate all possible schedules, execute each one, and pick the smallest execution that triggers the bug. The space of all possible schedules is intractably large however, which lead to our main question:
 
@@ -40,7 +50,11 @@ My general approach would be to carefully prioritize the order in which we explo
 
 How can we reason about the similarity or dissimilarity of two distinct executions?
 
-I developed a hierarchy of equivalence relations between events, and showed that systematically exploring schedules that are close to the original execution yielded significant gains in minimization over the previous heuristics from STS. I implemented these heuristics in a system called DEMi, and used it to find and minimize several bugs in the Raft consensus protocol and the Spark data analytics engine.
+I developed a hierarchy of equivalence relations between events, and showed
+that systematically exploring schedules that are close to the original
+execution yielded significant gains in reduction over the previous
+heuristics from STS. I implemented these heuristics in a system called DEMi,
+and used it to find and reduce several bugs in the Raft consensus protocol and the Spark data analytics engine.
 
 Impact: DEMi has already gained notable attention from industry; it has been covered by industrial bloggers other than myself, and I have received 3 invitations to speak about DEMi at industrial conferences venues.
 Other Research

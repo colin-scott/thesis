@@ -147,21 +147,21 @@ $\overline{P}$.\footnote{It might be possible to reproduce $\overline{P}$ by
 removing multiple events from $E'$,
 but checking all combinations is tantamount to enumerating its powerset.
 Following~\cite{Zeller:2002:SIF:506201.506206}, we
-only require a 1-minimal subsequence $E'$ instead of a globally minimal
+only seek a 1-minimal subsequence $E'$ instead of a globally minimal
 subsequence.}
 
-We start by minimizing external (input) events because they are the first level
+We start by reducing external (input) events because they are the first level
 of abstraction that developers reason about. Occasionally, developers can
 understand the root cause simply by examining the external events.
 
 For more difficult bugs, developers typically step through the internal events of
 the execution to understand more precisely how the system arrived at the unsafe
-state. To help with these cases, we turn to minimizing internal events after
-the external events have been minimized. At this stage we fix the external events and search for
+state. To help with these cases, we turn to reducing internal events after
+the external events have been reduced. At this stage we fix the external events and search for
 smaller schedules that still triggers the invariant
 violation, for example, by keeping some
 messages pending rather than delivering them.
-Lastly, we seek to minimize the contents (e.g. data payloads) of external messages.
+Lastly, we seek to shrink the contents (e.g. data payloads) of external messages.
 
 Note that we do not focus on bugs involving only sequential computation (e.g.
 incorrect handling of unexpected input), performance, or human
@@ -171,8 +171,8 @@ We target concurrency bugs because they are the most complex (correspondingly, t
 debug~\cite{msoft_concurrency}), and because mature debugging tools already exist for sequential code.
 %systems lies,  % and because there are existing tools for sequential code
 
-With a minimized execution in hand, the developer begins debugging.
-Echoing the benefits of sequential test case minimization, we claim that the greatly reduced size of the
+With a reduced execution in hand, the developer begins debugging.
+Echoing the benefits of sequential test case reduction, we claim that the greatly reduced size of the
 trace makes it easier to understand which code path contains
 the underlying bug, allowing the developer to focus on
 fixing the problematic code itself.

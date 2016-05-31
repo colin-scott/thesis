@@ -26,16 +26,16 @@
 We start our discussion of related work with the most closely
 related literature.
 
-\section{Minimization Techniques}
+\section{Reduction Techniques}
 
-\noindent{\textbf{Input Minimization for Sequential Programs.}} Minimization
+\noindent{\textbf{Input Reduction for Sequential Programs.}} Reduction
 algorithms for sequentially processed inputs are
 well-studied~\cite{Zeller:2002:SIF:506201.506206,claessen2000quickcheck,regehr2012test,whitaker2004configuration,burger2011minimizing,fse_web_ddmin,chang2007simulation}.
 These (particularly: delta debugging) form a component of our solution, but they do not consider
 interleavings of internal events from concurrent processes.
 
-\noindent{\textbf{Minimization without Interposition.}} Several
-tools minimize inputs to concurrent
+\noindent{\textbf{Reduction without Interposition.}} Several
+tools reduce inputs to concurrent
 systems without controlling sources of non-determinism~\cite{arts2006testing,clause2007technique,tucek2007triage,jin2013f3,hughes2011testing}.
 The most sophisticated of these replay each subsequence
 multiple times and check whether the violation is reproduced at least once~\cite{hughes2011testing,claessen2009finding}.
@@ -43,45 +43,45 @@ Their major advantage is that they avoid the engineering effort required to
 interpose. Their drawback, as we found in chapter~\ref{sec:sts},
  is that bugs are often not easily reproducible without
 interposition. Furthermore, without interposition these techniques cannot
-(directly) minimize internal events.
+(directly) reduce internal events.
 
 % TODO(cs): the QuickCheck papers all seem quite optimistic about how
 % effective simply replaying multiple times is.
 % We should compare against them to see to what degree systematic exploration is in fact better.
 
 QuickCheck's PULSE controls the message delivery
-schedule~\cite{claessen2009finding} and supports schedule minimization. During replay, it considers the
+schedule~\cite{claessen2009finding} and supports schedule reduction. During replay, it considers the
 order messages are sent in, but not message contents.
 When it cannot replay a step, it skips it (similar to
 STSSched), and reverts to random scheduling once expected messages
 are exhausted~\cite{hughes_email}. As the QuickCheck developers point
-out, even with PULSE's interposition, QuickCheck's minimized counterexamples can be
+out, even with PULSE's interposition, QuickCheck's reduced counterexamples can be
 large~\cite{pulse_counterexamples}. With more complete exploration of the
-schedule space their minimization would likely be improved.
+schedule space their reduction would likely be improved.
 
-\noindent{\textbf{Thread Schedule Minimization.}} Other techniques seek to minimize thread
+\noindent{\textbf{Thread Schedule Reduction.}} Other techniques seek to reduce thread
 interleavings leading up to concurrency
 bugs~\cite{choi2002isolating,jalbert2010trace,huang2011efficient,el2014efficient}.
 These generally work by iteratively feeding a single input (mutations of a
 recorded thread schedule) to a single entity (a deterministic thread scheduler). These approaches
 ensure that the program never diverges from the control flow of the
 original schedule (otherwise the recorded I/O responses and context switch points
-from the original execution would become useless). Besides minimizing context
+from the original execution would become useless). Besides reducing context
 switches, these approaches at
 best {\em truncate} thread executions by having threads exit earlier than they did in the original
 execution (thereby shortening the execution trace), but they cannot remove extraneous events from
 the middle of the trace.
 
-Although these thread schedule minimization techniques do not
+Although these thread schedule reduction techniques do not
 explore divergent schedules,\footnote{PRES
 explores divergent schedules for best-effort replay of multithreaded
-executions, but does not minimize executions~\cite{park2009pres}.}
+executions, but does not reduce executions~\cite{park2009pres}.}
  that constraint is not fundamental. Rather than
 only considering the original recorded thread schedule, one
 could explore new (divergent) schedules, store the newly recorded
 I/O responses and context switch points, and replay those recordings
 deterministically later on. Such a system
-for multicore schedule minimization would be equivalent to \sys~as we apply it to message passing
+for multicore schedule reduction would be equivalent to \sys~as we apply it to message passing
 distributed systems.
 
 % To deterministically
@@ -109,7 +109,7 @@ distributed systems.
 % (thereby shortening the execution trace), but they cannot remove extraneous events from
 % the middle of the trace.
 %
-\noindent{\textbf{Thread Schedule Minimization Augmented with Program
+\noindent{\textbf{Thread Schedule Reduction Augmented with Program
 Analysis.}} One can remove events in the middle of a recorded deterministic
 replay log by analyzing the program's control- and
 dataflow dependencies and providing a proof that removing those events will not shift the
@@ -120,7 +120,8 @@ state reachability (because some conditionals are undecidable or difficult to
 model; e.g., EFF takes the transitive closure of all possible
 dependencies~\cite{Lee:2011:TGR:1993498.1993528}), disallowing them from removing dependencies that actually commute.
 
-We compare against thread schedule minimization (without divergence) by configuring \sys~to minimize as before,
+We compare against thread schedule reduction (without divergence) by
+configuring \sys~to reduce as before,
 but to abort any execution
 where it detects a previously unobserved state transition. Column `NoDiverge'
 of Table~\ref{dtab:case_studies} shows the results, which demonstrate that
@@ -175,7 +176,7 @@ dissertation are most closely
 related to the model checking literature.
 
 Abstract model checkers convert (possibly concurrent) programs to logical formulas, find
-logical contradictions (assertion violations) using solvers, and minimize the logical
+logical contradictions (assertion violations) using solvers, and reduce the logical
 conjunctions to aid
 understanding~\cite{christ2013flow,khoshnood2015concbugassist,machado2015concurrency}.
 Model checkers are very powerful, but they are typically tied to a single
@@ -193,7 +194,7 @@ be minimal by construction. However, breadth first enumeration takes very long t
 implementation with depth bound slightly greater than the optimal trace size still had not found any invariant violations. In
 contrast, \sys's randomized testing discovered
 most of our reported bugs within 10s of minutes).
-Furthermore, minimization is
+Furthermore, reduction is
 useful beyond testing, e.g. for simplifying production traces.
 
 Motivated by the intractability of systematic input enumeration, many papers
@@ -206,9 +207,9 @@ an application's use
 of TCP constrains its schedule space.
 
 As far as we know, we are the first to combine DPOR and delta debugging to
-minimize executions. Others have modified DPOR to keep state~\cite{yang2008efficient,yi2006stateful}
+reduce executions. Others have modified DPOR to keep state~\cite{yang2008efficient,yi2006stateful}
 and to apply heuristics for choosing initial schedules~\cite{lauterburg2010evaluating}, but these
-changes are intended to help find new bugs rather than minimize existing
+changes are intended to help find new bugs rather than reduce existing
 faulty executions.
 
 \noindent{\textbf{Program Slicing \& Automated Debugging.}} Program slicing~\cite{weiser1981program}
@@ -277,7 +278,7 @@ state of the system.
 %Closely related to \projectname, OFRewind~\cite{} provides
 %record and replay of OpenFlow channels between controllers and switches.
 Manually examining long system executions can be tedious, and our goal is to
-minimize such executions so that developers find it easier to identify the
+reduce such executions so that developers find it easier to identify the
 problematic code through replay or other means.
 
 \noindent{\textbf{Probabilistic Diagnosis.}} Record and replay systems incur
@@ -307,7 +308,7 @@ overall system (either offline~\cite{Liu07widschecker} or online~\cite{d3s}).
 Within the networking community, research along these lines has focused on
 verifying routing tables~\cite{hsa,hsa_realtime,anteater,khurshid2012veriflow}
 or forwarding behavior~\cite{Zeng:2012:ATP:2413176.2413205,libra}. We focus on
-minimizing executions leading up to bugs, assuming we already have access to
+reducing executions leading up to bugs, assuming we already have access to
 some mechanism for detecting those bugs.
 
 
@@ -432,7 +433,7 @@ be structured~\cite{pip}, monitor performance isolation in a multi-tenant
 environment~\cite{retro}, track the flow of packets through a
 network~\cite{ndb}, and detect performance anomalies~\cite{perf_changes}.
 These use-cases enable developers to understand
-how, when, and where the system broke. In contrast, we focus on providing the
+how, when, and where the system broke. In contrast, we seek to provide the
 minimal set of events needed for the software
 to violate an invariant.
 
@@ -721,7 +722,7 @@ recent project ndb~\cite{handigol2012debugger}. OFRewind provides
 record and replay of OpenFlow control channels, and
 allows humans to manually step through and filter input traces.
 We focus on testing corner cases and automatically
-isolating minimal input traces.
+finding minimal input traces.
 
 ndb provides a
 trace view into the OpenFlow forwarding tables
@@ -754,7 +755,7 @@ traces hold. MagPie~\cite{barham2004using} automatically identifies anomalous
 traces, as well as unlikely transitions within anomalous traces by constructing
 a probabilistic state machine from a large collection of traces and
 identifying low probability paths.
-Our approach identifies the exact minimal causal set of inputs without
+Our approach seeks to identify the exact minimal causal set of inputs without
 depending on probabilistic models.
 
 \colin{Cut:}
@@ -769,7 +770,7 @@ fidelity goals of pre-existing simulators.
 Root cause analysis~\cite{yemini1996} and dependency inference~\cite{Kandula:2009:DDE:1592568.1592597}
 techniques seek to identify the minimum set of failed
 components (\eg~link failures) needed to explain a collection of alarms. Rather than
-focusing on individual component failures, we seek to minimize inputs that affect the behavior
+focusing on individual component failures, we seek to reduce inputs that affect the behavior
 of the overall distributed system.
 
 % Debug Determinism~\cite{zamfir2011debug}: suggests that replay debuggers should not seek to achieve

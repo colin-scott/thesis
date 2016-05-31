@@ -150,8 +150,8 @@ topology.% may yield faster minimization, since bugs will often only involve a
 }
 
 \noindent{\textbf{Enabling analysis of production logs.}} \projectname~does
-not currently support minimization of production (as opposed
-to QA) logs. Production systems would need to include Lamport
+not currently support reduction of production (as opposed
+to QA) executions. Production systems would need to include Lamport
 clocks on each message~\cite{Lamport:1978:TCO:359545.359563} or have
 sufficiently accurate clock synchronization to obtain a happens-before
 relation. Inputs would also
@@ -164,7 +164,7 @@ detectors~\cite{chandra1996unreliable}, which log a failure iff
 the failure actually occurred.
 
 \eat{ % LONG VERSION
-\projectname~does not currently support minimization of production (as opposed
+\projectname~does not currently support reduction of production (as opposed
 to QA) logs.
 Here we present a sketch of how \projectname~might support production logs as input.
 

@@ -68,7 +68,7 @@ scheduling techniques seek to take advantage of.
 \noindent{\bf Test oracle approximations.} If the distributed system does not cease
 sending messages, the test oracle needs to place a bound on how many steps it
 explores before returning an
-answer to the minimization function. Since we only consider safety violations
+answer to the reduction function. Since we only consider safety violations
 and not liveness violations, the test oracle can check the predicate $P$ at any
 point in the execution, and any violation of the predicate it finds mid-way
 through the execution counts as a valid test failure.
@@ -125,7 +125,7 @@ Commutativity is a well-known property for reducing state-space
 blowup. For example, partial order
 reduction (POR) reduces the number of event orderings model checkers need to
 explore by inferring which messages are concurrent~\cite{godefroid1995partial,flanagan2005dynamic}.
-We also apply partial order reduction when minimizing executions.
+We also apply partial order reduction when reducing executions.
 
 \noindent{\bf Bounded Edit-Distance.} TODO.
 
@@ -141,7 +141,7 @@ particular, what equivalence relation are we establishing? Perhaps it's saying
 that there's an equivalence between all schedules that exceed the
 edit-distance bound?}
 
-\subsection{Properties useful for minimizing external events}
+\subsection{Properties useful for reducing external events}
 
 Distributed systems may also exhibit properties that are useful for
 implementing $Min$, i.e. choosing subsequences of external events.\footnote{
@@ -194,7 +194,7 @@ quite clear to me}
 Even if some useful program properties hold, the task of exhaustively
 minimizing an execution may still be intractable. In lieu of tractability, we
 would like to at least ensure that we prioritize the computation we devote to
-minimizing different parts of the execution.
+reducing different parts of the execution.
 
 In particular, we would like to ensure that $Min$ ensure `fairness'. Informally,
 fairness means that
@@ -205,10 +205,10 @@ extraneous first, and leaves the more difficult cases towards the end.
 Fairness is useful it ensures that $Min$'s progress is most rapid in the
 earliest parts of its computation.
 
-To support `fair' minimization functions, we give test oracles a fixed
+To support `fair' reduction functions, we give test oracles a fixed
 computational budget, so that they are only allowed to explore a fixed
 number of schedules before either finding a failing schedule or notifying the
-minimization function that it is still unsure whether any failing schedule
+reduction function that it is still unsure whether any failing schedule
 exists.
 
 % Earlier idea: interposing at a library layer, e.g. the NIB.

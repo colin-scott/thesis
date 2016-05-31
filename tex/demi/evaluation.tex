@@ -79,7 +79,7 @@
 removed; `STSSched' minus `TFB' shows how our new techniques
 compare to the previous state of the art (\S\ref{sec:sts});
  `TFB' minus `Optimal' shows how far from optimal our results are; and
-`NoDiverge' shows the size of minimized executions when no divergent schedules are explored (explained
+`NoDiverge' shows the size of reduced executions when no divergent schedules are explored (explained
 in \S\ref{sec:related_work}).}
 \label{dtab:case_studies}
 %\vskip -2em
@@ -131,7 +131,7 @@ in \S\ref{sec:related_work}).}
 \hline
 \end{tabular}
 %\vskip -1em
-\caption{Minimization runtime in seconds (total schedules executed). spark-9256 only
+\caption{Runtime of execution reduction in seconds (total schedules executed). spark-9256 only
 had unignorable events remaining after STSSched completed, so TFB was not
 necessary.}
 \label{tab:runtime}
@@ -147,7 +147,7 @@ necessary.}
 
 Our evaluation focuses on two key metrics: (i) the size of
 the reproducing sequence found by \sys, and (ii) how quickly
-\sys~is able to make minimization progress within a fixed time
+\sys~is able to make reduction progress within a fixed time
 budget. We show a high-level overview
 of our results in Table~\ref{dtab:case_studies}.
 The ``Bug Type'' column shows two pieces of information: whether the bug can be
@@ -175,9 +175,9 @@ that \sys~produces executions that are within
 a factor of 1X to 4.6X (1.6X median) the size of the smallest possible execution
 that triggers that bug, and between 1X and 16X (4X median) smaller than the
 executions produced by our previous technique (STSSched).
-STSSched is effective at minimizing external events (our primary minimization
+STSSched is effective at reducing external events (our primary reduction
 target) for most case studies. TFB is
-significantly more effective for minimizing internal events (our secondary
+significantly more effective for reducing internal events (our secondary
 target), especially for akka-raft.
 Replayable executions for all case studies are available at
 \href{https://github.com/NetSys/demi-experiments}{github.com/NetSys/demi-experiments}.
@@ -213,7 +213,7 @@ Our evaluation of Spark demonstrates that \sys~can be applied to complex, large 
 %, and a reliable broadcast implementation,
 
 \noindent{\textbf{Reproducing Sequence Size.}} We compare the size of the
-minimized executions produced by \sys~against the
+reduced executions produced by \sys~against the
 smallest fault-inducing executions we could construct by hand (interactively
 instructing \sys~which messages to deliver).
 For 6 of our 10 case studies, \sys~was within a factor of 2 of optimal.
@@ -239,7 +239,7 @@ Table~\ref{dtab:case_studies}, and the size
 of our manually constructed traces is shown in the \num{final} column.\george{The last column does not seem to be the manual result}
 }
 
-\noindent{\textbf{Minimization Pace.}} To measure how quickly \sys~makes
+\noindent{\textbf{Reduction Pace.}} To measure how quickly \sys~makes
 progress, we graph schedule size as a function of the number of
 executions~\sys tries.
 Figure~\ref{fig:progress} shows an example for
@@ -250,7 +250,7 @@ marginal gains.
     \centering
     \includegraphics{demi/raft_58b_minimization_progress.pdf}
     %\vspace{-2em}
-    \caption{\label{fig:progress} Minimization pace for raft-58b. Significant progress is made early on, then progress becomes rare.}
+    \caption{\label{fig:progress} Reduction pace for raft-58b. Significant progress is made early on, then progress becomes rare.}
     %\vspace{-1em}
 \end{figure}
 
@@ -267,12 +267,13 @@ fact (cf.~\cite{Gupta06toinfinity})} The time budget we allotted to~\sys~for all
 All case studies except raft-56, raft-58a, and raft-42 reached completion of TFB in less than 10
 minutes.
 
-\noindent{\textbf{Qualitative Metrics.}} We do not evaluate how minimization helps
+\noindent{\textbf{Qualitative Metrics.}} We do not evaluate how execution
+reduction helps
 with programmer productivity. Data on how humans do debugging is scarce; we
 are aware of only one study that measures how
-quickly developers debug minimized vs. non-minimized traces\cite{fse_web_ddmin}.
+quickly developers debug reduced vs. non-reduced traces\cite{fse_web_ddmin}.
 Nonetheless, since humans can only keep a small number of facts in working
-memory~\cite{miller56seven}, minimization seems generally useful. As one
+memory~\cite{miller56seven}, execution reduction seems generally useful. As one
 developer
 puts it,
 ``Automatically shrinking test cases to the
@@ -342,10 +343,11 @@ early-stage software.
 We found and fixed these
 bugs in less than two weeks, and several of the
 bugs would have
-been difficult to anticipate a priori. Second, debugging unminimized faulty
+been difficult to anticipate a priori. Second, debugging unreduced faulty
 executions would be very time consuming and conceptually challenging;
 we found that the most fruitful debugging process was to walk through events
-one-by-one to understand how the system arrived at the unsafe state, which would take hours for unminimized executions.
+one-by-one to understand how the system arrived at the unsafe state, which
+would take hours for unreduced executions.
 
 \subsection{Spark Case Studies}
 
@@ -388,7 +390,7 @@ bootstrap message contents from 9 process IDs to 5 process IDs. Finally, we
 ran STSSched to completion, and compared the output to STSSched without the
 initial message shrinking. The results shown in
 Table~\ref{tab:message_shrinking} demonstrate that message shrinking can help
-minimize both external events and message contents.
+reduce both external events and message contents.
 
 \begin{table}
 \centering
@@ -403,7 +405,7 @@ minimize both external events and message contents.
 \end{tabular}
 %\vskip -1em
 \caption{External message shrinking results for raft-45 starting with 9
-processes. Message shrinking + minimization was able to reduce the cluster
+processes. Message shrinking + execution reduction was able to reduce the cluster
 size to 5 processes.}
 \label{tab:message_shrinking}
 %\vskip -1.5em
@@ -482,9 +484,9 @@ to later violate
 the main linearizability invariant (State Machine Safety).
 
 For each of the bugs where we did not initially know the root cause, we
-started debugging by first minimizing the failing execution. Then,
+started debugging by first reduced the failing execution. Then,
 we walked through the sequence of message deliveries in the
-minimized execution. At each step,
+reduced execution. At each step,
 we noted the current state of the actor receiving the message. Based on
 our knowledge of the way Raft is supposed to work, we found places in
 the execution that deviate from our understanding of correct behavior.
@@ -540,7 +542,7 @@ node requests a vote from it in the same term, it may vote for
 a different node than it previously voted for in the same term, later causing
 two leaders to be elected, i.e. a violation of Raft's ``Leader Safety''
 condition. We discovered this by manually examining the state
-transitions made by each process throughout the minimized execution.
+transitions made by each process throughout the reduced execution.
 
 \noindent{\textbf{raft-58a: Pending client commands delivered
  before initialization occurs.}} After ironing out leader election issues, we started finding other issues.
@@ -589,7 +591,7 @@ Leaders are supposed to commit log entries to their state machine when they know
  replicated. In our fuzz test, message delays allowed another leader to become elected, but
  it did not have all committed entries in its log due to the previously leader committing too soon.
 
-As we walked through the minimized execution, it
+As we walked through the reduced execution, it
 became clear mid-way through the execution that not all
 entries were fully replicated when the master committed
 its first entry. Another process without all replicated entries
@@ -680,7 +682,7 @@ information the master reads from the database is corrupted: some of
 the pointers referencing information about the driver are null. When the
 master reads this information, it dereferences a null pointer and crashes
 again. After failing, the master restarts, tries to recover its state, and
-crashes in an infinite cycle. The minimized execution for this bug contained
+crashes in an infinite cycle. The reduced execution for this bug contained
 exactly these 3 external events, which made the problematic code path immediately apparent.
 
 \noindent{\textbf{spark-9256: Delayed message causes master crash.}} We found the

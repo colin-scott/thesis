@@ -116,7 +116,7 @@ Our ultimate goal is to reduce developer effort spent on troubleshooting bugs.
 As this is difficult to measure,\footnote{We discuss this point further in
 \S\ref{sec:discussion}.} since developer skills and
 familiarity with code bases differs widely, we instead
-quantitatively show how well \projectname~minimizes logs,
+quantitatively show how well \projectname~reduces execution traces,
 and qualitatively relay our experience using MCSes to debug the newly found bugs.
 
 %Our goal in this section is to show that \projectname~successfully produces
@@ -141,7 +141,7 @@ for all of these case studies are publicly available at
 
 \noindent{\textbf{Pyretic Loop.}} We discovered a loop when fuzzing Pyretic's hub
 module, whose purpose is to flood packets along a minimum spanning tree. After
-minimizing the execution (runtime in Figure~\ref{fig:pyretic_loop}), we found that the triggering event
+reducing the execution (runtime in Figure~\ref{fig:pyretic_loop}), we found that the triggering event
 was a link failure at the beginning of the trace followed some time later by
 the recovery of that link. After roughly 9 hours over two days of examining
 Pyretic's code (which was unfamiliar to us), we found what we believed to be the problem
@@ -189,7 +189,7 @@ exception.
 \begin{figure}[t]
     %\hspace{-10pt}
     \includegraphics{../graphs/runtime/list_remove_error.pdf}
-    \caption{\label{fig:list_runtime} Minimizing the POX list remove trace.}
+    \caption{\label{fig:list_runtime} Reducing the POX list remove trace.}
 \end{figure}
 
 We invoked \projectname~to identify a two element MCS (runtime
@@ -213,7 +213,7 @@ surprising.
 %switch failure/recovery.
 \projectname~made it straightforward to inject inputs
 at a high semantic level,
-and the minimized event
+and the reduced event
 trace it produced made for a simple integration test.
 } % -----------------------------------
 %We illustrate type errors to show how STS is a useful framework for exploring
@@ -241,7 +241,7 @@ We verified with the lead developer of POX that is a true bug.
 
 This case study demonstrates how even a simple handshake state machine can
 behave unexpectedly and in a non-trivial manner that is hard to understand
-without being able to repeat the experiment with a minimal trace. Making heavy
+without being able to repeat the experiment with a reduced trace. Making heavy
 use of the MCS replay, a developer unfamiliar with the two subsystems
 was able to root-cause the bug in \textasciitilde30 minutes.
 \begin{figure*}[!htb]
@@ -270,7 +270,7 @@ was able to root-cause the bug in \textasciitilde30 minutes.
     \includegraphics[width=\textwidth]{../graphs/runtime/floodlight_loop.pdf}
     \caption{\label{fig:fl_loop} Floodlight loop. }
 \end{subfigure}
-\caption{Minimization results.}
+\caption{Execution reduction results.}
 \end{figure*}
 
 \noindent{\textbf{POX In-flight Blackhole.}} We discovered another bug
@@ -426,7 +426,7 @@ Our initial input size was 68 inputs, and
 %order NOX discovers links, which in turns depends on hashes computed from random memory
 %addresses its discovery modules LLDP selection algorithm}
 Our approach to debugging was to
-reconstruct from the minimized trace how NOX should have installed routes, then compare
+reconstruct from the reduced execution trace how NOX should have installed routes, then compare
 how NOX actually installed routes. This case took us roughly 10 hours to debug. Unfortunately the final MCS did
 not reproduce the bug on the first few tries, and we suspect this is due to the fact
 NOX chooses the order to send LLDP messages randomly, and the loop depends
@@ -471,7 +471,7 @@ with NOX developers, based on the 18 input MCS. }
 % -----------------------------------
 \noindent{\textbf{ONOS distributed database locking.}} When testing ONOS, a distributed open-source controller, we noticed
 that ONOS controllers would occasionally reject switch attempts to connect upon
-initialization. The initial trace was already minimized, as the initial input
+initialization. The initial trace was already reduced, as the initial input
 was the single event of the switches connecting to the controllers with a
 particular timing. When examining the logs, we found that the particular timing
 between the switch connects caused both ONOS controllers to encounter a ``failed
@@ -507,7 +507,7 @@ end-host to flap between perceived attachment points.
 While this behavior cannot strictly be considered a bug in Floodlight,
 the case-study nevertheless highlights the benefit of
 \projectname~over traditional techniques: by repeatedly replaying
-a significantly minimized MCS, we were able to diagnose the root cause---a
+a significantly reduced execution, we were able to diagnose the root cause---a
 complex interaction between the LinkDiscovery, Forwarding, and DeviceManager
 modules.
 \eat{ % ------------------
@@ -542,7 +542,7 @@ in pointing out a previously unknown bug, and reducing the input size.
 \subsection{Known bugs}
 
 In addition to our troubleshooting case studies, we evaluate
-\projectname's ability to minimize traces on a range of bug types,
+\projectname's ability to reduce traces on a range of bug types,
 both known and synthetically injected by us.\\[0.5ex]
 %
 \noindent{\textbf{Floodlight failover bug.}} We were able to reproduce a
@@ -616,7 +616,7 @@ unusable such that no routes will traverse it. This bug depends on
 initial IDs chosen at random, and ONOS is not instrumented to
 support deterministic replay of random values. We mitigated this
 inherent non-determinism by replaying each subsequence 5 times. With this setting,
-\projectname{} was able to minimize the trace to 3 elements.\\[0.5ex]
+\projectname{} was able to reduce the trace to 3 elements.\\[0.5ex]
 \noindent{\textbf{POX load balancer error checking.}} We are aware that POX
 applications do not always check error messages sent by switches
 rejecting invalid packet forwarding commands. We used this to trigger a bug in
@@ -626,7 +626,7 @@ into the network. The load balancer application proceeded to install entries
 for each of these flows. Eventually the switches ran out of flow entry
 space and responded with error messages. As a result, POX began randomly load
 balancing each subsequent packet for a given flow over the servers, causing
-session state to be lost. We were able to minimize the MCS for this
+session state to be lost. We were able to reduce the execution for this
 bug to 24 elements (there were two preexisting auxiliary flow entries in each
 routing table, so 24 additional flows made the 26 (N+1) entries needed to
 overflow the table). A notable aspect of this MCS is that its size is directly
@@ -661,19 +661,19 @@ We ran two modules in POX: a capability manager in charge of providing
 upstream DoS protection for servers, and a forwarding application. The
 capabilities manager installed drop rules upstream for servers that requested
 it, but these rules had lower priority than the default forwarding rules in
-the switch. We were able to minimize 27 inputs to the two traffic injection
+the switch. We were able to reduce 27 inputs to the two traffic injection
 inputs necessary to trigger the routing entry overlap.\\[0.5ex]
 %
 \noindent{\textbf{Null pointer on rarely used codepath.}}
 On a rarely used-code path, we injected a null pointer exception,
-and were able to successfully minimize a fuzz trace of 62 events to the
+and were able to successfully reduce a fuzz trace of 62 events to the
 expected conditions that triggered that code path: control channel congestion followed
 by decongestion.\\[0.5ex]
 %
 \noindent{\textbf{Multithreaded race condition.}}
 We created a race condition between multiple threads that was
 triggered by any packet I/O, regardless of input. With 5 replays per
-subsequence, we were able to minimize a 1596 input in 10 hours 15 minutes to a
+subsequence, we were able to reduce a 1596 input in 10 hours 15 minutes to a
 replayable 2 element failure/recovery pair as an MCS.
 The MCS itself though may have been somewhat misleading to a developer (as
 expected), as the race condition
@@ -681,7 +681,7 @@ was triggered randomly by any I/O, not just these two
 inputs events.\\[0.5ex]
 %
 \noindent{\textbf{Memory leak.}}
-We created a case that would take \projectname~very long to minimize: a
+We created a case that would take \projectname~very long to reduce: a
 memory leak that eventually caused a crash in POX. We artificially set the
 memory leak to happen quickly after allocating 30 (M) objects created upon switch
 handshakes, and interspersed 691 other input events throughout switch reconnect
@@ -772,7 +772,7 @@ play.
 Recall that \projectname~optionally replays each subsequence multiple times
 throughout delta debugging to
 mitigate the effects of non-determinism. We evaluate the effectiveness of this
-approach on the minimization of a synthetic non-deterministic loop created by
+approach on the reduction of a synthetic non-deterministic loop created by
 Floodlight. Table~\ref{tab:non-determinism} demonstrates that the size of the resulting MCS decreases
 with the number of replays per subsequence. This suggests that replaying each subsequence multiple
 times is effective in coping with non-determinism, at the cost of increased runtime.
@@ -982,10 +982,11 @@ Onix~\cite{onix}, a production SDN platform; as in Figure~\ref{fig:basicarch}
 POX provides a physical view, a virtualized view, and a naive replication
 mechanism between distributed control servers.
 
-Because the functionality within POX is relatively young, we chose to
+Because POX is an early stage project, we chose to
 fabricate a bug in POX's distribution failover logic, and independently
-validate that \projectname~was able to identify, prioritize, and find the
-minimal causal sequence for the fabricated correctness violation.
+validate that \projectname~was able to identify, prioritize, and find a
+reduced execution
+for the fabricated correctness violation.
 
 In particular, we injected the following bug: a controller replica performs
 updates to switches by (i) updating the persistent datastore storing the state

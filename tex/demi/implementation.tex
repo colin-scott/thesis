@@ -18,14 +18,14 @@ and timers are
 delivered to actors, thereby linearizing the sequence of events in an executing system.
 We currently run all actors on a single machine because this simplifies the
 design of \sys,
-but minimization could also be distributed across multiple machines to improve
+but execution reduction could also be distributed across multiple machines to improve
 scalability.
 
 Our interposition lies above the network transport layer; \sys~makes
 delivery decisions for application-level (non-segmented) messages.
 If the application assumes ordering guarantees from the transport
 layer (e.g. TCP's FIFO delivery), \sys~adheres to these guarantees
-during testing and minimization to maintain soundness.
+during testing and execution reduction to maintain soundness.
 
 \begin{table}[tb]
 \centering
@@ -41,7 +41,7 @@ Message fingerprint function & Match on message type \\
 Non-determinism mitigation & Replay multiple times
 \end{tabular}
 \caption{\label{tab:programmer_tasks} Tasks we assume the application
-programmer completes in order to test and minimize using~\sys. Defaults
+programmer completes in order to test and reduce using~\sys. Defaults
 of `-' imply that the task is not optional.}
 \end{table}
 
@@ -86,18 +86,19 @@ is exceeded, or there are no more external or internal events to execute.
 Once it finds a faulty execution \sys~saves a user-defined fingerprint of the violation it
 found (a violation fingerprint might, for example, mark which process(es)
 exhibited the violation),\footnote{Violation fingerprints should
-be specific enough to disambiguate different bugs found during minimization, but they do not need to be specific to
+be specific enough to disambiguate different bugs found during execution
+reduction, but they do not need to be specific to
 the exact state the system at the time of the violation. Less
 specific violation fingerprints are often better, since they allow \sys~to
 find divergent code paths that lead to the same buggy behavior.}
 a totally ordered recording of all events it
 executed, and information about which messages were sent in
 response to which events. Users can then replay the execution exactly, or
-instruct \sys~to minimize the execution as described in \S\ref{dsec:approach}.
+instruct \sys~to reduce the execution as described in \S\ref{dsec:approach}.
 
 In Table~\ref{tab:programmer_tasks} we summarize the various tasks, both
 optional and necessary, that we assume programmers
-complete in order to test and minimize using~\sys.
+complete in order to test and reduce using~\sys.
 
 \noindent{\textbf{Mitigating non-determinism.}} Processes may behave non-deterministically.
 A process is non-deterministic if the messages it emits
@@ -172,7 +173,7 @@ Spark names some of the files it writes to disk using a timestamp read from the 
 We hardcode a timestamp in these cases to make replay deterministic.
 
 \noindent{\textbf{Akka changes.}} In a few places within the Akka framework, Akka assigns IDs using an
-incrementing counter. This can be problematic during minimization, since the counter value
+incrementing counter. This can be problematic during execution reduction, since the counter value
 may change as we remove events, and the (non-fingerprinted) message contents in the modified execution may change.
 We fix this by computing IDs based on a hash
 of the current callstack, along with task IDs in case of ambiguous callstack
@@ -243,20 +244,20 @@ to avoid manual instrumentation. We did not because we could not
 find a suitably supported record and replay system that operates at the right
 level of abstraction for actor systems.
 Note, however that
-deterministic replay alone is not sufficient for minimization:
+deterministic replay alone is not sufficient for execution reduction:
 deterministic replay does not inform how the schedule space should be
 explored; it only allows one to deterministically replay prefixes of events.
-Moreover, minimizing a single deterministic replay log (without exploring divergent
+Moreover, reducing a single deterministic replay log (without exploring divergent
 schedules) yields executions that are orders of magnitude larger
 than those produced by \sys, as we discuss in
 \S\ref{sec:related_work}.
 
 \noindent\textbf{Support for production traces.} \sys~does not currently
-support minimization of production executions.
+support reduction of production executions.
 \sys~requires that execution recordings are complete (meaning all message
 deliveries and external events are recorded) and partially ordered. Our
 current implementation
-achieves these properties simply by testing and minimizing on a single
+achieves these properties simply by testing and reducing on a single
 physical machine.
 
 To support recordings from production executions, it should be possible to

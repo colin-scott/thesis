@@ -26,20 +26,21 @@ in~\cite{msoft_concurrency} took days to months to fix).}
 % Bugs are a fact of life;
 Our aim is to reduce effort spent on troubleshooting distributed systems like
 SDN control software, by automatically eliminating
-events from buggy traces that are not causally related to the bug, producing a ``minimal
+events from buggy traces that are not causally related to the bug. We seek to
+produce a ``minimal
 causal sequence'' (MCS) of triggering events.
 
-Our goal of minimizing traces is in the spirit of
+Our goal of reducing execution traces is in the spirit of
 delta debugging~\cite{Zeller:1999:YMP:318773.318946}, but our problem is
 complicated by the distributed nature of control software:
 our input is not a single file fed to a single point of execution, but an ongoing
 sequence of events involving
 multiple actors. We therefore need to carefully
 control the interleaving of events in the face of asynchrony, concurrency and non-determinism in
-order to reproduce bugs throughout the minimization process.
+order to reproduce bugs throughout the reduction process.
 In contrast to deterministic replay
 approaches, we strive to explore divergent execution paths. Crucially, we aim to
-minimize traces without making assumptions about the language
+reduce execution traces without making assumptions about the language
 or instrumentation of the control software.
 
 In this chapter we demonstrate a troubleshooting system that,
@@ -69,5 +70,5 @@ Second, we demonstrate the
 boundaries of where \projectname~works well by
 finding MCSes for previously known and synthetic bugs that span a range of bug
 types. In our evaluation, we quantitatively show that \projectname~is able to
-minimize (non-synthetic) bug traces by up to 98\%, and we anecdotally found that reducing
+reduce (non-synthetic) bug traces by up to 98\%, and we anecdotally found that reducing
 traces to MCSes made it easy to understand their root causes.
