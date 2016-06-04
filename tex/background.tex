@@ -1,4 +1,5 @@
 \section{Delta Debugging}
+\label{chap:ddmin}
 
 % \noindent{\bf Techniques for Selecting Subsequences.} Checking
 % random subsequences of $E_L$ would be one viable but inefficient
@@ -114,6 +115,50 @@ taken from~\cite{Zeller:1999:YMP:318773.318946}.
 
 \section{Dynamic Partial Order Reduction}
 \label{app:dpor}
+
+% TODO(cs): move to section 2?
+As others have observed~\cite{godefroid1995partial}, many events occurring in a schedule are {\em commutative}, i.e., the system arrives at the same
+configuration regardless of the order events are applied. For example, consider two events $e_1$ and $e_2$, where
+$e_1$ is a message from process $a$ being delivered to
+process $c$, and $e_2$ is a message from process $b$
+being delivered to process $d$. Assume that both $e_1$ and $e_2$ are co-enabled, meaning they are both pending at the same time and can be executed in either order. Since
+the events affect a disjoint set of nodes ($e_1$ changes the state at $c$, while $e_2$ changes the state at $d$), executing $e_1$ before $e_2$ causes the system to arrive at the same state it would arrive at if we had instead executed $e_2$ before $e_1$.
+$e_1$ and $e_2$ are therefore commutative. This example
+illustrates a form of commutativity captured by the happens-before relation~\cite{Lamport:1978:TCO:359545.359563}: two message delivery events
+$a$ and $b$ are commutative if they are concurrent, i.e. $a \not\rightarrow b$
+and $b \not\rightarrow a$, and they affect a disjoint set of nodes.\footnote{
+Stronger forms of
+commutativity may hold if events cannot possibly be causally unrelated to each other, for
+example when a distributed algorithm is stateless. Inferring such cases of
+commutativity would require understanding of application semantics; in
+contrast, happens-before commutativity is independent of the application.}
+
+Partial order reduction (POR)~\cite{godefroid1995partial,flanagan2005dynamic} is a well-studied technique for pruning commutative schedules from the search space. In the above example, given two schedules that only differ in the order
+in which $e_1$ and $e_2$ appear, POR would only explore one schedule. Dynamic POR (DPOR)~\cite{flanagan2005dynamic} is a
+refinement of POR (shown in \S\ref{app:dpor}): at each
+step, it picks a pending message to deliver, dynamically computes which
+other pending events are not concurrent with the message it just delivered,
+and sets backtrack points for each of these, which it will later use (when
+exploring other non-equivalent schedules) to try delivering the pending
+messages in place of the message that was just delivered.
+
+Even when using DPOR, the task of enumerating all possible schedules containing $E$ as a
+subsequence remains intractable. Moreover, others have found that na\"ive DPOR
+gets stuck exploring a small portion of the schedule space because of its
+depth-first exploration order~\cite{lin2009modist}.
+%, and require that a large number of schedules be explored
+%before an invariant violation is found.
+We address this problem in two ways: first, as mentioned before, we limit
+$ExtMin$ so it spreads its fixed time budget roughly evenly across
+checking whether each particular subsequence of external events reproduces the invariant violation. It does this by
+restricting DPOR to exploring a fixed number of schedules before
+giving up and declaring that an external event sequence does not produce the violation. Second, to maximize the probability that
+invariant violations are discovered quickly while exploring a fixed number of
+schedules, we employ a set of schedule exploration strategies to guide
+DPOR's exploration, which we describe next.
+
+
+
 
 We show the original depth-first version of Dynamic Partial Order Reduction
 in Algorithm~\ref{alg:dpor}. Our modified DPOR algorithm uses a priority queue

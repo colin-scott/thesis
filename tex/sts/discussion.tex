@@ -153,8 +153,8 @@ topology.% may yield faster minimization, since bugs will often only involve a
 not currently support reduction of production (as opposed
 to QA) executions. Production systems would need to include Lamport
 clocks on each message~\cite{Lamport:1978:TCO:359545.359563} or have
-sufficiently accurate clock synchronization to obtain a happens-before
-relation. Inputs would also
+sufficiently accurate clock synchronization to obtain a partial
+(happens-before) ordering of the message deliveries in the execution. Inputs would also
 need to need to be logged in sufficient detail for \projectname~to
 replay a synthetic version. Finally, without care, a single
 input event may appear multiple times in the

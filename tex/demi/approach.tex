@@ -27,7 +27,7 @@ events starting from the initial configuration. We assume the user gives us a ti
 
 To check whether a particular subsequence of external events results in the safety violation,
 we need to explore the space of possible interleavings of internal events and external events.
-We use Dynamic Partial Order Reduction (`DPOR', shown in \S\ref{app:dpor}) to prune this schedule space by eliminating equivalent schedules (i.e. schedules
+We use Dynamic Partial Order Reduction (`DPOR', explained in \S\ref{app:dpor}) to prune this schedule space by eliminating equivalent schedules (i.e. schedules
 that differ only in the ordering of commutative
 events~\cite{flanagan2005dynamic}). DPOR alone is insufficient though, since
 there are still exponentially many non-commutative schedules to explore.
@@ -122,30 +122,14 @@ and check all schedules that contain $E'$ as a subsequence.
 Since the number of possible schedules is exponential in the number of events,
 pruning this schedule space is essential to finishing in a timely manner.
 
+% TODO(cs): move to section 2?
 As others have observed~\cite{godefroid1995partial}, many events occurring in a schedule are {\em commutative}, i.e., the system arrives at the same
-configuration regardless of the order events are applied. For example, consider two events $e_1$ and $e_2$, where
-$e_1$ is a message from process $a$ being delivered to
-process $c$, and $e_2$ is a message from process $b$
-being delivered to process $d$. Assume that both $e_1$ and $e_2$ are co-enabled, meaning they are both pending at the same time and can be executed in either order. Since
-the events affect a disjoint set of nodes ($e_1$ changes the state at $c$, while $e_2$ changes the state at $d$), executing $e_1$ before $e_2$ causes the system to arrive at the same state it would arrive at if we had instead executed $e_2$ before $e_1$.
-$e_1$ and $e_2$ are therefore commutative. This example
-illustrates a form of commutativity captured by the happens-before relation~\cite{Lamport:1978:TCO:359545.359563}: two message delivery events
-$a$ and $b$ are commutative if they are concurrent, i.e. $a \not\rightarrow b$
-and $b \not\rightarrow a$, and they affect a disjoint set of nodes.\footnote{
-Stronger forms of
-commutativity may hold if events cannot possibly be causally unrelated to each other, for
-example when a distributed algorithm is stateless. Inferring such cases of
-commutativity would require understanding of application semantics; in
-contrast, happens-before commutativity is independent of the application.}
-
-Partial order reduction (POR)~\cite{godefroid1995partial,flanagan2005dynamic} is a well-studied technique for pruning commutative schedules from the search space. In the above example, given two schedules that only differ in the order
-in which $e_1$ and $e_2$ appear, POR would only explore one schedule. Dynamic POR (DPOR)~\cite{flanagan2005dynamic} is a
-refinement of POR (shown in \S\ref{app:dpor}): at each
-step, it picks a pending message to deliver, dynamically computes which
-other pending events are not concurrent with the message it just delivered,
-and sets backtrack points for each of these, which it will later use (when
-exploring other non-equivalent schedules) to try delivering the pending
-messages in place of the message that was just delivered.
+configuration regardless of the order events are applied. As we explained in
+detail in~\S\ref{app:dpor}, a well-studied algorithm for removing commutative
+(equivalent) schedules from the schedule space is Dynamic Partial Order
+Reduction (DPOR). We make use of DPOR to efficiently explore the schedule
+space. We then implement our scheduling heuristics as modifications to the original
+DPOR algorithm.
 
 Even when using DPOR, the task of enumerating all possible schedules containing $E$ as a
 subsequence remains intractable. Moreover, others have found that na\"ive DPOR
