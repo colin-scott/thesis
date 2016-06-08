@@ -1,33 +1,68 @@
 \section{Delta Debugging}
 \label{chap:ddmin}
 
-% \noindent{\bf Techniques for Selecting Subsequences.} Checking
-% random subsequences of $E_L$ would be one viable but inefficient
-% approach to achieving our first task. A better approach is
-% %divide-and-conquer search technique from the software engineering community:
-% the delta debugging algorithm~\cite{Zeller:1999:YMP:318773.318946,Zeller:2002:SIF:506201.506206}, a
-% divide-and-conquer algorithm for
-% isolating fault-inducing inputs. We use delta
-% debugging\footnote{Domain-specific
-% minimization algorithms also
-% exist~\cite{regehr2012test,claessen2000quickcheck,whitaker2004configuration},
-% but we focus on the general case.} to iteratively select subsequences of $E_L$ and $replay$ each
-% subsequence with some timing $T$.\\[0.5ex]
-% %If the bug persists for a given subsequence, delta debugging ignores the
-% %other inputs, and proceeds with the search for an MCS within this subsequence.
-% %In what follows, we use the term {\em delta debugging} to refer to our algorithm for finding relevant subsequences.
-% %The delta debugging algorithm we implement is shown in Figure~\ref{fig:ddmin}.
+Delta debugging is an algorithm for reducing test
+cases~\cite{Zeller:1999:YMP:318773.318946,Zeller:2002:SIF:506201.506206}. The
+inputs to delta debugging are a test input (e.g., an HTML file) that triggers a
+bug, a function for separating out the separate components of the test
+input (e.g. individual HTML tags, or individual ASCII characters), and a test
+runner (e.g., a script that starts a browser process, feeds in the test HTML
+page to the browser, and finally checks whether the browser exhibited a bug or
+not). Delta debugging seeks to reduce the size of the test input to a
+``minimal'' counterexample  (a subset of the original test case) that still
+triggers the bug.\footnote{By ``minimal'', we do not mean global minimality,
+since finding a globally minimal subset is intractable (it is equivalent to enumerating the
+powerset of the original test case). Delta debugging instead seeks to produce a
+1-minimal subset, meaning that no single component of the subset can be
+removed while still triggering the bug.}
 
+Delta debugging works by experimenting with different subsets of the original test
+case. Each experiment involves feeding a subset of the original test case to the test runner
+and checking whether the bug is still triggered. If the bug is still
+triggered, we know that the components of the original test case that are not part of the
+subset are not necessary for triggering the
+bug, and we can therefore ignore them. Delta debugging continues experimenting
+with subsets until it knows that it has reached a 1-minimal result.
 
-% TODO(cs): include this discussion of complements..
-% An updated version of the ddmin simplification algorithm appeared
-% in~\cite{Zeller:2002:SIF:506201.506206}. We use the simpler version of ddmin
-% (which is equivalent to the version ddmin
-% from~\cite{Zeller:2002:SIF:506201.506206}, except that it does not consider
-% complements) because we ensure that each subsequence
-% of external events is consistent (semantically valid), and therefore are still
-% guarenteed to find a 1-minimal output without needing
-% to consider complements.
+The simplest approach for selecting subsets of the original test case would be
+to remove one component at a time. Delta debugging does better in the average
+case by splitting the components in a fashion similar to binary search. We
+show the full algorithm in Figure~\ref{fig:ddmin}.
+
+We show an example
+execution of delta debugging in Table~\ref{fig:ddmin_example}. The original
+test case is a sequence of components $e_1,e_2,e_3,e_4,e_5,e_6,e_7,e_8$. Delta
+debugging first checks the left half of the components. The bug is not
+triggered, so delta debugging then tries the right half of the components. Again, the
+bug is not triggered, so delta debugging recurses, splitting the components
+into fourths instead of halves. After the 7th experiment, delta debugging
+knows that it has reached a 1-minimal result, and produces the output
+$e_3,e_6$.
+
+To be guaranteed to produce 1-minimal outputs, the version of delta debugging that we employ~\cite{Zeller:1999:YMP:318773.318946}
+makes three
+assumptions about inputs: monotonicity, unambiguity, and consistency.
+An event trace that violates monotonicity may contain events that ``undo'' the
+invariant violation triggered by the MCS, and may therefore exhibit
+inflated MCSes. An event trace that violates unambiguity may exhibit multiple MCSes; delta debugging
+will return one of them. The most important assumption is consistency, which
+requires that the test outcome can always be determined, i.e., that each
+subset chosen by delta debugging is semantically valid.
+
+In this dissertation, we guarantee neither monotonicity nor unambiguity. We do
+however codify domain knowledge in order to ensure that each
+subset chosen by delta debugging is semantically valid. By guaranteeing
+consistency, we can use a simple version of delta debugging that does not
+consider subset complements. The version of delta debugging that considers
+subset complements has the advantage that it is guaranteed to produce
+1-minimal output even in the face of inconsistency, but it incurs an additional factor of n in worst-case runtime
+complexity~\cite{Zeller:2002:SIF:506201.506206}.
+
+The delta debugging algorithm we use terminates in $\Omega(\log n)$
+invocations of the test runner in the best case, and $O(n)$ invocations in the worst case, where $n$ is the number of inputs in the original
+trace~\cite{Zeller:1999:YMP:318773.318946}. If it is difficult to ensure
+consistency, one could employ the more expensive version of delta debugging,
+which terminates in $O(n^2)$ invocations in the worst case~\cite{Zeller:2002:SIF:506201.506206}.
 
 \begin{figure*}[t!]
 \footnotesize
@@ -116,6 +151,59 @@ taken from~\cite{Zeller:1999:YMP:318773.318946}.
 \section{Dynamic Partial Order Reduction}
 \label{app:dpor}
 
+\begin{algorithm*}[ht!]
+{\footnotesize
+\begin{algorithmic}
+\State Initially: \Call{Explore}{$\emptyset$}
+\Procedure{Explore}{$S$}
+\State{$\kappa \gets last(S)$}
+\ForAll{message $m \in pending(\kappa)$}
+\If{$\exists i = max(\{i \in dom(S) | S_i$ is dependent and may be coenabled
+with $next(\kappa,m)$ and $i \not\rightarrow_S m \})$}
+\State{$E \gets \{m' \in enabled(pre(S,i)) | m' = m$ or $\exists j \in dom(S)
+: j > i$ and $m' = msg(S_j)$ and $j \rightarrow_S m \}$}
+\If{$E \neq \emptyset$}
+\State{add any $m' \in E$ to $backtrack(pre(S,i))$}
+\Else
+\State{add all $m \in enabled(pre(S,i))$ to $backtrack(pre(S,i))$}
+\EndIf
+\EndIf
+\EndFor
+
+\If{$\exists m \in enabled(\kappa)$}
+\State{$backtrack(\kappa) \gets \{m\}$}
+\State{$done \gets \emptyset$}
+\While{$\exists m \in (backtrack(\kappa) \setminus done)$}
+\State{add $m$ to $done$}
+\State{\Call{Explore}{$S.next(\kappa,m)$}}
+\EndWhile
+\EndIf
+
+\EndProcedure
+\end{algorithmic}
+}
+\caption{{\label{alg:dpor} The original depth-first version of Dynamic Partial Order Reduction
+from~\cite{flanagan2005dynamic}. $last(S)$ denotes the configuration reached
+after executing $S$;
+$next(\kappa,m)$ denotes the state transition (message delivery) where the message m is
+processed in configuration $\kappa$; $\rightarrow_S$ denotes `happens-before';
+$pre(S,i)$ refers to the configuration where the transition $t_i$ is executed; $dom(S)$ means the set
+$\{1,\dots,n\}$; $S.t$ denotes
+$S$ extended with an additional transition $t$.}}
+\end{algorithm*}
+
+In a concurrent environment, the behavior of a software system depends not only on
+its inputs, but also on interleavings of internal events. In a distributed
+system, the network is the key source of concurrency: in response to external
+events, processes send messages to each other, which may (in the case of a
+fully asynchronous network) be arbitrarily
+reordered or delayed by the network before they are delivered to their
+destination.
+
+Our goal XX.
+For a finite number of message deliveries, there is a finite number of
+possible message interleavings.
+
 % TODO(cs): move to section 2?
 As others have observed~\cite{godefroid1995partial}, many events occurring in a schedule are {\em commutative}, i.e., the system arrives at the same
 configuration regardless of the order events are applied. For example, consider two events $e_1$ and $e_2$, where
@@ -157,9 +245,6 @@ invariant violations are discovered quickly while exploring a fixed number of
 schedules, we employ a set of schedule exploration strategies to guide
 DPOR's exploration, which we describe next.
 
-
-
-
 We show the original depth-first version of Dynamic Partial Order Reduction
 in Algorithm~\ref{alg:dpor}. Our modified DPOR algorithm uses a priority queue
 rather than a (recursive) stack, and tracks which schedules it has explored
@@ -193,45 +278,63 @@ property---completeness---holds for our modified version of DPOR so long as we
 always set at least as many backtrack points as depth-first
 DPOR.
 
-\begin{algorithm*}[tb!]
-{\footnotesize
-\begin{algorithmic}
-\State Initially: \Call{Explore}{$\emptyset$}
-\Procedure{Explore}{$S$}
-\State{$\kappa \gets last(S)$}
-\ForAll{message $m \in pending(\kappa)$}
-\If{$\exists i = max(\{i \in dom(S) | S_i$ is dependent and may be coenabled
-with $next(\kappa,m)$ and $i \not\rightarrow_S m \})$}
-\State{$E \gets \{m' \in enabled(pre(S,i)) | m' = m$ or $\exists j \in dom(S)
-: j > i$ and $m' = msg(S_j)$ and $j \rightarrow_S m \}$}
-\If{$E \neq \emptyset$}
-\State{add any $m' \in E$ to $backtrack(pre(S,i))$}
-\Else
-\State{add all $m \in enabled(pre(S,i))$ to $backtrack(pre(S,i))$}
-\EndIf
-\EndIf
-\EndFor
 
-\If{$\exists m \in enabled(\kappa)$}
-\State{$backtrack(\kappa) \gets \{m\}$}
-\State{$done \gets \emptyset$}
-\While{$\exists m \in (backtrack(\kappa) \setminus done)$}
-\State{add $m$ to $done$}
-\State{\Call{Explore}{$S.next(\kappa,m)$}}
-\EndWhile
-\EndIf
+\section{Software Defined Networking}
+\label{sec:sdn}
 
-\EndProcedure
-\end{algorithmic}
-}
-\caption{{\label{alg:dpor} The original depth-first version of Dynamic Partial Order Reduction
-from~\cite{flanagan2005dynamic}. $last(S)$ denotes the configuration reached
-after executing $S$;
-$next(\kappa,m)$ denotes the state transition (message delivery) where the message m is
-processed in configuration $\kappa$; $\rightarrow_S$ denotes `happens-before';
-$pre(S,i)$ refers to the configuration where the transition $t_i$ is executed; $dom(S)$ means the set
-$\{1,\dots,n\}$; $S.t$ denotes
-$S$ extended with an additional transition $t$.}}
-\end{algorithm*}
+\begin{figure}[ht!]
+\centering
+\includegraphics[width=\textwidth]{../diagrams/Layers.pdf}
+\caption{The SDN Stack: state layers are on the left, code layers are in the center, and example bugs are on the right.}
+\label{fig:layers}
+\end{figure}
 
+In chapter~\ref{sec:sts} we evaluate our blackbox execution reduction
+techniques on
+software-defined networking (SDN) control software.
+Here we provide background on the SDN architecture, and the types of bugs one
+might encounter in an SDN network.
 
+SDN is a type of network architecture, designed to simplify network management. It
+achieves simplicity by factoring the control plane of the network into a hierarchy of
+abstractions. At the highest layer of abstraction, network operators specify
+policies for the network. Layers beneath translate these high-level
+policies into low-level, policy-compliant packet forwarding behavior.
+
+We depict the layers of the SDN control plane in Figure~\ref{fig:layers}.  \emph{State layers} 
+hold a representation of the network's configuration, while \emph{code layers} implement logic to maintain the mapping between two state layers. State changes propagate in two directions: policy changes from above map to configurations (i.e., forwarding entries) of lower layers, while network events from below, such as link failures, map to view changes above.
+
+At the highest layer are ``control applications'' (e.g., OpenStack
+                                                   Quantum~\cite{quantum})
+that specify routing, access control, or quality of service policies by
+configuring the logical view. The logical view is a simplified,
+abstract representation of the network (often a single logical switch)
+designed to make it easy for the control application to specify policies.
+The network hypervisor maps the configuration of the logical entities to one
+or more physical entities in the physical view. The physical view has a one-to-one
+correspondence with the physical network, and it is the job of the network
+operating system (e.g., Onix~\cite{onix}, NOX~\cite{nox}) to
+configure the corresponding network devices through a protocol such as OpenFlow~\cite{openflow}.
+Finally, the firmware in each network device maps forwarding tables to hardware configuration.
+
+%\subsection{How To Think About Errors}
+
+A key observation is that the {\em purpose} of the entire architecture is to translate human intent to
+the low-level behavior of the network, and each layer performs one piece of this
+translation process. Therefore, at any point in time, every state layer should be
+correctly mapped to every other state layer, a property we loosely call ``equivalence''.
+
+\emph{Errors within the SDN control stack always result in broken equivalence between two or more layers.} For example, a breach of tenant isolation manifests itself as an inconsistency between a policy specified at the logical
+view (``Network A should not be able to see network B's packets'') and the state
+of the physical network (``One of the switches is sending packets to the wrong destination network'').
+If all state layers are equivalent, but unwanted behavior persists, it must be the case that
+the configured policy does not match the operator's intent, or hardware beyond the control plane's view, such as an optical repeater, is broken.
+
+%\subsection{How to Think About Troubleshooting}
+
+When the behavior of the network does not match an operator's intent, the
+operator must localize the symptoms to the system components that are
+responsible. Then (in the case of software errors), the operator needs to
+understand what events caused that to misbehave. In this dissertation we focus
+on making it easier
+for the operator to understand the events caused the component to misbehave.

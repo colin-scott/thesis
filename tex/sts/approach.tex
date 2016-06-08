@@ -68,19 +68,7 @@ therefore prunes failure/recovery event pairs as a single unit, and updates init
 whenever host migration events are pruned so that hosts do not magically appear at new
 locations.\footnote{Handling invalid inputs is crucial for
 ensuring that the delta debugging algorithm finds a minimal causal
-subsequence. The algorithm we employ~\cite{Zeller:1999:YMP:318773.318946}
-makes three
-assumptions about inputs: monotonicity, unambiguity, and consistency.
-An event trace that violates monotonicity may contain events that ``undo'' the
-invariant violation triggered by the MCS, and may therefore exhibit slightly
-inflated MCSes. An event trace that violates unambiguity may exhibit multiple MCSes; delta debugging
-will return one of them. The most important assumption is consistency, which
-requires that the test outcome can always be determined.
-We guarantee neither monotonicity nor unambiguity, but we guarantee consistency by
-ensuring that subsequences are always semantically valid by applying the two
-heuristics described above. Zeller wrote a follow-on
-paper~\cite{Zeller:2002:SIF:506201.506206} that removes the need for these
-assumptions, but incurs an additional factor of $n$ in complexity in doing so.}
+subsequence. See chapter~\ref{chap:ddmin} for a detailed discussion.}
 These two heuristics account for validity of all network
 events shown in Table~\ref{tab:inputs}. We do not yet
 support network policy changes as events, which have more complex semantic
