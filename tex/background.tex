@@ -1,70 +1,7 @@
 \section{Delta Debugging}
 \label{chap:ddmin}
 
-Delta debugging is an algorithm for reducing test
-cases~\cite{Zeller:1999:YMP:318773.318946,Zeller:2002:SIF:506201.506206}. The
-inputs to delta debugging are a test input (e.g., an HTML file) that triggers a
-bug, a function for separating out the separate components of the test
-input (e.g. individual HTML tags, or individual ASCII characters), and a test
-runner (e.g., a script that starts a browser process, feeds in the test HTML
-page to the browser, and finally checks whether the browser exhibited a bug or
-not). Delta debugging seeks to reduce the size of the test input to a
-``minimal'' counterexample  (a subset of the original test case) that still
-triggers the bug.\footnote{By ``minimal'', we do not mean global minimality,
-since finding a globally minimal subset is intractable (it is equivalent to enumerating the
-powerset of the original test case). Delta debugging instead seeks to produce a
-1-minimal subset, meaning that no single component of the subset can be
-removed while still triggering the bug.}
-
-Delta debugging works by experimenting with different subsets of the original test
-case. Each experiment involves feeding a subset of the original test case to the test runner
-and checking whether the bug is still triggered. If the bug is still
-triggered, we know that the components of the original test case that are not part of the
-subset are not necessary for triggering the
-bug, and we can therefore ignore them. Delta debugging continues experimenting
-with subsets until it knows that it has reached a 1-minimal result.
-
-The simplest approach for selecting subsets of the original test case would be
-to remove one component at a time. Delta debugging does better in the average
-case by splitting the components in a fashion similar to binary search. We
-show the full algorithm in Figure~\ref{fig:ddmin}.
-
-We show an example
-execution of delta debugging in Table~\ref{fig:ddmin_example}. The original
-test case is a sequence of components $e_1,e_2,e_3,e_4,e_5,e_6,e_7,e_8$. Delta
-debugging first checks the left half of the components. The bug is not
-triggered, so delta debugging then tries the right half of the components. Again, the
-bug is not triggered, so delta debugging recurses, splitting the components
-into fourths instead of halves. After the 7th experiment, delta debugging
-knows that it has reached a 1-minimal result, and produces the output
-$e_3,e_6$.
-
-To be guaranteed to produce 1-minimal outputs, the version of delta debugging that we employ~\cite{Zeller:1999:YMP:318773.318946}
-makes three
-assumptions about inputs: monotonicity, unambiguity, and consistency.
-An event trace that violates monotonicity may contain events that ``undo'' the
-invariant violation triggered by the MCS, and may therefore exhibit
-inflated MCSes. An event trace that violates unambiguity may exhibit multiple MCSes; delta debugging
-will return one of them. The most important assumption is consistency, which
-requires that the test outcome can always be determined, i.e., that each
-subset chosen by delta debugging is semantically valid.
-
-In this dissertation, we guarantee neither monotonicity nor unambiguity. We do
-however codify domain knowledge in order to ensure that each
-subset chosen by delta debugging is semantically valid. By guaranteeing
-consistency, we can use a simple version of delta debugging that does not
-consider subset complements. The version of delta debugging that considers
-subset complements has the advantage that it is guaranteed to produce
-1-minimal output even in the face of inconsistency, but it incurs an additional factor of n in worst-case runtime
-complexity~\cite{Zeller:2002:SIF:506201.506206}.
-
-The delta debugging algorithm we use terminates in $\Omega(\log n)$
-invocations of the test runner in the best case, and $O(n)$ invocations in the worst case, where $n$ is the number of inputs in the original
-trace~\cite{Zeller:1999:YMP:318773.318946}. If it is difficult to ensure
-consistency, one could employ the more expensive version of delta debugging,
-which terminates in $O(n^2)$ invocations in the worst case~\cite{Zeller:2002:SIF:506201.506206}.
-
-\begin{figure*}[t!]
+\begin{figure*}[tb!]
 \footnotesize
 \begin{boxedminipage}{\textwidth}
 Input: $\cfail$ s.t. $\cfail$ is a sequence of externals, and $\test(\cfail) = \DFAIL$. Output: $\dfail
@@ -99,6 +36,99 @@ subsequence relations. \textproc{TEST} is defined in Algorithm~\ref{fig:alg_over
 %\vspace{-0.3cm}
 \end{figure*}
 
+
+Delta debugging is an algorithm for reducing test
+cases~\cite{Zeller:1999:YMP:318773.318946,Zeller:2002:SIF:506201.506206}. The
+inputs to delta debugging are a test input (e.g., an HTML file) that triggers a
+bug, a function for separating out the components of the test
+input (e.g. individual HTML tags, or individual ASCII characters), and a test
+runner (e.g., a script that starts a browser process, feeds in the test HTML
+page to the browser, and finally checks whether the browser exhibited a bug or
+not). Delta debugging seeks to reduce the size of the test input to a
+``minimal'' counterexample  (a subset of the original test case) that still
+triggers the bug.\footnote{By ``minimal'', we do not mean global minimality,
+since finding a globally minimal subset is intractable (it is equivalent to enumerating the
+powerset of the original test case). Delta debugging instead seeks to produce a
+1-minimal subset, meaning that no single component of the subset can be
+removed while still triggering the bug.}
+
+Delta debugging works by experimenting with different subsets of the original test
+case. Each experiment involves feeding a subset of the original test case to the test runner
+and checking whether the bug is still triggered. If the bug is still
+triggered, we know that the components of the original test case that are not part of the
+subset are not necessary for triggering the
+bug, and we can therefore ignore them. Delta debugging continues experimenting
+with subsets until it knows that it has reached a 1-minimal result.
+
+The simplest approach for selecting subsets of the original test case would be
+to remove one component at a time. Delta debugging does better in the average
+case by splitting the components in a fashion similar to binary search. We
+show a detailed description of the delta debugging simplification algorithm
+(the simple version that we use in this paper) in Figure~\ref{fig:ddmin}.
+
+For illustration, consider the
+execution of delta debugging shown in Table~\ref{fig:ddmin_example}. The original
+test case is a sequence of components $e_1,e_2,e_3,e_4,e_5,e_6,e_7,e_8$ that,
+when executed by the test runner, results in an invariant violation $\DFAIL$. Delta
+debugging first checks the left half of the components. The bug is not
+triggered (as reported by the test runner `\textproc{TEST}'),
+so delta debugging then tries the right half of the components. Again, the
+bug is not triggered, so delta debugging recurses, splitting the components
+into fourths instead of halves. Whenever the invariant violation $\DFAIL$ is
+triggered, delta debugging knows that the components not included in that
+subset can be
+ignored from then on. Delta debugging continues trying to find which
+components are not necessary for triggering the invariant violation. After the 7th experiment, delta debugging
+knows that it has reached a 1-minimal result, and produces the output
+$e_3,e_6$.
+
+\begin{table}[tb!]
+\centering
+\begin{tabular}{l|llllllll|l}
+\hline
+  Step & \multicolumn{8}{l|}{Input Components} & \textproc{TEST} \\
+\hline
+1 & $e_1$   & $e_2$   & $e_3$   & $e_4$   & $\cdot$ & $\cdot$ & $\cdot$ & $\cdot$ & $\PASS$ \\
+2 & $\cdot$ & $\cdot$ & $\cdot$ & $\cdot$ & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\PASS$ \\
+3 & $e_1$   & $e_2$   & $\cdot$ & $\cdot$ & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\PASS$ \\
+4 & $\cdot$ & $\cdot$ & $e_3$   & $e_4$   & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\DFAIL$ \\
+5 & $\cdot$ & $\cdot$ & $e_3$   & $\cdot$ & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\DFAIL\ $($e_3$ found) \\
+6 & $e_1$   & $e_2$   & $e_3$   & $e_4$   & $e_5$   & $e_6$   & $\cdot$ & $\cdot$ & $\DFAIL$ \\
+7 & $e_1$   & $e_2$   & $e_3$   & $e_4$   & $e_5$   & $\cdot$ & $\cdot$ & $\cdot$ & $\PASS\ $($e_6$ found) \\
+\hline
+Result & $\cdot$   & $\cdot$   & $e_3$   & $\cdot$   & $\cdot$   & $e_6$ & $\cdot$ & $\cdot$ &
+\end{tabular}
+\caption{\label{fig:ddmin_example} Example execution of Delta Debugging,
+taken from~\cite{Zeller:1999:YMP:318773.318946}.
+`$\cdot$' denotes an excluded input component (external event), $\DFAIL$
+denotes an invariant violation, and $\PASS$ denotes lack of an invariant violation.}
+\end{table}
+
+To be guaranteed to produce 1-minimal outputs, the version of delta debugging that we employ~\cite{Zeller:1999:YMP:318773.318946}
+makes three
+assumptions about inputs: monotonicity, unambiguity, and consistency.
+An event trace that violates monotonicity may contain events that ``undo'' the
+invariant violation triggered by the MCS, and may therefore exhibit
+inflated MCSes. An event trace that violates unambiguity may exhibit multiple MCSes; delta debugging
+will return one of them. The most important assumption is consistency, which
+requires that the test outcome can always be determined, i.e., that each
+subset chosen by delta debugging is semantically valid.
+
+In this dissertation, we guarantee neither monotonicity nor unambiguity. We do
+however codify domain knowledge in order to ensure that each
+subset chosen by delta debugging is semantically valid. By guaranteeing
+consistency, we can use a simple version of delta debugging~\cite{Zeller:1999:YMP:318773.318946} that does not
+consider subset complements. The version of delta debugging that considers
+subset complements~\cite{Zeller:2002:SIF:506201.506206} has the advantage that it is guaranteed to produce
+1-minimal output even in the face of inconsistency, but it incurs an additional factor of n in worst-case runtime
+complexity.
+
+The delta debugging algorithm we use terminates in $\Omega(\log n)$
+invocations of the test runner in the best case, and $O(n)$ invocations in the worst case, where $n$ is the number of inputs in the original
+trace~\cite{Zeller:1999:YMP:318773.318946}. If it is difficult to ensure
+consistency, one could employ the more expensive version of delta debugging,
+which terminates in $O(n^2)$ invocations in the worst case~\cite{Zeller:2002:SIF:506201.506206}.
+
 \eat{ % Original O(n^2) algorithm
 \begin{figure*}[t]
 \caption{Minimizing Delta Debugging Algorithm From~\cite{Zeller:2002:SIF:506201.506206}}
@@ -127,31 +157,10 @@ holds.
 \end{figure*}
 }
 
-\begin{table}[b]
-\centering
-\begin{tabular}{l|llllllll|l}
-\hline
-  Step & \multicolumn{8}{l|}{External Event Subsequence} & \textproc{TEST} \\
-\hline
-1 & $e_1$   & $e_2$   & $e_3$   & $e_4$   & $\cdot$ & $\cdot$ & $\cdot$ & $\cdot$ & $\PASS$ \\
-2 & $\cdot$ & $\cdot$ & $\cdot$ & $\cdot$ & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\PASS$ \\
-3 & $e_1$   & $e_2$   & $\cdot$ & $\cdot$ & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\PASS$ \\
-4 & $\cdot$ & $\cdot$ & $e_3$   & $e_4$   & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\DFAIL$ \\
-5 & $\cdot$ & $\cdot$ & $e_3$   & $\cdot$ & $e_5$   & $e_6$   & $e_7$   & $e_8$   & $\DFAIL\ $($e_3$ found) \\
-6 & $e_1$   & $e_2$   & $e_3$   & $e_4$   & $e_5$   & $e_6$   & $\cdot$ & $\cdot$ & $\DFAIL$ \\
-7 & $e_1$   & $e_2$   & $e_3$   & $e_4$   & $e_5$   & $\cdot$ & $\cdot$ & $\cdot$ & $\PASS\ $($e_6$ found) \\
-\hline
-Result & $\cdot$   & $\cdot$   & $e_3$   & $\cdot$   & $\cdot$   & $e_6$ & $\cdot$ & $\cdot$ &
-\end{tabular}
-\caption{\label{fig:ddmin_example} Example execution of Delta Debugging,
-taken from~\cite{Zeller:1999:YMP:318773.318946}.
-`$\cdot$' denotes an excluded original external event.}
-\end{table}
-
 \section{Dynamic Partial Order Reduction}
 \label{app:dpor}
 
-\begin{algorithm*}[ht!]
+\begin{algorithm*}[htb!]
 {\footnotesize
 \begin{algorithmic}
 \State Initially: \Call{Explore}{$\emptyset$}
@@ -192,24 +201,39 @@ $\{1,\dots,n\}$; $S.t$ denotes
 $S$ extended with an additional transition $t$.}}
 \end{algorithm*}
 
-In a concurrent environment, the behavior of a software system depends not only on
-its inputs, but also on interleavings of internal events. In a distributed
-system, the network is the key source of concurrency: in response to external
-events, processes send messages to each other, which may (in the case of a
+Delta debugging is designed for sequential test cases. In a concurrent environment, the behavior of a software system depends not only on
+its inputs (e.g., commands from the user or failure events), but also on
+interleavings of internal events (e.g., the order of reads and writes to
+shared memory, as determined by a thread scheduler). To properly reduce
+executions of concurrent systems, we therefore need to consider both the input
+events (which can be considered together as a sequential collection of
+components to be reduced by delta debugging), and the interleavings of internal events.
+
+The key source of
+concurrency in a distributed system is the network. In response to external
+(input) events, processes send messages to each other over the network, which may (in the case of a
 fully asynchronous network) be arbitrarily
 reordered or delayed by the network before they are delivered to their
 destination.
 
-Our goal XX.
-For a finite number of message deliveries, there is a finite number of
-possible message interleavings.
+If we precisely control when the network delivers each message (as we do in
+chapter~\ref{sec:demi}), we can
+systematically explore the space of possible event interleavings.
+For a given subset of an execution's input events, there is a finite number of
+possible event interleavings (assuming a maximum bound on the number of
+message deliveries in the execution). We could thus enumerate every possible
+event interleaving for each subset of input events chosen by delta debugging,
+and report back to delta debugging whether any one of those interleavings
+triggered the invariant violation. Unfortunately, this is wildly intractable: the
+number of possible event interleavings is in general factorial in the number
+of events.
 
-% TODO(cs): move to section 2?
-As others have observed~\cite{godefroid1995partial}, many events occurring in a schedule are {\em commutative}, i.e., the system arrives at the same
+As others have observed~\cite{godefroid1995partial}, many events occurring in
+a schedule (event interleaving) are {\em commutative}, i.e., the system arrives at the same
 configuration regardless of the order events are applied. For example, consider two events $e_1$ and $e_2$, where
-$e_1$ is a message from process $a$ being delivered to
+$e_1$ is a message from process $a$ to be delivered to
 process $c$, and $e_2$ is a message from process $b$
-being delivered to process $d$. Assume that both $e_1$ and $e_2$ are co-enabled, meaning they are both pending at the same time and can be executed in either order. Since
+to be delivered to process $d$. Assume that both $e_1$ and $e_2$ are co-enabled, meaning they are both pending at the same time and can be executed in either order. Since
 the events affect a disjoint set of nodes ($e_1$ changes the state at $c$, while $e_2$ changes the state at $d$), executing $e_1$ before $e_2$ causes the system to arrive at the same state it would arrive at if we had instead executed $e_2$ before $e_1$.
 $e_1$ and $e_2$ are therefore commutative. This example
 illustrates a form of commutativity captured by the happens-before relation~\cite{Lamport:1978:TCO:359545.359563}: two message delivery events
@@ -223,37 +247,22 @@ contrast, happens-before commutativity is independent of the application.}
 
 Partial order reduction (POR)~\cite{godefroid1995partial,flanagan2005dynamic} is a well-studied technique for pruning commutative schedules from the search space. In the above example, given two schedules that only differ in the order
 in which $e_1$ and $e_2$ appear, POR would only explore one schedule. Dynamic POR (DPOR)~\cite{flanagan2005dynamic} is a
-refinement of POR (shown in \S\ref{app:dpor}): at each
+refinement of POR: at each
 step, it picks a pending message to deliver, dynamically computes which
 other pending events are not concurrent with the message it just delivered,
 and sets backtrack points for each of these, which it will later use (when
 exploring other non-equivalent schedules) to try delivering the pending
 messages in place of the message that was just delivered.
 
-Even when using DPOR, the task of enumerating all possible schedules containing $E$ as a
-subsequence remains intractable. Moreover, others have found that na\"ive DPOR
-gets stuck exploring a small portion of the schedule space because of its
-depth-first exploration order~\cite{lin2009modist}.
-%, and require that a large number of schedules be explored
-%before an invariant violation is found.
-We address this problem in two ways: first, as mentioned before, we limit
-$ExtMin$ so it spreads its fixed time budget roughly evenly across
-checking whether each particular subsequence of external events reproduces the invariant violation. It does this by
-restricting DPOR to exploring a fixed number of schedules before
-giving up and declaring that an external event sequence does not produce the violation. Second, to maximize the probability that
-invariant violations are discovered quickly while exploring a fixed number of
-schedules, we employ a set of schedule exploration strategies to guide
-DPOR's exploration, which we describe next.
-
 We show the original depth-first version of Dynamic Partial Order Reduction
 in Algorithm~\ref{alg:dpor}. Our modified DPOR algorithm uses a priority queue
 rather than a (recursive) stack, and tracks which schedules it has explored
 in the past. Tracking which schedules we have explored in the past is
 necessary to avoid exploring redundant schedules (an artifact of our non depth-first
-exploration order). The memory footprint required for tracking previously explored
+exploration order, to be explained later in chapter~\ref{sec:demi}). The memory footprint required for tracking previously explored
 schedules continues growing for every new schedule we explore. Because we
 assume a fixed time budget though,
-we typically exhaust our time budget before \sys~runs out of memory.
+we typically exhaust our time budget before we run out of memory.
 
 There are a few desirable properties of DPOR we want to maintain,
 despite our prioritized exploration order:
@@ -285,7 +294,9 @@ DPOR.
 \begin{figure}[ht!]
 \centering
 \includegraphics[width=\textwidth]{../diagrams/Layers.pdf}
-\caption{The SDN Stack: state layers are on the left, code layers are in the center, and example bugs are on the right.}
+\caption{The SDN Stack: state layers are on the left, code layers are in the
+center, and example bugs are on the right. Switches and routers are at the
+bottom layer of the stack.}
 \label{fig:layers}
 \end{figure}
 
@@ -334,7 +345,7 @@ the configured policy does not match the operator's intent, or hardware beyond t
 
 When the behavior of the network does not match an operator's intent, the
 operator must localize the symptoms to the system components that are
-responsible. Then (in the case of software errors), the operator needs to
-understand what events caused that to misbehave. In this dissertation we focus
+responsible. Then, the operator needs to
+understand what events (which determine the code path that leads up to the problem) caused that component to misbehave. In this dissertation we focus
 on making it easier
 for the operator to understand the events caused the component to misbehave.

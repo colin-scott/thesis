@@ -20,7 +20,7 @@ This leads us to our key challenge:
 
 To find MCSes in reasonable time, we split schedule exploration into two
 parts. We start by using delta debugging~\cite{Zeller:2002:SIF:506201.506206}
-(shown in \S\ref{subsec:delta_debugging}), a reduction
+(explained in \S\ref{subsec:delta_debugging}), a reduction
 algorithm similar to binary search, to prune extraneous external events. Delta debugging works by picking subsequences of external events, and checking whether
 it is possible to trigger the violation with just those external
 events starting from the initial configuration. We assume the user gives us a time budget, and we spread this budget evenly across each subsequence's exploration.
@@ -101,7 +101,7 @@ is expensive, since it may require exploring a large set of event schedules.
 We therefore apply
 delta debugging~\cite{Zeller:1999:YMP:318773.318946,Zeller:2002:SIF:506201.506206}, an algorithm similar to
 binary search, to achieve $O(log(|E|))$ average case runtime (worst case
-$O(|E|)$). The delta debugging algorithm we use is shown in
+$O(|E|)$). The delta debugging algorithm we use is explained in detail in
 \S\ref{subsec:delta_debugging}.
 
 Efficient implementations of $ExtMin$ should not waste time trying to execute invalid
@@ -122,7 +122,6 @@ and check all schedules that contain $E'$ as a subsequence.
 Since the number of possible schedules is exponential in the number of events,
 pruning this schedule space is essential to finishing in a timely manner.
 
-% TODO(cs): move to section 2?
 As others have observed~\cite{godefroid1995partial}, many events occurring in a schedule are {\em commutative}, i.e., the system arrives at the same
 configuration regardless of the order events are applied. As we explained in
 detail in~\S\ref{app:dpor}, a well-studied algorithm for removing commutative
