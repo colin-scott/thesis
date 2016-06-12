@@ -9,7 +9,7 @@ additional challenges, such as concurrency, asynchrony, and partial failure, whi
 consider all possible ways that non-determinism might manifest itself.
 The number of event orderings %(e.g.,message deliveries, failure notifications)
 a distributed system may encounter due to non-determinism grows exponentially with the number of
-events. Bugs are therefore commonplace in distributed systems software, since developers invariably
+events in the execution. Bugs are therefore commonplace in distributed systems software, since developers invariably
 overlook some unanticipated event orderings amid the exponential number of
 orderings they need to consider.
 
@@ -76,7 +76,7 @@ executions of distributed systems.}
 \end{quote}
 
 We seek to provide execution reduction tools that leave developers of
-distributed and concurrent systems with a `minimal causal sequence' of triggering events, each of which is necessary for triggering the bug.
+distributed systems with a `minimal causal sequence' of triggering events, each of which is necessary for triggering the bug.
 We claim that the greatly reduced size of the trace makes it easier for the developer to figure out which code path contains the underlying bug, allowing them to focus their effort on the task of fixing the problematic code itself.
 As far as we know, we are the first to show how to provide execution
 reduction tools
@@ -93,13 +93,13 @@ Distributed executions have two distinguishing features. Most importantly, input
 are {\em interleaved} with internal events (e.g., intra-process
 message deliveries) of concurrent processes. Execution reduction algorithms must therefore consider both which
 input events and which (of the exponentially many)
-event schedules are likely to be necessary for triggering the bug. Our main contribution
+event interleavings (``schedules'') are likely to be necessary for triggering the bug. Our main contribution
 throughout this dissertation is a set of techniques for searching
 through the space of event schedules in a timely manner; these techniques are inspired
 by our understanding of how practical systems behave.
 
 Distributed systems also frequently exhibit non-determinism (e.g., since they
-make extensive use of timers to detect failures). To reduce executions
+make extensive use of wall-clock timers to detect failures). To reduce executions
 consistently and reliably, we need to find ways to cope with this non-determinism.
 
 We address these challenges from two perspectives.
@@ -128,7 +128,8 @@ networking (SDN) control software (explained in~\ref{sec:sdn}). Rather than inte
 software itself
 (which would violate our blackbox requirement), we interpose on a standard
 protocol used by all SDN control software: OpenFlow~\cite{openflow}. With
-interposition on OpenFlow messages, we show that we are able to control the
+interposition on OpenFlow messages, we show that we are able to mitigate
+non-determinism and control the
 interleavings of events well enough to achieve decent reduction of execution
 size.
 
