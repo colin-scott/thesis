@@ -1,83 +1,198 @@
+%\colin{TODO: Admit up front that, most bugs, even in distributed systems, can
+%be minimized with traditional delta debugging (e.g. unexpected configurations,
+%unexpected messages, etc.). However, the bugs that are the most difficult are
+%those that involve concurrency \& asynchrony.}
 
-My approach to research is to start by understanding the problems faced by the people I intend to support, then to formalize these problems and develop principled tools and techniques to solve them, and finally to close the loop by evaluating whether my ideas succeed in supporting those people. The genesis of my dissertation topic was an internship I did at Nicira, where I saw that the company’s most skilled developers spent the majority of their time sifting through log files from buggy executions. I spent the next 4 years experimenting with formal methods and systems for aiding their debugging effort, building out usable prototypes, and eliciting feedback from the software development communities I intended to support.
-Dissertation Work: Reducing Faulty Executions of Distributed Systems
+Even simple code can contain bugs (e.g., crashes due to unexpected input). But the developers
+of distributed systems face
+additional challenges, such as concurrency, asynchrony, and partial failure, which require them to
+consider all possible ways that non-determinism might manifest itself.
+The number of event orderings %(e.g.,message deliveries, failure notifications)
+a distributed system may encounter due to non-determinism grows exponentially with the number of
+events. Bugs are therefore commonplace in distributed systems software, since developers invariably
+overlook some unanticipated event orderings amid the exponential number of
+orderings they need to consider.
 
-When a bug is found in a long-running distributed system, developers typically start by identifying (i) which events in the execution caused their system to arrive at the unsafe state, and (ii) which events are irrelevant. This process of troubleshooting can be highly time-consuming, as developers might spend hours poring over multigigabyte traces containing thousands of events.
+% TODO(cs): simpler version of the above paragraph:
+% Developers
+% of distributed systems need to consider many scenarios in which the components of the system must operate,
+% due to concurrency, asynchrony, and partial failures. Since analyzing these scenarios is so complex,
+% it is common for distributed systems to have hard-to find bugs.
 
-My dissertation work aims to reduce effort spent on troubleshooting
-distributed systems, by automatically eliminating events from buggy executions
-that are not causally related to the bug at hand. We seek to leave the developer with a `minimal causal sequence' of triggering events, each of which is necessary for triggering the bug. We claim that the greatly reduced size of the trace makes it easier for the developer to figure out which code path contains the underlying bug, allowing them to focus their effort on the task of fixing the problematic code itself.
+% Developers of distributed systems face notoriously
+% difficult challenges, such
+% as concurrency, asynchrony, and
+% partial failure. These challenges, in {\em addition} to those arising from normal software development, invariably lead to software bugs.
 
-My investigation into this problem took place in two parts:
-Focus on SDN control software, with limited control over the execution.
+% Bugs that are specific to distributed systems (as opposed to bugs normally encountered in sequential code, e.g. crashes due to unexpected user input) arise because
+% it is difficult for developers to
+% consider all the possible ways that non-determinism can manifest itself.
+% The number of event orderings (e.g. message deliveries, failure notifications, etc.)
+% a distributed system may encounter scales factorially with the cluster size and the execution length.
+% % TODO(cs): swap order of "event-orderings" and "non-determinism"?
 
-I started in the context of software-defined networking [1,2,3], where I posed the question:
+Software developers discover bugs in several ways.
+Most commonly, they find them through unit and integration tests. These tests are ubiquitous, but they are limited to cases that developers
+anticipate themselves. To uncover unanticipated cases, semi-automated testing
+techniques such as randomized concurrency testing (where
+sequences of message deliveries, failures, etc. are injected randomly into the system) are effective.
+Finally, despite pre-release testing, bugs may turn up once the code is deployed in production.
+% TODO(cs): provide citations on bugs found in production, or bugs found by fuzzing?
 
-Is it possible to reduce executions of distributed SDN control software, without making any assumptions about the language or instrumentation of the software under test?
+The last two means of bug discovery present a significant challenge to
+developers: the system can run for
+long periods before problems manifest themselves. The resulting executions
+can contain a large number of events, most of which are not relevant to triggering the
+bug. Understanding how a trace containing thousands of concurrent events lead
+the system to an unsafe state requires significant expertise, time,\footnote{Developers spend a significant portion of their time
+debugging (49\% of their time according to one
+study~\cite{LaToza:2006:MMM:1134285.1134355}), especially when the bugs
+involve concurrency (70\% of reported concurrency bugs
+in~\cite{msoft_concurrency} took days to months to fix).}
+and luck.
 
-I discovered that, although input reduction is well studied for sequential
-programs, I could find no principled approaches to reducing executions of
-blackbox concurrent systems. My investigation lead me to identify several
-challenges posed by concurrency. Most importantly, input events (e.g., node
-failures) are interleaved with the internal events (e.g., state transitions)
-of concurrent processes. In searching for a minimal execution, reduction algorithms must therefore consider both which of the input events and which of the (exponentially many) event schedules are likely to still trigger the bug. This lead to the first key challenge: 
+% Mention somewhere that bugs in distributed systems are important to fix?
 
-	How should we interleave events while we search for a minimal execution?
+Faulty execution traces can be made %substantially
+easier to understand if they are first
+{\em reduced}, so that only events that are relevant to triggering the bug remain.
+In fact, software developers often start troubleshooting by manually performing this
+reduction; they identify
+(i) which events in the execution caused their system to arrive at the unsafe
+state, and (ii) which events are irrelevant (and can be ignored).
 
-I developed an intuitive heuristic: we know that the original execution triggered the bug, so, when exploring modified executions we should try to stay as close as possible to the original execution’s causal dependencies. The mechanism I developed to implement this heuristic involved dynamically inferring whether events we expect to show up (from the original execution) will in fact show up in modified executions.
+Since developer time is typically much more costly than machine time,
+automated reduction tools for {\em sequential}
+test
+cases~\cite{claessen2000quickcheck,Zeller:2002:SIF:506201.506206,yang2011finding}
+have already proven themselves valuable,
+and are routinely applied to bug reports for software projects such as Firefox~\cite{firefox_reduction}, LLVM~\cite{bugpoint}, and GCC~\cite{gcc_reduction}.
+%\george{any cites from distributed systems?}
+In this dissertation, we argue the following:
 
-I constrained myself to avoiding assumptions about programming language or instrumentation because this would ensure that organizations would be able to implement the technology within their existing QA infrastructure. Instead of interposing on a language, I interpose on a standard protocol used by SDN control software: OpenFlow. By interposing on OpenFlow messages, our system (STS) was able to control the interleavings of events to a large extent. Nonetheless, without perfect control, we had to deal with a second key challenge:
+\begin{quote}
+{\textbf{Thesis statement:}} \textit{It is possible to automatically reduce faulty
+executions of distributed systems.}
+\end{quote}
 
-Is it possible to mitigate non-determinism, without assumptions about instrumentation?
+We seek to provide execution reduction tools that leave developers of
+distributed and concurrent systems with a `minimal causal sequence' of triggering events, each of which is necessary for triggering the bug.
+We claim that the greatly reduced size of the trace makes it easier for the developer to figure out which code path contains the underlying bug, allowing them to focus their effort on the task of fixing the problematic code itself.
+As far as we know, we are the first to show how to provide execution
+reduction tools
+for distributed and concurrent systems without needing to analyze the code.
 
-I took an experimental approach to this challenge. Through case studies I discovered an effective set of heuristics involving careful wall-clock spacing between events, and replaying non-deterministic executions multiple times.
+%Other than our prior work, the closest approaches we know of work by
+% symbolically analyzing the program, which suffer from a different set of
+% limitations.
 
-Impact: STS has gained adoption by both academics and industrial organizations: it has been used as part of the development process for the ONOS open source SDN controller; I sent an undergraduate on an internship to Big Switch Networks to integrate STS; and STS has been used as the basis for research projects at ETH and Duke [12,13].
-Focus on classical distributed systems, with nearly perfect control.
+\section{Challenges}
 
-STS focused narrowly on one kind of distributed system, and the heuristics we
-developed for STS left significant room for improvement. In my next project
-[4] I identified a computational model that would allow us to cleanly reason
-about new reduction heuristics, and I applied these heuristics successfully to several types of distributed systems besides SDN software.
+Distributed executions have two distinguishing features. Most importantly, input events
+(e.g., failures)
+are {\em interleaved} with internal events (e.g., intra-process
+message deliveries) of concurrent processes. Execution reduction algorithms must therefore consider both which
+input events and which (of the exponentially many)
+event schedules are likely to be necessary for triggering the bug. Our main contribution
+throughout this dissertation is a set of techniques for searching
+through the space of event schedules in a timely manner; these techniques are inspired
+by our understanding of how practical systems behave.
 
-The computational model I identified---the actor model---showed how we could gain (nearly) perfect control over the execution of events in actor-based distributed systems. With this control in place, it would be theoretically possible to simply enumerate all possible schedules, execute each one, and pick the smallest execution that triggers the bug. The space of all possible schedules is intractably large however, which lead to our main question:
+Distributed systems also frequently exhibit non-determinism (e.g., since they
+make extensive use of timers to detect failures). To reduce executions
+consistently and reliably, we need to find ways to cope with this non-determinism.
 
-	How can we maximize reduction of trace size within bounded time?
+We address these challenges from two perspectives.
 
-My general approach would be to carefully prioritize the order in which we explore the schedule space, with the goal of quickly finding small executions that still trigger the bug. I designed these prioritization functions based on my understanding of how programs behave in practice. As I had learned from STS, my key insight was that if one schedule triggers a bug, schedules that are similar in their causal structure should have a high probability of also triggering the bug. Translating this intuition into a prioritization function required us to address our second challenge: 
+\subsection{Execution Reduction without Application-Layer Interposition}
 
-How can we reason about the similarity or dissimilarity of two distinct executions?
+In chapter~\ref{sec:sts}, we pose
+the following question:
 
-I developed a hierarchy of equivalence relations between events, and showed
+\begin{quote}
+\textit{Can we automatically reduce
+executions without making any assumptions about the language or
+instrumentation of the software under test?}
+\end{quote}
+
+The key advantage of this `blackbox' approach to execution reduction is that
+it allows us to avoid the (often substantial) engineering effort required to
+instrument and completely control all the sources of non-determinism in
+distributed
+systems. A blackbox execution reduction tool can be applied easily to a wide
+range of systems without much effort.
+
+We develop our blackbox execution reduction techniques
+in the context of software-defined
+networking (SDN) control software (explained in~\ref{sec:sdn}). Rather than interposing on the SDN control
+software itself
+(which would violate our blackbox requirement), we interpose on a standard
+protocol used by all SDN control software: OpenFlow~\cite{openflow}. With
+interposition on OpenFlow messages, we show that we are able to control the
+interleavings of events well enough to achieve decent reduction of execution
+size.
+
+We develop an intuitive heuristic for
+choosing which event interleavings to explore: we know that the original execution triggered the bug, so, when exploring modified executions we should try to stay as close as possible to the original execution's causal dependencies.
+The mechanism we develop to implement this heuristic involves dynamically inferring whether events we expect to show up (from the original execution) will in fact show up in modified executions.
+
+Without perfect interposition, we need to find ways to mitigate the effects of
+non-determinism while we experimentally explore event interleavings.
+Through case studies, we discover an effective set of mitigation strategies involving careful wall-clock spacing between events, and replaying non-deterministic executions multiple times.
+
+\subsection{Execution Reduction with Application-Layer Interposition}
+
+Our investigation in chapter~\ref{sec:sts} focuses narrowly on one kind of
+distributed system, and, without complete control over the execution, the heuristics we
+develop there leave room for improvement. In chapter~\ref{sec:demi},
+we identify a computational model that allows us to cleanly reason
+about new reduction heuristics. We also apply these heuristics successfully
+to several types of distributed systems besides SDN control software.
+
+The computational model we identify---the actor model---makes clear how we can gain (nearly) perfect control over the execution of events in actor-based distributed systems.
+With this control in place, it is theoretically possible to simply enumerate all possible schedules, execute each one, and pick the smallest execution that triggers the bug.
+The space of all possible schedules is intractably large however, which leads to our main question:
+
+\begin{quote}
+\textit{How can we maximize reduction of trace size within bounded time?}
+\end{quote}
+
+Our general approach is to carefully prioritize the order in which we explore
+the schedule space, with the goal of quickly finding small executions that
+still trigger the bug. We design these prioritization functions based on our
+understanding of how programs behave in practice. As we learned in
+chapter~\ref{sec:sts}, our key insight is that if one schedule triggers a bug, schedules that are similar in their causal structure should have a high probability of also triggering the bug.
+Translating this intuition into a prioritization function requires us to address our second challenge:
+
+\begin{quote}
+\textit{How can we reason about the similarity or dissimilarity of two distinct executions?}
+\end{quote}
+
+We develop a hierarchy of equivalence relations between events, and show
 that systematically exploring schedules that are close to the original
-execution yielded significant gains in reduction over the previous
-heuristics from STS. I implemented these heuristics in a system called DEMi,
-and used it to find and reduce several bugs in the Raft consensus protocol and the Spark data analytics engine.
+execution yield significant gains in reduction over the previous
+heuristics described in chapter~\ref{sec:sts}. We implement these heuristics
+and use them to find and reduce several bugs in two very different types of distributed
+systems: the Raft consensus protocol
+and the Spark data analytics engine.
 
-Impact: DEMi has already gained notable attention from industry; it has been covered by industrial bloggers other than myself, and I have received 3 invitations to speak about DEMi at industrial conferences venues.
-Other Research
+\section{Outline and Previously Published Work}
 
-While my dissertation work focused on a specific topic at the intersection of distributed systems and software engineering, I am broadly interested in systems, networking, and technology for emerging markets. My previous work includes:
+The remainder of this dissertation proceeds as follows. We provide background
+on the existing test case reduction algorithms we build upon in
+chapter~\ref{sec:background_material}. In chapter~\ref{sec:sts} we design and
+evaluate execution reduction strategies that do not assume application-layer
+interposition. In chapter~\ref{sec:demi} we identify a deterministic (yet
+practically relevant)
+computational model for distributed systems, and show how to effectively
+reduce executions of systems that adhere to that more refined model. We discuss how both of
+these approaches relate to previous literature in
+chapter~\ref{sec:related_work}, and we comment on avenues for
+future work and conclude in chapter~\ref{main_sec:conclusion}.
 
-Data Compression for the Mobile Web. The high cost of data for mobile devices remains a major barrier to use of the Internet in emerging markets. Over the course of two internships, I published and presented a paper on Google’s data compression proxy for the mobile web, which helps alleviate these data costs, and dovetails my interests in networking and technology for emerging markets [7]. This work was informed by my prior research on outsourcing middleboxes such as compression proxies to third-party cloud operators [8].
+Chapter~\ref{sec:sts} revises published material from~\cite{sts2014}.
+Chapter~\ref{sec:demi} revises published material from~\cite{Scott:2015:DEMi}.
 
-CAP for Networks. A colleague and I posed the question: how does the CAP theorem apply to SDN networks? We formally proved that network designers face hard tradeoffs between availability and the desire to maintain common network policies such as tenant isolation [9].
+%Impact: STS has gained adoption by both academics and industrial organizations: it has been used as part of the development process for the ONOS open source SDN controller; I sent an undergraduate on an internship to Big Switch Networks to integrate STS; and STS has been used as the basis for research projects at ETH and Duke [12,13].
 
-Internet Fault Diagnosis. My interest in troubleshooting originates from my previous research on routing problems on the wide-area Internet. I helped develop the reverse traceroute tool [5] for measuring the reverse path from a destination back towards a source, and the LIFEGUARD system for helping operators automatically route around failures and misconfigurations on the Internet [6]. I am also currently working on a statistical root cause analysis algorithm for pinpointing the autonomous system responsible for routing changes [11].
-
-SDN for Rural Connectivity. Operating a rural network in the developing world means coping with unpredictability, low profit margins, and resource constraints. In a collaboration with the TIER group, we argued that the increased flexibility and simplified management that software-defined networks provide are a major benefit in this context [10].
-Future Work
-
-Distributed systems are an increasingly pervasive part of our lives. In comparison to other areas of software engineering however, the development tools that help programmers cope with the complexity of distributed systems are lagging behind their sequential counterparts. Going forward, I see a pressing need to bring the state-of-the-art for distributed systems tools up to speed with the more well studied programming languages and software engineering techniques designed for single machines. Bridging this gap would involve answering many questions spanning systems, formal methods, and human-computer interaction, such as:
-
-Computational Models for Program Analysis: Program analysis for arbitrary Turing machines and arbitrary program properties is typically either undecidable or intractable. The distributed systems we build in practice however are not adversarial! Can we codify the properties of practical distributed systems (e.g. quiescence, bounded state) that make them more easily amenable to program analysis? What program analysis tools can we provide to help alleviate the specific challenges (e.g. performance variability, concurrency) faced by distributed systems?
-
-Systems and HCI Methodologies for Avoiding Configuration Errors: Human configuration errors remain the largest source of outages. More generally, developers and operators spend a significant portion of their time and effort dealing with configuration. To what extent can we design our systems to be autonomous and configuration-free? For the remainder of knobs we must expose to humans, what can we learn from the HCI community on how to design configuration interfaces to avoid errors and facilitate clear reasoning?
-
-Synthesis Tools and Language Constructs for Safe Asynchronous Programming: Asynchrony and partial failure are fundamental to networked systems, yet asynchronous programming remains notoriously error prone. To what extent can we automatically synthesize tricky pieces of asynchronous code? Can we provide language constructs that side-step the need for developers to reason about the entire combinatorial space of possible message orderings?
-References
-
-\subsection{Outline and Previously Published Work}
-
-SIGCOMM~\cite{sts2014}
-NSDI~\cite{Scott:2015:DEMi}
+%Impact: DEMi has already gained notable attention from industry; it has been covered by industrial bloggers other than myself, and I have received 3 invitations to speak about DEMi at industrial conferences venues.
