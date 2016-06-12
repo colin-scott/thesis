@@ -222,7 +222,7 @@ systematically explore the space of possible event interleavings.
 For a given subset of an execution's input events, there is a finite number of
 possible event interleavings (assuming a maximum bound on the number of
 message deliveries in the execution). We could thus enumerate every possible
-event interleaving for each subset of input events chosen by delta debugging,
+event interleaving for each input subset chosen by delta debugging,
 and report back to delta debugging whether any one of those interleavings
 triggered the invariant violation. Unfortunately, this is wildly intractable: the
 number of possible event interleavings is in general factorial in the number
@@ -255,7 +255,11 @@ exploring other non-equivalent schedules) to try delivering the pending
 messages in place of the message that was just delivered.
 
 We show the original depth-first version of Dynamic Partial Order Reduction
-in Algorithm~\ref{alg:dpor}. Our modified DPOR algorithm uses a priority queue
+in Algorithm~\ref{alg:dpor}. We use DPOR as the basis for our execution
+reduction strategies in chapter~\ref{sec:demi}; we modify it to explore the schedule in a
+prioritized order.
+
+Our modified DPOR algorithm uses a priority queue
 rather than a (recursive) stack, and tracks which schedules it has explored
 in the past. Tracking which schedules we have explored in the past is
 necessary to avoid exploring redundant schedules (an artifact of our non depth-first
@@ -264,7 +268,7 @@ schedules continues growing for every new schedule we explore. Because we
 assume a fixed time budget though,
 we typically exhaust our time budget before we run out of memory.
 
-There are a few desirable properties of DPOR we want to maintain,
+There are a few desirable properties of the unmodified DPOR algorithm that we want to maintain,
 despite our prioritized exploration order:
 
 \noindent{\textbf{Soundness:}} any executed schedule should be valid, i.e. possible
