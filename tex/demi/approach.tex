@@ -209,7 +209,6 @@ schedule in Figure~\ref{fig:matching}.
     %\vspace{-1.5em}
 \end{figure}
 
-
 \noindent{\textbf{Matching Messages.}} A function $match$ determines whether a
 pending message from a modified execution logically corresponds to a
 message delivered in the original execution. The simplest way to implement
@@ -614,53 +613,6 @@ framework. We guide DPOR to explore schedules in a prioritized order based on si
 We refer to the scheduling strategy used to prioritize subsequent schedules as `TFB' (Type Fingerprints with Backtracks).
 We also reduce internal events, and shrink external message contents.
 
-% ---------------------------- \subsection{Insights} --------------------
-
-% Frame these insights in terms of adversaries:
-%  - An adversary might choose a program P that behaves in a way that we won't
-%    deal with well
-%  - Stronger statement: given a fixed program P, an adversary might choose
-%    external events E that we won't deal with well
-% i.e., "there will always be counterexamples"
-%
-% But our key insight is that the world is not adversarial. We start by
-% explaining exactly what we think are the bounds on the adversarial nature of
-% programs, then in the evaluation section we evaluate how well our model of
-% adversarielness matches up with reality.
-%
-% Now, I think it would be nice if our algorithm could achieve completeness
-% *within the bounds* of our model of adversarialness, assuming we let it run
-% long enough.
-
-\eat{
-\george{Not sure what is the plan with this. It feels more like a bunch of notes. If these get turned into text, drop the enumeration format.}
-\begin{enumerate}
-\item Systems often repeatedly return to quiescent states, where state from before
-the quiescence is largely forgotten $\rightarrow$ rather than blindly choosing
-subsequences as in delta debugging, try removing each cluster of events
-delineated by a quiescent period
-
-\item When replaying a given subsequence, the causal structure of remaining events
-from the original execution provides an important hint for how to retrigger
-the violation $\rightarrow$ attempt to stay as close to the original causal structure as
-possible [focus on backtrack points that do not change the edit distance of
-the causal structure much]
-
-\item On the other hand, the application's control flow is often unaffected by
-changes to certain parts of the message contents [e.g. sequence numbers]
-$\rightarrow$
-ignore backtrack points that only involve changes to message contents that the
-developer has told us are irrelevant [``data-independence''~\cite{shacham2014verifying}]\george{Can use fingerprint terminology}
-
-\item ``It's good to take random jumps around the schedule space rather than getting
-stuck exploring one corner of the space~\cite{lin2009modist}'' $\rightarrow$ Enforce fair allocation of the
-time budget across each possible subsequence
-
-\item The application often assumes message scheduling guarantees below the RPC
-layer, e.g. TCP instead of UDP $\rightarrow$ it's useless to explore schedules that
-violate the guarantees assumed by the application.
-\end{enumerate}
-}
 
 % TODO(cs): Optimization that we currently apply but haven't written about: inferring
 % (some) of the internal messages we know are going to be absent in the

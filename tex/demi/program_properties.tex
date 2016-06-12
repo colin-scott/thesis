@@ -1,3 +1,51 @@
+% ---------------------------- \subsection{Insights} --------------------
+
+% Frame these insights in terms of adversaries:
+%  - An adversary might choose a program P that behaves in a way that we won't
+%    deal with well
+%  - Stronger statement: given a fixed program P, an adversary might choose
+%    external events E that we won't deal with well
+% i.e., "there will always be counterexamples"
+%
+% But our key insight is that the world is not adversarial. We start by
+% explaining exactly what we think are the bounds on the adversarial nature of
+% programs, then in the evaluation section we evaluate how well our model of
+% adversarielness matches up with reality.
+%
+% Now, I think it would be nice if our algorithm could achieve completeness
+% *within the bounds* of our model of adversarialness, assuming we let it run
+% long enough.
+
+\eat{
+\george{Not sure what is the plan with this. It feels more like a bunch of notes. If these get turned into text, drop the enumeration format.}
+\begin{enumerate}
+\item Systems often repeatedly return to quiescent states, where state from before
+the quiescence is largely forgotten $\rightarrow$ rather than blindly choosing
+subsequences as in delta debugging, try removing each cluster of events
+delineated by a quiescent period
+
+\item When replaying a given subsequence, the causal structure of remaining events
+from the original execution provides an important hint for how to retrigger
+the violation $\rightarrow$ attempt to stay as close to the original causal structure as
+possible [focus on backtrack points that do not change the edit distance of
+the causal structure much]
+
+\item On the other hand, the application's control flow is often unaffected by
+changes to certain parts of the message contents [e.g. sequence numbers]
+$\rightarrow$
+ignore backtrack points that only involve changes to message contents that the
+developer has told us are irrelevant [``data-independence''~\cite{shacham2014verifying}]\george{Can use fingerprint terminology}
+
+\item ``It's good to take random jumps around the schedule space rather than getting
+stuck exploring one corner of the space~\cite{lin2009modist}'' $\rightarrow$ Enforce fair allocation of the
+time budget across each possible subsequence
+
+\item The application often assumes message scheduling guarantees below the RPC
+layer, e.g. TCP instead of UDP $\rightarrow$ it's useless to explore schedules that
+violate the guarantees assumed by the application.
+\end{enumerate}
+}
+
 % Achieving completeness for the entire space of schedules is intractable.
 % In this light, it's interesting to note that:
 %   - if we had DPOR-style completeness, we wouldn't need delta debugging.
@@ -22,6 +70,9 @@
 
 % Attempt at formalizing bounded edit-distance:
 %   https://www.sharelatex.com/project/542b926f58d6bf4a3de00588/output/output.pdf?cache_bust=1422768407864&compileGroup=priority
+
+% Nice notation for discussing program properties:
+%   https://docs.google.com/document/d/1YDdeksgNY5QyophF0XULdrj6ZOFPveDbW3RcjUAcl0Q/edit
 
 In general, it is intractable to enumerate the entire set of possible schedules
 for a given sequence $E'$, since the number of schedules to explore is exponential
@@ -211,11 +262,25 @@ number of schedules before either finding a failing schedule or notifying the
 reduction function that it is still unsure whether any failing schedule
 exists.
 
-% Earlier idea: interposing at a library layer, e.g. the NIB.
-
 \eat{
 The set of schedules to explore for a fixed sequence E’ may be infinite.
 If the program p is quiescent -- meaning that it is guaranteed to eventually stop sending messages -- then the set of schedules to be explored is finite.
 If the program p is semi-quiescent -- meaning that it is quiescent except for some message type (e.g. heartbeat messages) -- then the set of schedules to be explored is finite if you assume that the non-quiescent component of the program p is correct.
 If the program p is k-quiescent -- meaning that it is guaranteed to stop sending messages within k-steps, then the set of schedules to be explored is bounded.
 }
+
+% -------------- PROGRAM PROPERTIES, TAKE II ----------------
+
+Motivation for “stay close to the original execution”:
+
+ - consider the (possibly infinite) state machine defined as the cross product of all processes' state machines. Each edge represents an event.
+- during each state transition, the receiving process may (i) read from some local variables, and (ii) write to some local variables.
+ - consider that each invariant is typically only defined over a subset of the processes' variables.
+
+
+
+ - hypothesis: the path through the reduced state machine defined by the original event sequence contains loop(s). A shorter path can be obtained by removing all loops.
+
+Intuition for why this hypothesis might hold:
+  - each event typically only affects a subset of a processes' variables
+  - the initial execution often contains many events that affect variables that are not in the domain of the invariant.

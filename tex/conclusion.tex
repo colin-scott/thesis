@@ -16,9 +16,100 @@ successfully applied to a wide range of distributed and concurrent systems.
 
 % TODO(cs): add limitations
 
+
 % TODO(cs): add future work
 % TODO(cs): future work: try building up sequences rather than minimizing
 % them, using a model checker. (Small model hypothesis.)
+% More future work
+%   - Augmenting minimization heuristics with program flow analysis.
+%   - Dataflow analysis or grammar analysis for filtering inputs. Extension of pruning via happens-before constraints. Look at semantics
+%   of messages to infer if there are / aren't causal relations.
+
+% From STS Trello:
+% - Optimize for reproducibility, not minimality. rather than always finding
+%   minimal among many intermediate traces, only return true to dd if at least
+%   some threshold of intermediate runs triggered bug
+% - Parallelize delta debugging / STS.
+% - optimizations to delta debugging:
+%    - Right now we do a simple binary search.
+%    - What if we start by pruning certain classes of events [link failures],?
+%    - Or look at certain portions of time first?
+%    - Or, start slicing across nodes in the system rather than time
+%    - We would need to measure the effectiveness of these different approaches.
+%    - Basically, what domain knowledge can we leverage to make this thing find the
+%    - MCS faster?
+% - Distinguishing between persistent violations and transient violations
+% - Use generalized delta debugging (minimizing differences)
+%   rather than simple delta debugging
+% - Codify grammaer for external events.
+% - Right now we peek() for a first time window. But peek()'ing too far and
+%   peek()'ing not far enough both could have bad consequences for our replay.
+%   How can choose how far to peek() more intelligently?
+% - ML on messages to automatically infer fingerprints
+% - ML on fuzz runs. Some that work, some that don't
+% - Use STS to evaluate consistency models probabilistically
+% - For multithreaded controllers, might need to treat the sequence of events
+%   from each *thread* as a separate process. Otherwise might get some nasty
+%   interference (e.g. blocking) from timers, etc. in other threads.
+
+% From DEMI:
+% - Heuristics brainstorming:
+%     https://docs.google.com/document/d/13fEZB1EpMJZe_NUrn8DJqu0jWOL-0ha7h5rQhionHHQ/edit
+% - Automatically "learn" heuristics, rather than manually codefying them.
+% - Discuss master's students report.
+% - Edit-distance scheduler
+% - k-quiescence
+% TODO(cs): Optimization that we currently apply but haven't written about: inferring
+% (some) of the internal messages we know are going to be absent in the
+% subsequence. In particular, if we pruned a "Start" event for a given
+% actor, we know that all messages destined to or coming from that actor
+% will not occur in the subsequence execution.
+% TODO(cs): discussion of existing approaches?
+% TODO(cs): edit-distance as a way of avoiding unrealistic bugs (or rather,
+% unrealistic reproductions of bugs)
+% TODO(cs): Earlier idea: building a model of the state machine before
+% minimizing, a la synoptic.
+% TODO(cs): IDEA for a scheduling strategy: simply await quiescence between each external event
+% Insight: we enforce linearizability, i.e. we have removed concurrency.
+% TODO(cs): IDEA for a minimization strategy: remove events from right to left
+% rather than left to right. The intuition is the following: since we control
+% (most-of) the sources of non-determinism, we're guaranteed that if we replay a
+% prefix of events exactly, the system should end up in the same state. So, by
+% removing right-to-left, we have perturbation to worry about; we only need to
+% examine the events in the tail.
+% TODO(cs): Don't think of DPOR as a procedure we invoke. Instead think of it
+% as a continuation. We first tell it: explore up to edit-distance=k. Call it
+% on a bunch of subsequences chosen by delta debugging. Then, start delta
+% debugging over again with edit-distance = k+1. Have DPOR remember what it
+% explored before, and now only explore edit-distance =k+1.
+% TODO(cs): optimiztion for Min: have DPOR provide `hints` about causality.
+% Then have DDmin think about the external events as DAGs instead of a linear
+% sequence. Don't just split arbitrarily, split along DAG lines. The DAGs are
+% generated as `hints` based on lack of causality observed during DPOR runs.
+% TODO(cs): optimization for Min: make sure we don't ever explore the same
+% prefix (or powerset!), across all invocations of f_p. (A la, Vjeko's observation about DPOR
+% subsuming minimization)
+% TODO(cs): could optimize internal minimization (of all kinds, one-at-a-time, ddmin, fung clocks) by looking at DepGraph, not
+% bothering removing things we know are not going to show up.
+% TODO(cs): Other heuristics (brainstorming):
+% https://docs.google.com/document/d/13fEZB1EpMJZe_NUrn8DJqu0jWOL-0ha7h5rQhionHHQ/edit
+% TODO(cs): Arvind's "Provenance Fingerprint" as a mechanism, and also as a way of introducing DepGraph}
+% TODO(cs): Program properties. See demi/program_properties.tex
+% TODO(cs): Earlier idea: interposing at a library layer, e.g. the NIB.
+% TODO(cs): compare DEMi against plain DPOR?
+% TODO(cs): synthetic bugs / "get me to this line of code" bugs
+% TODO(cs): Show where MCS events appear in the original trace. At the end?
+% TODO(cs): Recording production executions
+% TODO(cs): Ras had an interesting idea. On the one hand, we want to treat the
+% application as a blackbox. On the other, we currently assume a user-defined
+% predicate that tells us whether any safety violations have occurred. That
+% predicate examines the values of some of the application's internal
+% variables. Perhaps a lightweight way to do "greybox" analysis would be to
+% expose to DEMi those variables that the predicate already examines, then
+% reason about whether we have already visited redundant states, etc.
+
+
+
 
 % TODO(cs): add concluding remark
 % TODO(cs): would be nice to end the paper on a note: what kinds of situations
