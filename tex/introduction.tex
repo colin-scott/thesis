@@ -136,9 +136,8 @@ further progress on reducing the size of the execution.
 
 We develop our blackbox execution reduction techniques
 in the context of software-defined
-networking (SDN) control software (explained in~\ref{sec:sdn}). Rather than interposing on the SDN control
-software itself
-(which would violate our blackbox requirement), we interpose on a standard
+networking (SDN) control software (explained in~\ref{sec:sdn}). In lieu of
+application-layer interposition, we interpose on a standard
 protocol used by all SDN control software: OpenFlow~\cite{openflow}.
 %With
 %interposition on OpenFlow messages, we show that we are able to mitigate
@@ -164,7 +163,7 @@ about new reduction heuristics. We also apply these heuristics successfully
 to several types of distributed systems besides SDN control software.
 
 The computational model we identify---the actor model---encapsulates all sources of
-non-determinism in the network in a small number of interposition points.
+non-determinism from the network in a small number of interposition points.
 This makes it easy for us to gain (nearly) perfect control over the execution of events in actor-based distributed systems.
 With this control in place, it is theoretically possible to simply enumerate all possible schedules, execute each one, and pick the smallest execution that triggers the bug.
 The space of all possible schedules is intractably large however, which leads to our main question:
