@@ -75,6 +75,10 @@ In this dissertation, we argue the following:
 executions of distributed systems.}
 \end{quote}
 
+\noindent We primarily
+focus on faulty executions generated in an automated test environment. However, we also
+illustrate how one might reduce production executions.
+
 We seek to provide execution reduction tools that leave developers of
 distributed systems with a `minimal causal sequence' of triggering events, each of which is necessary for triggering the bug.
 We claim that the greatly reduced size of the trace makes it easier for the developer to figure out which code path contains the underlying bug, allowing them to focus their effort on the task of fixing the problematic code itself.
@@ -93,7 +97,7 @@ Distributed executions have two distinguishing features. Most importantly, input
 are {\em interleaved} with internal events (e.g., intra-process
 message deliveries) of concurrent processes. Execution reduction algorithms must therefore consider both which
 input events and which (of the exponentially many)
-event interleavings (``schedules'') are likely to be necessary for triggering the bug. Our main contribution
+event interleavings (``schedules'') are likely to be necessary and sufficient for triggering the bug. Our main contribution
 throughout this dissertation is a set of techniques for searching
 through the space of event schedules in a timely manner; these techniques are inspired
 by our understanding of how practical systems behave.
@@ -122,16 +126,25 @@ distributed
 systems. A blackbox execution reduction tool can be applied easily to a wide
 range of systems without much effort.
 
+Rather than analyzing the code (which would violate our blackbox requirement),
+we \textit{experiment} with different executions and observe how the system
+behaves as a result. If we find an execution that is shorter than the
+original and still triggers the same bug, we can then ignore any of the
+events that we did not include from the original execution. We continue
+experimenting with shorter executions until we know that we cannot make
+further progress on reducing the size of the execution.
+
 We develop our blackbox execution reduction techniques
 in the context of software-defined
 networking (SDN) control software (explained in~\ref{sec:sdn}). Rather than interposing on the SDN control
 software itself
 (which would violate our blackbox requirement), we interpose on a standard
-protocol used by all SDN control software: OpenFlow~\cite{openflow}. With
-interposition on OpenFlow messages, we show that we are able to mitigate
-non-determinism and control the
-interleavings of events well enough to achieve decent reduction of execution
-size.
+protocol used by all SDN control software: OpenFlow~\cite{openflow}.
+%With
+%interposition on OpenFlow messages, we show that we are able to mitigate
+%non-determinism and control the
+%interleavings of events well enough to achieve decent reduction of execution
+%size.
 
 We develop an intuitive heuristic for
 choosing which event interleavings to explore: we know that the original execution triggered the bug, so, when exploring modified executions we should try to stay as close as possible to the original execution's causal dependencies.
@@ -150,7 +163,9 @@ we identify a computational model that allows us to cleanly reason
 about new reduction heuristics. We also apply these heuristics successfully
 to several types of distributed systems besides SDN control software.
 
-The computational model we identify---the actor model---makes clear how we can gain (nearly) perfect control over the execution of events in actor-based distributed systems.
+The computational model we identify---the actor model---encapsulates all sources of
+non-determinism in the network in a small number of interposition points.
+This makes it easy for us to gain (nearly) perfect control over the execution of events in actor-based distributed systems.
 With this control in place, it is theoretically possible to simply enumerate all possible schedules, execute each one, and pick the smallest execution that triggers the bug.
 The space of all possible schedules is intractably large however, which leads to our main question:
 
@@ -158,11 +173,27 @@ The space of all possible schedules is intractably large however, which leads to
 \textit{How can we maximize reduction of trace size within bounded time?}
 \end{quote}
 
-Our general approach is to carefully prioritize the order in which we explore
-the schedule space, with the goal of quickly finding small executions that
-still trigger the bug. We design these prioritization functions based on our
-understanding of how programs behave in practice. As we learned in
-chapter~\ref{sec:sts}, our key insight is that if one schedule triggers a bug, schedules that are similar in their causal structure should have a high probability of also triggering the bug.
+Our approach is to carefully prioritize the order in which we explore
+the schedule space. We prioritize schedules that are shorter than the
+original, and that we believe will be likely to
+retrigger the invariant violation (since retriggering the invariant violation allows us to make
+progress on reducing the execution).
+
+For any prioritization function we choose, an adversary could construct
+the program under test, or even just the initial execution, so that our our prioritization
+function does not make any reduction progress within a limited time budget.
+
+Fortunately, the systems we care about in practice are not written by
+adversaries. They exhibit certain \textit{program properties}, or constraints
+on their computational structure,
+that we can take advantage of when designing our prioritization functions.
+We choose our
+prioritization functions based on our understanding of these program
+properties.
+
+Drawing from what we learned in
+chapter~\ref{sec:sts}, the main program property we leverage states that if one schedule triggers a bug,
+schedules that are ``similar'' in their causal structure should have a high probability of also triggering the bug.
 Translating this intuition into a prioritization function requires us to address our second challenge:
 
 \begin{quote}
