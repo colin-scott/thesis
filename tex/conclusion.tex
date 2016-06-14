@@ -6,32 +6,232 @@ Inspired by the obvious utility of test case reduction tools for sequential
 executions, we sought to develop
 execution reduction techniques for distributed executions.
 
-In this thesis we investigated two scenarios where execution reduction could be applied to
+We investigated two scenarios where execution reduction could be applied to
 distributed systems: partially instrumented code, where executions are non-deterministic, and
-completely instrumented code, where developers invest engineering effort
+completely instrumented code, where we tie ourselves to a particular messaging
+library in order
 to precisely control all relevant sources of non-determinism. We applied our
 techniques to 7 different distributed systems, and our results
 leave us optimistic that these techniques can be
-successfully applied to a wide range of distributed and concurrent systems.
-
-\subsection{Future Work}
-
-Going forward, we see a pressing need to bring the state-of-the-art for distributed systems tools up to speed with the more well studied programming languages and software engineering techniques designed for single machines.
-Bridging this gap would involve answering many questions spanning systems, formal methods, and human-computer interaction, such as:
-
-% -------------- FROM SOP -------------
+successfully applied to a wide range of distributed and concurrent
+systems.\\[2.5ex]
 %
-% Computational Models for Program Analysis: Program analysis for arbitrary Turing machines and arbitrary program properties is typically either undecidable or intractable. The distributed systems we build in practice however are not adversarial! Can we codify the properties of practical distributed systems (e.g. quiescence, bounded state) that make them more easily amenable to program analysis? What program analysis tools can we provide to help alleviate the specific challenges (e.g. performance variability, concurrency) faced by distributed systems?
-%
-% Systems and HCI Methodologies for Avoiding Configuration Errors: Human configuration errors remain the largest source of outages. More generally, developers and operators spend a significant portion of their time and effort dealing with configuration. To what extent can we design our systems to be autonomous and configuration-free? For the remainder of knobs we must expose to humans, what can we learn from the HCI community on how to design configuration interfaces to avoid errors and facilitate clear reasoning?
-%
-% Synthesis Tools and Language Constructs for Safe Asynchronous Programming: Asynchrony and partial failure are fundamental to networked systems, yet asynchronous programming remains notoriously error prone. To what extent can we automatically synthesize tricky pieces of asynchronous code? Can we provide language constructs that side-step the need for developers to reason about the entire combinatorial space of possible message orderings?
-% References
-
 % TODO(cs): add limitations
+% TODO(cs): add lessons learned?
+%
+\noindent{\textbf{Future Work.}} We see several directions for future work on execution reduction. Some of
+these directions address limitations of the work presented in this
+dissertation, and others pose new questions.
 
+\begin{itemize}
 
-% TODO(cs): add future work
+\item \textbf{Constrained Computational Models for Program Analysis.} All of
+our execution reduction strategies are motivated by
+\textit{program properties}, or constraints
+on the computational structure of the practical systems we care about in
+practice. We have yet to properly formalize these program properties. Can we formalize those program properties, and prove that practical systems exhibit those properties? Within those
+constrained computational models, can we prove that our execution reduction
+strategies achieve
+soundness and completeness?
+
+More generally, program analysis for arbitrary Turing machines and arbitrary program properties
+is typically either undecidable or intractable. The distributed systems we build
+in practice however are not adversarial! Can we codify the properties of practical
+distributed systems that make them more easily
+amenable to program analysis? What program analysis tools can we provide to help
+alleviate the specific challenges (e.g. performance variability, concurrency) faced
+by distributed systems?
+
+We list a set of conjectured program properties here:
+
+\textit{Reducibility:} Suppose that an invariant is defined over a small
+subset of each processes' local variables. Suppose further that, upon
+receiving a single message, each process will only update some
+of its local variables, not all of them. Consider reducing the overall state
+machine (defined as the cross product of the
+state machines of each process) to a machine that only contains state transitions
+whose updated local variables are within the domain of the invariant. It is likely
+that the path through this machine defined by the events in the original execution
+will contain \textit{loops}. We can remove any events in the original
+execution that cause the machine to traverse those loops, and still arrive at
+the final unsafe state.
+
+\textit{Quiescence:} If the program p is quiescent -- meaning that it is
+guaranteed to eventually stop sending messages -- then the set of schedules to
+be explored is finite.
+
+\textit{Semi-Quiescence:} If the program p is semi-quiescent -- meaning that it is quiescent except for
+some message type (e.g. heartbeat messages) -- then the set of schedules to be
+explored is finite if you assume that the non-quiescent component of the
+program p is correct.
+
+\textit{K-Quiescence:} If the program p is k-quiescent -- meaning that it is
+guaranteed to stop sending messages within k-steps, then the set of schedules
+to be explored is bounded.
+
+\textit{Commutativity:} If some of the events within the schedule space can be
+reordered without changing the outcome -- i.e. p exhibits some degree of
+commutativity -- then not all schedules need to be explored, viz. those where
+the commutative events are reordered. This is the intuition behind DPOR, but
+there are other forms of commutativity than the happens-before relation
+considered by DPOR.
+
+\textit{Symmetry:} Suppose that if we change the labels of some of the processes in the
+system, the behavior of the overall system is the same. Any executions that only differ in the
+placement of the labels are therefore equivalent.
+
+\textit{Data Independence:} If the internal state transitions taken by p in response to
+external events do not depend on the values of the external messages,
+then schedules with only differing values of the external messages can be
+considered equivalent.
+
+\textit{Bounded Edit Distance:} Consider the state
+machine defined as the cross product of all processes' state machines. Each
+edge is labeled with an event. Now consider all states that exhibit the
+invariant violation, and the k-shortest paths that lead up to any of those
+states. At least one of those paths has at most $\alpha$ transitions that were not
+in the original execution, and the remaining transitions can be converted
+to a subsequence of the original execution with at most $\beta$ reorderings,
+where $\alpha$ and $\beta$ are small constants.
+
+\textit{Recency of State:} A program p exhibits state recency if whenever the program p reaches quiescence, its memory
+footprint is bounded; that is, it forgets about events from before k-steps of reaching
+quiescence.
+
+\textit{Monotonicity:} Let $f_p$ denote a function that takes a finite
+sequence of external events $E'$, and returns whether there exists a schedule
+$S'$ containing $E'$ that triggers the violation. A set of external events $E$
+is monotonic if whenever $f_p(E') = true$, then for all subsequences $E''$ of
+$E'$, $f_p(E'') = true$.
+
+\item \textbf{Improving Upon Our Schedule Exploration Strategies.} In this
+dissertation we designed a small number of heuristics, and empirically showed
+that they are effective. However, there may be many other, complementary and effective
+heuristics. In fact, many of these new heuristics could fall directly out of
+our formalization of program properties. A few examples:
+
+Exploring reorderings of events seems to be less fruitful than exploring
+unexpected events. Would it be effective to give DPOR a fixed budget of
+unexpected events to explore, and a smaller budget of reordering to explore?
+
+We have noticed that timers (messages sent to the node itself) seem to play a
+particularly important role in the control flow of the execution. Would it be
+effective to extend the fixed budget idea to 4 distinct budgets: one for unexpected timers,
+one for reorderings of timers, one for unexpected messages, and one for
+reordered messages?
+
+Looking at visualizations of our executions, it becomes clear that there
+are ``clusters'' of events. Within those clusters, there are many happens-before
+edges, but across those clusters, there are few happens-before edges. Would
+either of these heuristics produce rapid reduction?:
+(i) prioritize reorderings within clusters before
+reorderings across clusters, or (ii) prioritize reorderings across clusters
+before reorderings within clusters.
+
+The `provenance' of messages---the causal chain of message deliveries that
+preceded it---provides potentially useful information to reduction strategies.
+Can we cluster and prioritize messages according to their vicinity in the
+causal graph? Can we reason a priori about which internal events will \textit{not} show
+up as a result of removing prior events?
+
+\item \textbf{Leveraging Whitebox Visibility.} In this dissertation we refrain
+from analyzing the code. But our refrain is by no means fundamental; can we
+apply static and dynamic analysis to improve our schedule exploration
+strategies? Can we gain lightweight visibility into internal state of the
+processes (e.g., through the invariant checking function we are given by the
+application developer), without needing to tie ourselves to the details of a particular language or
+implementation?
+
+\item \textbf{Automatically Learning Schedule Exploration Strategies.} The
+schedule exploration strategies we developed here are designed by hand, based
+on our personal experiences debugging. Could we instead have the machine
+\textit{learn} appropriate schedule exploration strategies, as it experiments
+with more and more system behaviors? For example, could we infer a model of
+the program's state machine (a la Synoptic~\cite{synoptic,csight}), and use this model to dynamically guide which
+schedules to explore next?  We have
+already begun investigating this line of inquiry.
+
+\item \textbf{Synthesizing Fingerprints.} We currently define our message
+fingerprints by manually examining the message formats for all protocols used
+by the distributed system. This task may require a substantial amount of
+effort for some systems. Is is possible to automatically extract
+message fingerprints using program analysis? Or, can we experimentally
+distinguish between message field values that are non-deterministically
+generated, and message field values that are relevant to triggering invariant
+violations? (cf. Twitter's `Diffy' Testing System~\cite{diffy}).
+
+\item \textbf{Providing Hints to Delta Debugging.} Delta debugging takes a
+domain-agnostic approach to selecting which input events to
+test (that is, it does not assume any knowledge of the structure or semantics
+of the inputs it seeks to reduce). However, the executions of distributed systems have
+rich structures. For example, we can observe the happens-before relation
+between external and internal events. Can we improve delta debugging's runtime by
+providing it hints about this causal structure? For example, would we benefit
+from coercing delta debugging to split events along minimal cuts through the
+happens-before graph? Or, suppose we split events according to their locality or type rather
+than their time? Rather than dynamically learning properties of the
+program, can we codify the semantics of input events to prevent delta
+debugging from exploring unfruitful event sequences?
+
+\item \textbf{Reducing Production Executions.} As we discussed in
+chapters~\ref{sec:discussion} and~\ref{dsec:limitations}, reducing production
+executions would require us to overcome several challenges. Can we obtain
+sufficient monitoring information from production without incurring
+prohibitive runtime overheads? Can we identify redundant events recorded in
+monitoring logs? Can we scale our test environment to match the size of production
+environments?
+
+\item \textbf{Choosing Appropriate Interposition Points.} We targeted
+OpenFlow (in chapter~\ref{sec:sts}) and the Akka actor framework (in
+chapter~\ref{sec:demi}) for a simple reason: thanks to the narrowness of
+these APIs, we did not need to exert much
+engineering effort to interpose on (i) communication
+between processes, (ii) blocking operations, (iii) clocks, and (iv) remaining sources of non-determinism.
+
+We believe that with enough interposition, it should be possible to
+sufficiently control other systems, regardless of language or
+programming model. That said, the effort needed to interpose could certainly be
+significant. By choosing appropriate interposition points, would it be
+possible to increase the generality and effectiveness of
+\projectname~and~\sys, without substantially increasing engineering effort?
+Can execution reduction work equally well if applied to a lower layer of the
+stack (e.g.
+the network or syscall layer) rather than the application layer?
+
+\item \textbf{Detecting Bugs.} Our ultimate goal should be to prevent bugs
+from being deployed in the first place. In a sense, the execution reduction
+strategies that we developed are simply strategies for \textit{finding}
+problematic schedules
+within the intractably large schedule space. Can we apply these same
+strategies to improve concurrency testing rather than debugging? Since our
+scheduling strategies are based on small-property assumptions, can we build
+up test cases from small initial executions rather than generating them randomly?
+
+\item \textbf{Preventing Configuration Errors.} Human configuration errors
+remain the largest source of outages appearing in production.
+More generally, developers and operators spend a significant portion of their time and effort dealing with configuration.
+To what extent can we design our systems to be autonomous and configuration-free? For the remainder of knobs we must
+expose to humans, what can we learn from the HCI community on how to design configuration interfaces to avoid errors and facilitate clear reasoning?
+
+\item \textbf{Designing Language Constructs for Safe Asynchronous
+Programming.} Our case studies have taught us much about the kinds of errors
+that developers of distributed systems make. These errors often involve
+asynchrony and partial failure, which  are fundamental to networked systems.
+Yet, as our case studies demonstrate, asynchronous programming remains
+notoriously error prone. To what extent can we automatically synthesize tricky
+pieces of asynchronous code? Can we design language constructs, based on our
+understanding of these common mistakes, that side-step the need for developers to reason about the entire combinatorial space of possible message orderings?
+
+\end{itemize}
+
+%\subsection{Closing Thoughts}
+Going forward, we see a pressing need to bring the state-of-the-art for
+distributed systems development tools up to speed with the more well studied and widely
+used programming
+languages and software engineering tools for sequential
+programs. We hope that continued interactions with researchers and
+practitioners alike will help us bridge this gap.
+
 % TODO(cs): future work: try building up sequences rather than minimizing
 % them, using a model checker. (Small model hypothesis.)
 % More future work
@@ -105,8 +305,6 @@ Bridging this gap would involve answering many questions spanning systems, forma
 % subsuming minimization)
 % TODO(cs): could optimize internal minimization (of all kinds, one-at-a-time, ddmin, fung clocks) by looking at DepGraph, not
 % bothering removing things we know are not going to show up.
-% TODO(cs): Other heuristics (brainstorming):
-% https://docs.google.com/document/d/13fEZB1EpMJZe_NUrn8DJqu0jWOL-0ha7h5rQhionHHQ/edit
 % TODO(cs): Arvind's "Provenance Fingerprint" as a mechanism, and also as a way of introducing DepGraph}
 % TODO(cs): Program properties. See demi/program_properties.tex
 % TODO(cs): Earlier idea: interposing at a library layer, e.g. the NIB.
