@@ -1,6 +1,6 @@
 Distributed systems, like most software systems, are becoming increasingly complex over time.
 In comparison to other areas of software engineering however, the development
-tools that help programmers cope with the complexity of distributed \&
+tools that help programmers cope with the complexity of distributed and
 concurrent systems are lagging behind their sequential counterparts.
 Inspired by the obvious utility of test case reduction tools for sequential
 executions, we sought to develop
@@ -25,8 +25,8 @@ dissertation, and others pose new questions.
 
 \begin{itemize}
 
-\item \textbf{Constrained Computational Models for Program Analysis.} All of
-our execution reduction strategies are motivated by
+\item \textbf{Constrained Computational Models for Program Analysis.} Our
+execution reduction strategies are motivated by
 \textit{program properties}, or constraints
 on the computational structure of the practical systems we care about in
 practice. We have yet to properly formalize these program properties. Can we formalize those program properties, and prove that practical systems exhibit those properties? Within those
@@ -42,7 +42,7 @@ amenable to program analysis? What program analysis tools can we provide to help
 alleviate the specific challenges (e.g. performance variability, concurrency) faced
 by distributed systems?
 
-We list a set of conjectured program properties here:
+We list some of our conjectured program properties here:
 
 \textit{Reducibility:} Suppose that an invariant is defined over a small
 subset of each processes' local variables. Suppose further that, upon
@@ -73,15 +73,15 @@ to be explored is bounded.
 reordered without changing the outcome -- i.e. p exhibits some degree of
 commutativity -- then not all schedules need to be explored, viz. those where
 the commutative events are reordered. This is the intuition behind DPOR, but
-there are other forms of commutativity than the happens-before relation
+there are other forms of commutativity beyond the happens-before relation
 considered by DPOR.
 
 \textit{Symmetry:} Suppose that if we change the labels of some of the processes in the
-system, the behavior of the overall system is the same. Any executions that only differ in the
-placement of the labels are therefore equivalent.
+system, the behavior of the overall system is the same. We could then consider any executions that only differ in the
+placement of the labels as equivalent.
 
 \textit{Data Independence:} If the internal state transitions taken by p in response to
-external events do not depend on the values of the external messages,
+external messages do not depend on the values (fields) of the external messages,
 then schedules with only differing values of the external messages can be
 considered equivalent.
 
@@ -89,13 +89,13 @@ considered equivalent.
 machine defined as the cross product of all processes' state machines. Each
 edge is labeled with an event. Now consider all states that exhibit the
 invariant violation, and the k-shortest paths that lead up to any of those
-states. At least one of those paths has at most $\alpha$ transitions that were not
+states. Bounded edit distance states that at least one of those paths has at most $\alpha$ transitions that were not
 in the original execution, and the remaining transitions can be converted
 to a subsequence of the original execution with at most $\beta$ reorderings,
 where $\alpha$ and $\beta$ are small constants.
 
 \textit{Recency of State:} A program p exhibits state recency if whenever the program p reaches quiescence, its memory
-footprint is bounded; that is, it forgets about events from before k-steps of reaching
+footprint is bounded; that is, it forgets about events from before k steps of reaching
 quiescence.
 
 \textit{Monotonicity:} Let $f_p$ denote a function that takes a finite
@@ -105,9 +105,9 @@ is monotonic if whenever $f_p(E') = true$, then for all subsequences $E''$ of
 $E'$, $f_p(E'') = true$.
 
 \item \textbf{Improving Upon Our Schedule Exploration Strategies.} In this
-dissertation we designed a small number of heuristics, and empirically showed
-that they are effective. However, there may be many other, complementary and effective
-heuristics. In fact, many of these new heuristics could fall directly out of
+dissertation we designed a small number of heuristics and empirically showed
+that they are effective. However, there may be other complementary and effective
+heuristics. Many of these new heuristics could in fact fall directly out of
 our formalization of program properties. A few examples:
 
 Exploring reorderings of events seems to be less fruitful than exploring
@@ -116,7 +116,7 @@ unexpected events to explore, and a smaller budget of reordering to explore?
 
 We have noticed that timers (messages sent to the node itself) seem to play a
 particularly important role in the control flow of the execution. Would it be
-effective to extend the fixed budget idea to 4 distinct budgets: one for unexpected timers,
+effective to extend fixed budgets to 4 distinct budgets?: one for unexpected timers,
 one for reorderings of timers, one for unexpected messages, and one for
 reordered messages?
 
@@ -126,9 +126,9 @@ edges, but across those clusters, there are few happens-before edges. Would
 either of these heuristics produce rapid reduction?:
 (i) prioritize reorderings within clusters before
 reorderings across clusters, or (ii) prioritize reorderings across clusters
-before reorderings within clusters.
+before reorderings within clusters?
 
-The `provenance' of messages---the causal chain of message deliveries that
+The `provenance' of a message---the causal chain of message deliveries that
 preceded it---provides potentially useful information to reduction strategies.
 Can we cluster and prioritize messages according to their vicinity in the
 causal graph? Can we reason a priori about which internal events will \textit{not} show
@@ -138,20 +138,21 @@ up as a result of removing prior events?
 from analyzing the code. But our refrain is by no means fundamental; can we
 apply static and dynamic analysis to improve our schedule exploration
 strategies? Can we gain lightweight visibility into internal state of the
-processes (e.g., through the invariant checking function we are given by the
+processes (e.g., through the invariant checking function we are already given by the
 application developer), without needing to tie ourselves to the details of a particular language or
 implementation?
 
 \item \textbf{Automatically Learning Schedule Exploration Strategies.} The
 schedule exploration strategies we developed here are designed by hand, based
-on our personal experiences debugging. Could we instead have the machine
+on our personal experiences debugging and understanding the programs under
+test. Could we instead have our tool
 \textit{learn} appropriate schedule exploration strategies, as it experiments
 with more and more system behaviors? For example, could we infer a model of
 the program's state machine (a la Synoptic~\cite{synoptic,csight}), and use this model to dynamically guide which
 schedules to explore next?  We have
 already begun investigating this line of inquiry.
 
-\item \textbf{Synthesizing Fingerprints.} We currently define our message
+\item \textbf{Synthesizing Message Fingerprints.} We currently define our message
 fingerprints by manually examining the message formats for all protocols used
 by the distributed system. This task may require a substantial amount of
 effort for some systems. Is is possible to automatically extract
@@ -164,8 +165,8 @@ violations? (cf. Twitter's `Diffy' Testing System~\cite{diffy}).
 domain-agnostic approach to selecting which input events to
 test (that is, it does not assume any knowledge of the structure or semantics
 of the inputs it seeks to reduce). However, the executions of distributed systems have
-rich structures. For example, we can observe the happens-before relation
-between external and internal events. Can we improve delta debugging's runtime by
+rich structures (e.g., they are partially ordered by the happens-before
+relation). Can we improve delta debugging's complexity by
 providing it hints about this causal structure? For example, would we benefit
 from coercing delta debugging to split events along minimal cuts through the
 happens-before graph? Or, suppose we split events according to their locality or type rather
@@ -174,7 +175,7 @@ program, can we codify the semantics of input events to prevent delta
 debugging from exploring unfruitful event sequences?
 
 \item \textbf{Reducing Production Executions.} As we discussed in
-chapters~\ref{sec:discussion} and~\ref{dsec:limitations}, reducing production
+chapters~\ref{sec:discussion} and~\ref{dsec:implementation}, reducing production
 executions would require us to overcome several challenges. Can we obtain
 sufficient monitoring information from production without incurring
 prohibitive runtime overheads? Can we identify redundant events recorded in
@@ -199,16 +200,18 @@ stack (e.g.
 the network or syscall layer) rather than the application layer?
 
 \item \textbf{Detecting Bugs.} Our ultimate goal should be to prevent bugs
-from being deployed in the first place. In a sense, the execution reduction
-strategies that we developed are simply strategies for \textit{finding}
+from being deployed in the first place. In a sense, the techniques
+that we developed are simply strategies for \textit{finding}
 problematic schedules
 within the intractably large schedule space. Can we apply these same
-strategies to improve concurrency testing rather than debugging? Since our
-scheduling strategies are based on small-property assumptions, can we build
+strategies to improve concurrency testing, before debugging takes place? Since our
+scheduling strategies are based on small model property assumptions, can we build
 up test cases from small initial executions rather than generating them randomly?
+Can we use our knowledge of prior bugs to avoid finding other bugs that
+developers will not care to fix?
 
 \item \textbf{Preventing Configuration Errors.} Human configuration errors
-remain the largest source of outages appearing in production.
+remain the largest source of production outages.
 More generally, developers and operators spend a significant portion of their time and effort dealing with configuration.
 To what extent can we design our systems to be autonomous and configuration-free? For the remainder of knobs we must
 expose to humans, what can we learn from the HCI community on how to design configuration interfaces to avoid errors and facilitate clear reasoning?
