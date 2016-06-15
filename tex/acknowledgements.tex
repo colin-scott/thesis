@@ -1,29 +1,94 @@
 \begin{acknowledgements}
 
-Many thanks to the STS team for making this thesis possible: Andreas Wundsam,
-Barath Raghavan, Aurojit Panda, Zhi Liu, Sam Whitlock, Ahmed
-El-Hassany, Andrew Or, Jefferson Lai, Eugene Huang, Hrishikesh Acharya, and
-Kyriakos Zarifis.
+I would like to acknowledge my advisors: Scott Shenker, Arvind
+Krishnamurthy, and recently, George Necula. Scott's humility was the main reason I chose to
+come to Berkeley for graduate school. He taught me, among many things, how to
+transform my dry and stilted writing and speaking into engaging storylines,
+and how to identify the simplicity at the core of complex technical
+concepts. It is thanks to his extraordinary support that I was able to move to Seattle midway through
+graduate school. Arvind is responsible for
+letting me out into the academic world, and he took me under his wing again
+when I returned to Seattle. His optimism and
+excitement are absolutely infectious. His insistence on
+surrounding
+oneself with \textit{nice} collaborators has served me well throughout my
+career. George is the most genuine researcher I have ever met. He does
+not `play the game' nor seek to heighten his own reputation; he is motivated
+as far as I can tell purely by a search for truth and value. Although I
+will likely never match his raw intellect, it would be an admirable
+achievement to adopt some of his attitudes.
 
-\noindent~Thanks also to Shivaram Venkataraman, Justine Sherry, Radhika Mittal, Teemu
-Koponen, and Peter Bailis for providing feedback on earlier versions of this
-text.
+I am also indebted to many other collaborators who have helped shaped the
+content of this dissertation. First and foremost, I am indebted to my
+officemate and friend Aurojit Panda. Panda's knowledge, both technical and non-technical,
+is astounding. His role in shaping both of the core chapters of this
+dissertation has been invaluable, and the breadth of
+topics I learned about through my conversations with
+him came in handy on several occasions in my 1:1 job interviews. Andreas Wundsman taught me a great deal about
+how to write high quality, effective, and appropriately structured code. Without his companionship I am not sure I
+would have persevered through my third year of graduate school. Sam Whitlock,
+Ahmed El-Hassany, Vjekoslav Brajkovic, Zhi Liu, Andrew Or, Jefferson Lai,
+Eugene Huang, Kyriakos Zarifis, and Barath Raghavan also played an
+instrumental role in helping me shape the ideas and results presented here.
 
-\noindent~Most importantly, huge thanks to Scott Shenker for putting up with me!
+Vern Paxson, Ali Ghodsi, and Barath Raghavan, each in their own way, taught me
+the value and importance of focusing on details. My competency as a researcher
+has been improved by their urging.
 
-%  - I'll start with the person who let me out into the academic world: Arvind Krishnamurthy. Arvind's optimism and excitement is absolutely infectuous. And his insistence on surrounding himself by *nice* people has carried over well into the remainder of my collaborators.
-%  - Ethan Katz-Bassett for starting my on research.
-%  - George is among the most pure, authentic researchers I know. Super nice.
-%  - Ali Ghodsi " Appreciate the value of both the forest and the trees"
-%  - Scott, for putting up with me, supporting me in moving to Seattle,...
-%  - Justine for the mentorship, example-setting, and friendship she has given me since my junior year of college.
-%  - Vern Paxson and Barath Raghavan for encouraging me to pay attention to details
-%  - Aurojit Panda for his knowledge and persistent willingness to help.
-%  - Sangjin Han, who has the highest signal (insight) to noise
-%    (gossip) ratio of anyone I have ever met.
-%  - Maria for helping me become a better person, and for putting up with a
-%    boyfriend who travels all the time.
+When I first met Ethan Katz-Bassett, I did not yet know that `dictionary' is
+synonym for `hashmap', and when he gave me instructions for running my first experiment,
+I mistakenly believed that he was asking me to take
+out pen and paper and painstakingly count IP addresses by hand. Thanks to his
+mentorship, I was able to successfully start along the path to where I am today.
+In my own work with undergraduates I have tried to emulate his innate
+mentorship skills.
 
+My persective on academia and its role in the world has been shaped by my
+multiple experiences as a software engineering intern. Michael Piatek,
+Michael Buettner, and Teemu Koponen served as great mentors and role models during that time.
+
+Among my graduate peers I have found some of my dearest friends.
+Justine Sherry has provided great mentorship, example-setting, and companionship
+since my junior year of college. I shared many laughs with my Berkeley officemates
+Radhika Mittal, Kay Ousterhout, Aurojit Panda, Amin Tootoonchian, Murphy Mccauley, Ethan
+Jackson, Qifan Pu, Wenting Zheng, and (de
+facto) Shivaram Venkataraman, as well as my UW officemates Will Scott, Qiao
+Zhang, Danyang Zhou, Vincent Liu, Haichen Shen, Seungyeop Han, Donny Huang, Ray Cheng, and Sophia Wang.
+Sangjin Han has perhaps the highest signal (insight) to noise (gossip)
+ratios of anyone I know. Peter Bailis, through his example, taught me the
+value of promoting one's research, especially to non-academic audiences.
+I will never forget my housemates, especially Austin Buchan, Armin
+Samii, Ali K\"oksal, and Martin Maas.
+
+I would be remiss not to thank Maria Clow, who continues to teach
+me to be a better person. I have cherished her companionship through
+happy times, sad times, angry times, anxious times, and even a category 4 hurricane.
+
+Lastly, I am grateful to my family for their love and support.
+
+% Many thanks to the STS team for making this thesis possible: Andreas Wundsam,
+% Barath Raghavan, Aurojit Panda, Zhi Liu, Sam Whitlock, Ahmed
+% El-Hassany, Andrew Or, Jefferson Lai, Eugene Huang, Hrishikesh Acharya, and
+% Kyriakos Zarifis.
+%
+% \noindent~Thanks also to Shivaram Venkataraman, Justine Sherry, Radhika Mittal, Teemu
+% Koponen, and Peter Bailis for providing feedback on earlier versions of this
+% text.
+%
+% \noindent~Most importantly, huge thanks to Scott Shenker for putting up with me!
+
+% - I'll start with the person who let me out into the academic world: Arvind Krishnamurthy. Arvind's optimism and excitement is absolutely infectuous. And his insistence on surrounding himself by *nice* people has carried over well into the remainder of my collaborators.
+% - Ethan Katz-Bassett for starting my on research.
+% - George is among the most pure, authentic researchers I know. Super nice.
+% - Ali Ghodsi " Appreciate the value of both the forest and the trees"
+% - Scott, for putting up with me, supporting me in moving to Seattle,...
+% - Justine for the mentorship, example-setting, and friendship she has given me since my junior year of college.
+% - Vern Paxson and Barath Raghavan for encouraging me to pay attention to details
+% - Aurojit Panda for his knowledge and persistent willingness to help.
+% - Sangjin Han, who has the highest signal (insight) to noise
+%   (gossip) ratio of anyone I have ever met.
+% - Maria for helping me become a better person, and for putting up with a
+%   boyfriend who travels all the time.
 
 %  Your advisor is a human being
 
@@ -43,8 +108,5 @@ text.
 %  project. Make them first author.
 
 % JAmshed for his positivity / optimism?
-
-
-
 
 \end{acknowledgements}
