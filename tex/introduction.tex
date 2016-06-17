@@ -80,7 +80,8 @@ focus on faulty executions generated in an automated test environment. However, 
 illustrate how one might reduce production executions.
 
 We seek to provide execution reduction tools that leave developers of
-distributed systems with a `minimal causal sequence' of triggering events, each of which is necessary for triggering the bug.
+distributed systems with a `minimal causal sequence' of triggering events,
+which are necessary and sufficient for triggering the bug.
 We claim that the greatly reduced size of the trace makes it easier for the developer to figure out which code path contains the underlying bug, allowing them to focus their effort on the task of fixing the problematic code itself.
 As far as we know, we are the first to show how to provide execution
 reduction tools
@@ -136,7 +137,7 @@ further progress on reducing the size of the execution.
 
 We develop our blackbox execution reduction techniques
 in the context of software-defined
-networking (SDN) control software (explained in~\ref{sec:sdn}). In lieu of
+networking (SDN) control software (explained in~\S\ref{sec:sdn}). In lieu of
 application-layer interposition, we interpose on a standard
 protocol used by all SDN control software: OpenFlow~\cite{openflow}.
 %With
@@ -182,7 +183,7 @@ For any prioritization function we choose, an adversary could construct
 the program under test, or even just the initial execution, so that our our prioritization
 function does not make any reduction progress within a limited time budget.
 
-Fortunately, the systems we care about in practice are not written by
+Fortunately, the systems we care about in practice are not constructed by
 adversaries. They exhibit certain \textit{program properties}, or constraints
 on their computational structure,
 that we can take advantage of when designing our prioritization functions.

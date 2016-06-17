@@ -29,7 +29,7 @@ dissertation, and others pose new questions.
 execution reduction strategies are motivated by
 \textit{program properties}, or constraints
 on the computational structure of the practical systems we care about in
-practice. We have yet to properly formalize these program properties. Can we formalize those program properties, and prove that practical systems exhibit those properties? Within those
+practice. We have yet to properly formalize those program properties. Can we formalize those program properties, and prove that practical systems exhibit those properties? Within those
 constrained computational models, can we prove that our execution reduction
 strategies achieve
 soundness and completeness?
@@ -170,8 +170,7 @@ relation). Can we improve delta debugging's complexity by
 providing it hints about this causal structure? For example, would we benefit
 from coercing delta debugging to split events along minimal cuts through the
 happens-before graph? Or, suppose we split events according to their locality or type rather
-than their time? Rather than dynamically learning properties of the
-program, can we codify the semantics of input events to prevent delta
+than their time? Can we statically codify the semantics of input events to prevent delta
 debugging from exploring unfruitful event sequences?
 
 \item \textbf{Reducing Production Executions.} As we discussed in
@@ -207,7 +206,7 @@ within the intractably large schedule space. Can we apply these same
 strategies to improve concurrency testing, before debugging takes place? Since our
 scheduling strategies are based on small model property assumptions, can we build
 up test cases from small initial executions rather than generating them randomly?
-Can we use our knowledge of prior bugs to avoid finding other bugs that
+Can we use our knowledge of prior bugs to avoid finding new but uninteresting bugs that
 developers will not care to fix?
 
 \item \textbf{Preventing Configuration Errors.} Human configuration errors

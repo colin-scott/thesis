@@ -63,8 +63,8 @@ with subsets until it knows that it has reached a 1-minimal result.
 The simplest approach for selecting subsets of the original test case would be
 to remove one component at a time. Delta debugging does better in the average
 case by splitting the components in a fashion similar to binary search. We
-show a detailed description of the delta debugging simplification algorithm
-(the simple version that we use in this paper) in Figure~\ref{fig:ddmin}.
+show a detailed specification of the delta debugging simplification algorithm
+(the simple version~\cite{Zeller:1999:YMP:318773.318946} that we use in this paper) in Figure~\ref{fig:ddmin}.
 
 For illustration, consider the
 execution of delta debugging shown in Table~\ref{fig:ddmin_example}. The original
@@ -107,9 +107,9 @@ denotes an invariant violation, and $\PASS$ denotes lack of an invariant violati
 To be guaranteed to produce 1-minimal outputs, the version of delta debugging that we employ~\cite{Zeller:1999:YMP:318773.318946}
 makes three
 assumptions about inputs: monotonicity, unambiguity, and consistency.
-An event trace that violates monotonicity may contain events that ``undo'' the
+Inputs that violate monotonicity may contain components that ``undo'' the
 invariant violation triggered by the MCS, and may therefore exhibit
-inflated MCSes. An event trace that violates unambiguity may exhibit multiple MCSes; delta debugging
+inflated MCSes. Inputs that violate unambiguity may exhibit multiple MCSes; delta debugging
 will return one of them. The most important assumption is consistency, which
 requires that the test outcome can always be determined, i.e., that each
 subset chosen by delta debugging is semantically valid.
@@ -219,13 +219,13 @@ destination.
 If we precisely control when the network delivers each message (as we do in
 chapter~\ref{sec:demi}), we can
 systematically explore the space of possible event interleavings.
-For a given subset of an execution's input events, there is a finite number of
+For a given sequence of input (external) events, there is a finite number of
 possible event interleavings (assuming a maximum bound on the number of
 message deliveries in the execution). We could thus enumerate every possible
 event interleaving for each input subset chosen by delta debugging,
 and report back to delta debugging whether any one of those interleavings
-triggered the invariant violation. Unfortunately, this is wildly intractable: the
-number of possible event interleavings is in general factorial in the number
+triggered the invariant violation. Unfortunately, this approach is wildly intractable: the
+number of possible event interleavings is factorial in the number
 of events.
 
 As others have observed~\cite{godefroid1995partial}, many events occurring in
@@ -256,7 +256,8 @@ messages in place of the message that was just delivered.
 
 We show the original depth-first version of Dynamic Partial Order Reduction
 in Algorithm~\ref{alg:dpor}. We use DPOR as the basis for our execution
-reduction strategies in chapter~\ref{sec:demi}; we modify it to explore the schedule in a
+reduction strategies in chapter~\ref{sec:demi}; we modify it to explore the
+schedule space in a
 prioritized order.
 
 Our modified DPOR algorithm uses a priority queue
@@ -266,7 +267,7 @@ necessary to avoid exploring redundant schedules (an artifact of our non depth-f
 exploration order, to be explained later in chapter~\ref{sec:demi}). The memory footprint required for tracking previously explored
 schedules continues growing for every new schedule we explore. Because we
 assume a fixed time budget though,
-we typically exhaust our time budget before we run out of memory.
+we typically exhaust our time budget well before we run out of memory.
 
 There are a few desirable properties of the unmodified DPOR algorithm that we want to maintain,
 despite our prioritized exploration order:
